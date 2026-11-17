@@ -1,0 +1,2282 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>금오정밀 KJ-OMS · 수주·납품 관리 Back-office</title>
+<meta name="description" content="금오정밀 수주·납품 관리 Back-office — 수주 접수·기준정보 검증·실시간 집계·승인·감사 로그 통합 워크스페이스 (실습2 1번 화면)" />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  if (window.tailwind) tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans: ['"Pretendard Variable"', 'Pretendard', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'SFMono-Regular', 'Consolas', 'monospace']
+        }
+      }
+    }
+  };
+</script>
+<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  /* ============ Design tokens ============ */
+  :root {
+    --bg: #eef2f8;
+    --orb1: rgba(56, 189, 248, .22);
+    --orb2: rgba(139, 92, 246, .16);
+    --orb3: rgba(16, 185, 129, .12);
+    --card: rgba(255, 255, 255, .72);
+    --card-solid: #ffffff;
+    --card2: rgba(241, 245, 249, .85);
+    --line: rgba(15, 23, 42, .08);
+    --line2: rgba(15, 23, 42, .15);
+    --tx1: #0b1324;
+    --tx2: #475569;
+    --tx3: #7b879b;
+    --cyan: #0891b2;
+    --cyan-soft: rgba(8, 145, 178, .12);
+    --violet: #6d28d9;
+    --violet-soft: rgba(109, 40, 217, .10);
+    --ok: #059669;
+    --ok-soft: rgba(5, 150, 105, .12);
+    --warn: #c27803;
+    --warn-soft: rgba(217, 119, 6, .13);
+    --err: #e11d48;
+    --err-soft: rgba(225, 29, 72, .10);
+    --dup: #ea580c;
+    --dup-soft: rgba(234, 88, 12, .12);
+    --blue: #2a78d6;
+    --aqua: #1baf7a;
+    --grid: rgba(15, 23, 42, .07);
+    --shadow: 0 12px 34px -14px rgba(15, 23, 42, .22);
+    --glow: 0 0 0 rgba(0,0,0,0);
+    --border-grad: linear-gradient(135deg, rgba(8,145,178,.35), rgba(255,255,255,0) 38%, rgba(255,255,255,0) 62%, rgba(109,40,217,.30));
+  }
+  .dark {
+    --bg: #050912;
+    --orb1: rgba(34, 211, 238, .16);
+    --orb2: rgba(139, 92, 246, .18);
+    --orb3: rgba(16, 185, 129, .10);
+    --card: rgba(13, 21, 38, .58);
+    --card-solid: #0c1424;
+    --card2: rgba(30, 41, 59, .42);
+    --line: rgba(148, 163, 184, .10);
+    --line2: rgba(148, 163, 184, .22);
+    --tx1: #e8eef8;
+    --tx2: #9eabc2;
+    --tx3: #66758d;
+    --cyan: #22d3ee;
+    --cyan-soft: rgba(34, 211, 238, .12);
+    --violet: #a78bfa;
+    --violet-soft: rgba(167, 139, 250, .13);
+    --ok: #34d399;
+    --ok-soft: rgba(52, 211, 153, .13);
+    --warn: #fbbf24;
+    --warn-soft: rgba(251, 191, 36, .13);
+    --err: #fb7185;
+    --err-soft: rgba(251, 113, 133, .13);
+    --dup: #fb923c;
+    --dup-soft: rgba(251, 146, 60, .13);
+    --blue: #3987e5;
+    --aqua: #199e70;
+    --grid: rgba(148, 163, 184, .08);
+    --shadow: 0 24px 60px -24px rgba(0, 0, 0, .7);
+    --border-grad: linear-gradient(135deg, rgba(34,211,238,.45), rgba(255,255,255,0) 38%, rgba(255,255,255,0) 62%, rgba(167,139,250,.40));
+  }
+
+  html { scroll-behavior: smooth; }
+  .hidden { display: none !important; }
+  body {
+    font-family: "Pretendard Variable", Pretendard, system-ui, -apple-system, "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--tx1);
+    transition: background-color .5s ease, color .3s ease;
+    -webkit-font-smoothing: antialiased;
+  }
+  .mono { font-family: "JetBrains Mono", ui-monospace, Consolas, monospace; font-feature-settings: "zero" 1; }
+  .t1 { color: var(--tx1); } .t2 { color: var(--tx2); } .t3 { color: var(--tx3); }
+  .c-cyan { color: var(--cyan); } .c-ok { color: var(--ok); } .c-warn { color: var(--warn); } .c-err { color: var(--err); } .c-violet { color: var(--violet); } .c-dup { color: var(--dup); }
+  ::selection { background: rgba(34, 211, 238, .3); }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 99px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+
+  /* ============ Background scene ============ */
+  .scene { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; }
+  .scene .orb { position: absolute; border-radius: 50%; filter: blur(80px); animation: float 22s ease-in-out infinite; }
+  .scene .o1 { width: 620px; height: 620px; background: var(--orb1); top: -180px; left: -120px; }
+  .scene .o2 { width: 560px; height: 560px; background: var(--orb2); top: 20%; right: -160px; animation-delay: -7s; }
+  .scene .o3 { width: 520px; height: 520px; background: var(--orb3); bottom: -200px; left: 30%; animation-delay: -13s; }
+  .scene .gridbg {
+    position: absolute; inset: 0;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+  }
+  @keyframes float { 0%,100% { transform: translate(0,0) scale(1); } 33% { transform: translate(60px,40px) scale(1.08); } 66% { transform: translate(-40px,30px) scale(.95); } }
+
+  /* ============ Glass cards ============ */
+  .glass {
+    position: relative;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    box-shadow: var(--shadow);
+    transition: background-color .5s ease, border-color .3s ease, box-shadow .4s ease;
+  }
+  .glass::before {
+    content: ""; position: absolute; inset: -1px; border-radius: inherit; padding: 1px;
+    background: var(--border-grad);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor; mask-composite: exclude;
+    pointer-events: none; opacity: .9;
+  }
+  .glass.focus-ring { box-shadow: 0 0 0 2px var(--cyan), 0 0 40px -6px var(--cyan); }
+  .sub-card { background: var(--card2); border: 1px solid var(--line); border-radius: 14px; }
+  .divider { border-color: var(--line); }
+  .sec-title { font-weight: 700; letter-spacing: -.01em; }
+  .step-no {
+    display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 7px;
+    font-size: 11px; font-weight: 800; color: #04121a; background: linear-gradient(135deg, #22d3ee, #a78bfa);
+  }
+
+  /* ============ Header ============ */
+  .hdr { background: color-mix(in srgb, var(--bg) 72%, transparent); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--line); }
+  .logo-mark {
+    width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; font-weight: 900; font-size: 14px; color: #fff;
+    background: conic-gradient(from 200deg, #22d3ee, #6366f1, #a78bfa, #22d3ee);
+    box-shadow: 0 0 24px -4px rgba(34, 211, 238, .6);
+    position: relative; overflow: hidden;
+  }
+  .logo-mark::after { content: ""; position: absolute; inset: 0; background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,.55) 50%, transparent 70%); transform: translateX(-100%); animation: shine 4s ease-in-out infinite; }
+  @keyframes shine { 0%,60% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: .45rem; font-weight: 600; font-size: 13px; border-radius: 11px; padding: .55rem .9rem;
+    border: 1px solid var(--line2); background: var(--card2); color: var(--tx1);
+    transition: transform .15s ease, background-color .2s, border-color .2s, box-shadow .25s, opacity .2s;
+    white-space: nowrap; user-select: none;
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-1px); border-color: var(--cyan); box-shadow: 0 6px 20px -8px var(--cyan); }
+  .btn:active:not(:disabled) { transform: translateY(0) scale(.98); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .btn-primary {
+    color: #021018; border: 0;
+    background: linear-gradient(135deg, #22d3ee 0%, #38bdf8 40%, #a78bfa 100%);
+    box-shadow: 0 8px 26px -10px rgba(34, 211, 238, .9), inset 0 1px 0 rgba(255,255,255,.4);
+  }
+  .btn-primary:hover:not(:disabled) { box-shadow: 0 10px 34px -8px rgba(34, 211, 238, 1), inset 0 1px 0 rgba(255,255,255,.5); }
+  .btn-fix {
+    position: relative; overflow: hidden; color: #1b1000; border: 0;
+    background: linear-gradient(135deg, #fde047, #fbbf24 45%, #fb923c);
+    box-shadow: 0 8px 28px -10px rgba(251, 191, 36, .95), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  .btn-fix::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,.6) 50%, transparent 65%); transform: translateX(-120%); animation: shine 2.8s ease-in-out infinite; }
+  .btn-ok { color: #02170f; border: 0; background: linear-gradient(135deg, #6ee7b7, #34d399 50%, #22d3ee); box-shadow: 0 8px 28px -10px rgba(52, 211, 153, .95); }
+  .btn-danger { color: var(--err); border-color: color-mix(in srgb, var(--err) 45%, transparent); background: var(--err-soft); }
+  .btn-ghost { background: transparent; }
+  .icon-btn { width: 38px; height: 38px; padding: 0; justify-content: center; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: .3rem; font-size: 11.5px; font-weight: 600; padding: .2rem .55rem; border-radius: 999px;
+    border: 1px solid var(--line2); background: var(--card2); color: var(--tx2); white-space: nowrap;
+  }
+  .chip.on { color: var(--cyan); border-color: color-mix(in srgb, var(--cyan) 55%, transparent); background: var(--cyan-soft); }
+  button.chip { cursor: pointer; transition: all .2s; }
+  button.chip:hover { border-color: var(--cyan); }
+
+  .badge { display: inline-flex; align-items: center; gap: .28rem; font-size: 11px; font-weight: 700; padding: .18rem .5rem; border-radius: 7px; white-space: nowrap; border: 1px solid transparent; }
+  .b-ok { color: var(--ok); background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 30%, transparent); }
+  .b-fix { color: var(--warn); background: var(--warn-soft); border-color: color-mix(in srgb, var(--warn) 35%, transparent); }
+  .b-err { color: var(--err); background: var(--err-soft); border-color: color-mix(in srgb, var(--err) 35%, transparent); }
+  .b-dup { color: var(--dup); background: var(--dup-soft); border-color: color-mix(in srgb, var(--dup) 35%, transparent); }
+  .b-pend { color: var(--tx2); background: var(--card2); border-color: var(--line2); }
+  .b-appr { color: var(--cyan); background: var(--cyan-soft); border-color: color-mix(in srgb, var(--cyan) 35%, transparent); }
+  .b-sys { color: var(--blue); background: color-mix(in srgb, var(--blue) 14%, transparent); border-color: color-mix(in srgb, var(--blue) 35%, transparent); }
+  .b-t1 { color: var(--aqua); background: color-mix(in srgb, var(--aqua) 14%, transparent); border-color: color-mix(in srgb, var(--aqua) 35%, transparent); }
+  .b-unk { color: var(--tx3); background: var(--card2); border-color: var(--line2); }
+
+  select.sel, input.inp {
+    background: var(--card2); border: 1px solid var(--line2); color: var(--tx1); border-radius: 11px; padding: .55rem .75rem; font-size: 13.5px; outline: none;
+    transition: border-color .2s, box-shadow .25s, background-color .2s;
+  }
+  select.sel option { background: var(--card-solid); color: var(--tx1); }
+  input.inp::placeholder { color: var(--tx3); }
+  input.inp:focus, select.sel:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
+
+  /* ============ System map ============ */
+  .sys-wrap { display: grid; grid-template-columns: repeat(9, auto); align-items: center; min-width: 880px; }
+  .sys-node {
+    position: relative; display: flex; align-items: center; gap: .75rem; padding: .8rem 1rem; border-radius: 16px; cursor: pointer;
+    border: 1px solid var(--line); background: var(--card2); transition: transform .25s cubic-bezier(.34,1.56,.64,1), border-color .3s, opacity .3s;
+  }
+  .sys-node:hover { transform: translateY(-3px); border-color: var(--line2); }
+  .sys-node.locked { opacity: .62; }
+  .sys-node.locked:hover { opacity: .9; }
+  .sys-node .ic { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--card); border: 1px solid var(--line2); color: var(--tx2); position: relative; flex-shrink: 0; }
+  .sys-node.active { border-color: color-mix(in srgb, var(--cyan) 60%, transparent); background: linear-gradient(135deg, var(--cyan-soft), var(--violet-soft)); box-shadow: 0 0 34px -8px var(--cyan); }
+  .sys-node.active .ic { color: #031018; background: linear-gradient(135deg, #22d3ee, #a78bfa); border: 0; }
+  .sys-node.active .ic::before, .sys-node.active .ic::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 15px; border: 2px solid var(--cyan); animation: pulseRing 2.2s cubic-bezier(.2,.6,.4,1) infinite;
+  }
+  .sys-node.active .ic::after { animation-delay: 1.1s; }
+  @keyframes pulseRing { 0% { transform: scale(.9); opacity: .9; } 100% { transform: scale(1.55); opacity: 0; } }
+  .sys-node .live-dot { width: 7px; height: 7px; border-radius: 99px; background: var(--ok); box-shadow: 0 0 10px var(--ok); animation: blink 1.4s ease-in-out infinite; }
+  @keyframes blink { 50% { opacity: .25; } }
+  .sys-link { position: relative; height: 2px; min-width: 34px; margin: 0 6px; background: repeating-linear-gradient(90deg, var(--line2) 0 6px, transparent 6px 11px); }
+  .sys-link.flow { background: linear-gradient(90deg, var(--cyan), var(--violet)); opacity: .9; }
+  .sys-link.flow .pkt { position: absolute; top: -3px; width: 8px; height: 8px; border-radius: 99px; background: #fff; box-shadow: 0 0 12px 3px var(--cyan); animation: pkt 2.4s linear infinite; }
+  .sys-link.flow .pkt:nth-child(2) { animation-delay: .8s; } .sys-link.flow .pkt:nth-child(3) { animation-delay: 1.6s; }
+  @keyframes pkt { 0% { left: 0; opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { left: calc(100% - 8px); opacity: 0; } }
+  .sys-link .arrow { position: absolute; right: -4px; top: -4px; width: 0; height: 0; border-left: 7px solid var(--line2); border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+  .sys-link.flow .arrow { border-left-color: var(--violet); }
+
+  /* ============ Pipeline ============ */
+  .pipe-track { position: relative; height: 8px; border-radius: 99px; background: var(--card2); border: 1px solid var(--line); overflow: hidden; }
+  .pipe-fill {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 99px;
+    background: linear-gradient(90deg, #22d3ee, #38bdf8, #818cf8, #a78bfa, #34d399);
+    background-size: 200% 100%;
+    transition: width 1.4s cubic-bezier(.22,1,.36,1);
+    animation: liquid 3s linear infinite;
+    box-shadow: 0 0 18px rgba(34, 211, 238, .7);
+  }
+  .pipe-fill::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(115deg, rgba(255,255,255,.0) 0 10px, rgba(255,255,255,.25) 10px 14px); animation: stripes 1s linear infinite; }
+  @keyframes liquid { to { background-position: -200% 0; } }
+  @keyframes stripes { to { background-position: 28px 0; } }
+  .pipe-step {
+    position: relative; text-align: left; border-radius: 16px; padding: .85rem .9rem; border: 1px solid var(--line); background: var(--card2);
+    transition: transform .3s cubic-bezier(.34,1.56,.64,1), border-color .3s, box-shadow .3s, background .3s; cursor: pointer;
+  }
+  .pipe-step:hover { transform: translateY(-3px); }
+  .pipe-step .num { width: 30px; height: 30px; border-radius: 10px; display: grid; place-items: center; font-weight: 800; font-size: 13px; background: var(--card); border: 1px solid var(--line2); color: var(--tx2); transition: all .4s; }
+  .pipe-step.done { border-color: color-mix(in srgb, var(--ok) 45%, transparent); }
+  .pipe-step.done .num { background: linear-gradient(135deg, #34d399, #22d3ee); color: #03170f; border: 0; }
+  .pipe-step.active { border-color: color-mix(in srgb, var(--cyan) 60%, transparent); box-shadow: 0 0 30px -10px var(--cyan); background: linear-gradient(135deg, var(--cyan-soft), transparent); }
+  .pipe-step.active .num { background: linear-gradient(135deg, #22d3ee, #a78bfa); color: #031018; border: 0; animation: breathe 1.8s ease-in-out infinite; }
+  .pipe-step.selected { outline: 2px solid var(--cyan); outline-offset: 2px; }
+  @keyframes breathe { 50% { box-shadow: 0 0 0 6px var(--cyan-soft); } }
+  .spring { animation: spring .7s cubic-bezier(.34,1.8,.5,1); }
+  @keyframes spring { 0% { transform: scale(.4) rotate(-6deg); opacity: 0; } 60% { transform: scale(1.18) rotate(2deg); opacity: 1; } 100% { transform: scale(1) rotate(0); } }
+
+  /* ============ KPI ============ */
+  .kpi { padding: 1.1rem 1.2rem; overflow: hidden; }
+  .kpi .big { font-size: 30px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; }
+  .kpi .glyph { position: absolute; right: -10px; bottom: -14px; opacity: .07; }
+  .kpi .glyph svg { width: 92px; height: 92px; }
+
+  /* ============ Form ============ */
+  .fld { position: relative; }
+  .fld label { display: flex; align-items: center; gap: .4rem; font-size: 12px; font-weight: 700; color: var(--tx2); margin-bottom: .35rem; }
+  .fld .inwrap { position: relative; }
+  .fld .inwrap input { width: 100%; padding-right: 2.4rem; }
+  .fld .state-ic { position: absolute; right: .7rem; top: 50%; transform: translateY(-50%) scale(.5); opacity: 0; transition: all .35s cubic-bezier(.34,1.56,.64,1); pointer-events: none; }
+  .fld.ok .inwrap input { border-color: color-mix(in srgb, var(--ok) 70%, transparent); box-shadow: 0 0 0 3px var(--ok-soft), 0 0 22px -8px var(--ok); }
+  .fld.ok .state-ic.i-ok { opacity: 1; transform: translateY(-50%) scale(1); color: var(--ok); filter: drop-shadow(0 0 6px var(--ok)); }
+  .fld.fix .inwrap input { border-color: color-mix(in srgb, var(--warn) 75%, transparent); box-shadow: 0 0 0 3px var(--warn-soft); }
+  .fld.fix .state-ic.i-fix { opacity: 1; transform: translateY(-50%) scale(1); color: var(--warn); }
+  .fld.err .inwrap input { border-color: color-mix(in srgb, var(--err) 75%, transparent); box-shadow: 0 0 0 3px var(--err-soft); }
+  .fld.err .state-ic.i-err { opacity: 1; transform: translateY(-50%) scale(1); color: var(--err); }
+  .hint { font-size: 11.5px; margin-top: .4rem; min-height: 18px; color: var(--tx3); display: flex; align-items: center; gap: .35rem; flex-wrap: wrap; }
+  .hint.ok { color: var(--ok); }
+  .hint.err { color: var(--err); }
+  .tip {
+    position: relative; margin-top: .55rem; padding: .55rem .7rem; border-radius: 11px; font-size: 12px; color: var(--tx1);
+    background: linear-gradient(135deg, var(--warn-soft), transparent); border: 1px solid color-mix(in srgb, var(--warn) 45%, transparent);
+    display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; animation: tipIn .45s cubic-bezier(.34,1.56,.64,1);
+    box-shadow: 0 8px 24px -12px var(--warn);
+  }
+  .tip::before { content: ""; position: absolute; top: -6px; left: 18px; width: 10px; height: 10px; transform: rotate(45deg); background: var(--card-solid); border-left: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); border-top: 1px solid color-mix(in srgb, var(--warn) 45%, transparent); }
+  .hint > .tip { width: 100%; flex-wrap: nowrap; }
+  .hint > .tip > span { flex: 1; min-width: 0; }
+  .tip .apply { flex-shrink: 0; margin-left: auto; font-size: 11px; font-weight: 800; color: #1b1000; background: linear-gradient(135deg, #fde047, #fbbf24); border-radius: 7px; padding: .2rem .55rem; cursor: pointer; }
+  .tip .apply:hover { filter: brightness(1.08); }
+  @keyframes tipIn { from { opacity: 0; transform: translateY(-6px) scale(.96); } to { opacity: 1; transform: none; } }
+  .ac {
+    position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 30; max-height: 280px; overflow: auto; border-radius: 14px; padding: .35rem;
+    background: var(--card-solid); border: 1px solid var(--line2); box-shadow: 0 24px 50px -20px rgba(0,0,0,.55);
+    transform-origin: top; animation: acIn .22s cubic-bezier(.22,1,.36,1);
+  }
+  @keyframes acIn { from { opacity: 0; transform: scaleY(.9) translateY(-4px); } to { opacity: 1; transform: none; } }
+  .ac-item { display: flex; align-items: center; gap: .6rem; padding: .5rem .6rem; border-radius: 9px; cursor: pointer; font-size: 13px; }
+  .ac-item:hover, .ac-item.hi { background: var(--cyan-soft); }
+  .ac-item mark { background: transparent; color: var(--cyan); font-weight: 800; }
+  .unit-chip { cursor: pointer; }
+  .form-lock { position: absolute; inset: 0; border-radius: 20px; z-index: 20; display: grid; place-items: center; background: color-mix(in srgb, var(--bg) 55%, transparent); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); }
+  .drop { border: 1.5px dashed var(--line2); border-radius: 16px; transition: all .25s; cursor: pointer; }
+  .drop:hover, .drop.over { border-color: var(--cyan); background: var(--cyan-soft); transform: scale(1.01); }
+  .drop.over .drop-ic { animation: bob .6s ease-in-out infinite alternate; }
+  @keyframes bob { to { transform: translateY(-5px); } }
+
+  /* ============ Table ============ */
+  .tbl-wrap { position: relative; overflow-x: auto; }
+  table.tbl { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  .tbl thead th { position: sticky; top: 0; z-index: 2; text-align: left; font-size: 11px; font-weight: 700; color: var(--tx3); text-transform: uppercase; letter-spacing: .04em; padding: .6rem .5rem; background: var(--card-solid); border-bottom: 1px solid var(--line); white-space: nowrap; }
+  .tbl tbody td { padding: .5rem .5rem; border-bottom: 1px solid var(--line); vertical-align: middle; white-space: nowrap; }
+  .tbl tbody tr { transition: background-color .35s; }
+  .tbl tbody tr:hover { background: var(--card2); }
+  .tbl tbody tr.r-err { background: linear-gradient(90deg, var(--err-soft), transparent 70%); }
+  .tbl tbody tr.r-fix { background: linear-gradient(90deg, var(--err-soft), transparent 70%); }
+  .tbl tbody tr.r-dup { background: linear-gradient(90deg, var(--dup-soft), transparent 70%); }
+  .tbl tbody tr.r-err td:first-child, .tbl tbody tr.r-fix td:first-child, .tbl tbody tr.r-dup td:first-child { box-shadow: inset 3px 0 0 var(--err); }
+  .tbl tbody tr.r-fix td:first-child { box-shadow: inset 3px 0 0 var(--warn); }
+  .tbl tbody tr.r-dup td:first-child { box-shadow: inset 3px 0 0 var(--dup); }
+  .tbl tbody tr.r-new { animation: rowNew 1.6s ease; }
+  @keyframes rowNew { 0% { background: color-mix(in srgb, var(--cyan) 30%, transparent); transform: translateX(-12px); opacity: 0; } 30% { transform: none; opacity: 1; } 100% { background: transparent; } }
+  .tbl tbody tr.r-out { animation: rowOut .45s ease forwards; }
+  @keyframes rowOut { to { opacity: 0; transform: translateX(30px); } }
+  .tbl tbody tr.r-flash { animation: rowFlash 1.1s ease; }
+  @keyframes rowFlash { 0% { background: color-mix(in srgb, var(--ok) 26%, transparent); } 100% { background: transparent; } }
+  .cell { will-change: transform; display: inline-flex; flex-direction: column; gap: 1px; border-radius: 8px; padding: .15rem .4rem; margin: -.15rem -.4rem; transform-style: preserve-3d; }
+  .cell .v { font-weight: 600; }
+  .cell.c-fix { background: var(--err-soft); outline: 1px dashed color-mix(in srgb, var(--err) 55%, transparent); }
+  .cell.c-fix .v { color: var(--err); text-decoration: underline wavy color-mix(in srgb, var(--err) 70%, transparent); text-underline-offset: 3px; }
+  .cell.c-err { background: var(--err-soft); outline: 1px solid color-mix(in srgb, var(--err) 50%, transparent); }
+  .cell.c-err .v { color: var(--err); }
+  .cell .sug { font-size: 10.5px; color: var(--warn); display: inline-flex; align-items: center; gap: 2px; font-weight: 700; }
+  .cell .sug svg { width: 11px; height: 11px; }
+  .cell .was { font-size: 10px; color: var(--tx3); text-decoration: line-through; }
+  .cell .emsg { font-size: 10px; color: var(--err); font-weight: 600; }
+  .cell.c-done .v { color: var(--ok); }
+  .shake { animation: shake .55s cubic-bezier(.36,.07,.19,.97) both; }
+  .shake-loop { animation: shake .6s cubic-bezier(.36,.07,.19,.97) 3; }
+  @keyframes shake { 10%,90% { transform: translateX(-1px); } 20%,80% { transform: translateX(2px); } 30%,50%,70% { transform: translateX(-3px); } 40%,60% { transform: translateX(3px); } }
+  .ck { width: 16px; height: 16px; accent-color: #22d3ee; cursor: pointer; }
+  .row-act { width: 28px; height: 28px; border-radius: 8px; display: inline-grid; place-items: center; color: var(--tx3); transition: all .2s; }
+  .row-act:hover:not(:disabled) { color: var(--cyan); background: var(--cyan-soft); }
+  .row-act:disabled { opacity: .3; cursor: not-allowed; }
+
+  /* Scan laser */
+  .laser { position: absolute; left: 0; right: 0; top: 0; height: 0; z-index: 5; pointer-events: none; opacity: 0; }
+  .laser.run { opacity: 1; }
+  .laser .beam { position: absolute; left: 0; right: 0; height: 3px; top: 0; background: linear-gradient(90deg, transparent, #22d3ee 15%, #fff 50%, #a78bfa 85%, transparent); box-shadow: 0 0 18px 4px rgba(34, 211, 238, .85), 0 0 60px 10px rgba(167, 139, 250, .35); }
+  .laser .trail { position: absolute; left: 0; right: 0; bottom: 0; height: 120px; transform: translateY(-100%); top: 0; background: linear-gradient(to top, rgba(34, 211, 238, .22), transparent); }
+  .scan-grid { position: absolute; inset: 0; z-index: 4; pointer-events: none; opacity: 0; transition: opacity .3s; background-image: linear-gradient(rgba(34,211,238,.10) 1px, transparent 1px), linear-gradient(90deg, rgba(34,211,238,.10) 1px, transparent 1px); background-size: 22px 22px; }
+  .scan-grid.on { opacity: 1; }
+  .scan-hud { position: absolute; right: 12px; top: 10px; z-index: 6; font-size: 11px; padding: .3rem .6rem; border-radius: 8px; color: #031018; background: linear-gradient(135deg, #22d3ee, #a78bfa); font-weight: 800; box-shadow: 0 0 22px -4px #22d3ee; }
+
+  /* ============ Compare (killer) ============ */
+  .cmp-bars { display: flex; flex-direction: column; gap: .7rem; position: relative; }
+  .cmp-row { position: relative; transition: transform .5s cubic-bezier(.22,1,.36,1), opacity .5s; }
+  .cmp-row .lbl { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .35rem; font-size: 13px; }
+  .cmp-row .track { position: relative; height: 34px; border-radius: 10px; background: var(--card2); border: 1px solid var(--line); overflow: hidden; }
+  .cmp-row .bar {
+    position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 4px 9px 9px 4px;
+    transition: width 1.1s cubic-bezier(.22,1,.36,1), background .5s;
+  }
+  .cmp-row.std .bar { background: linear-gradient(90deg, color-mix(in srgb, var(--blue) 80%, #000 0%), #22d3ee); box-shadow: 0 0 22px -4px #22d3ee; }
+  .cmp-row.bad .bar { background: repeating-linear-gradient(135deg, var(--err) 0 8px, color-mix(in srgb, var(--err) 75%, #000 10%) 8px 14px); box-shadow: 0 0 20px -6px var(--err); }
+  .cmp-row .bar::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.35), transparent); transform: translateX(-100%); animation: shine 3.2s ease-in-out infinite; }
+  .cmp-row .num { font-size: 22px; font-weight: 800; letter-spacing: -.02em; }
+  .cmp-row.bad .lbl .code { color: var(--err); }
+  .cmp-row.merge-out { opacity: 0; transform: translateY(-46px) scaleY(.3); }
+  .cmp-row.absorb .track { animation: absorb .9s cubic-bezier(.34,1.56,.64,1); }
+  @keyframes absorb { 0% { box-shadow: 0 0 0 0 rgba(34,211,238,.0); } 40% { box-shadow: 0 0 0 6px rgba(34,211,238,.35), 0 0 40px 6px rgba(34,211,238,.5); transform: scaleY(1.12); } 100% { box-shadow: none; transform: none; } }
+  .fly-chip { position: absolute; z-index: 10; pointer-events: none; font-weight: 800; font-size: 13px; padding: .2rem .55rem; border-radius: 8px; color: #031018; background: linear-gradient(135deg, #22d3ee, #a78bfa); box-shadow: 0 0 22px -2px #22d3ee; }
+  .mode-pill { display: inline-flex; align-items: center; gap: .35rem; font-size: 11.5px; font-weight: 800; padding: .3rem .65rem; border-radius: 99px; transition: all .4s; }
+  .mode-pill.split { color: var(--err); background: var(--err-soft); border: 1px solid color-mix(in srgb, var(--err) 40%, transparent); }
+  .mode-pill.merged { color: var(--ok); background: var(--ok-soft); border: 1px solid color-mix(in srgb, var(--ok) 40%, transparent); }
+  .eq { font-size: 12px; }
+  .eq .op { color: var(--tx3); margin: 0 .2rem; }
+
+  /* ============ Audit log ============ */
+  .log-list { position: relative; }
+  .log-list::before { content: ""; position: absolute; left: 15px; top: 6px; bottom: 6px; width: 2px; background: linear-gradient(to bottom, var(--cyan), var(--violet), transparent); opacity: .35; border-radius: 2px; }
+  .log-item { position: relative; display: flex; gap: .7rem; padding: .55rem 0; }
+  .log-item .dot { position: relative; z-index: 1; flex-shrink: 0; width: 32px; height: 32px; border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--line2); background: var(--card-solid); }
+  .log-item.new { animation: slideIn .6s cubic-bezier(.22,1,.36,1) both; }
+  .log-item.new .dot { animation: dotPop .8s cubic-bezier(.34,1.8,.5,1) both; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(40px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+  @keyframes dotPop { 0% { transform: scale(0); } 70% { transform: scale(1.25); } 100% { transform: scale(1); } }
+  .diff { display: inline-flex; align-items: center; gap: .3rem; font-size: 11px; padding: .15rem .45rem; border-radius: 7px; background: var(--card2); border: 1px solid var(--line); margin: .15rem .25rem 0 0; }
+  .diff .b { color: var(--err); text-decoration: line-through; }
+  .diff .a { color: var(--ok); font-weight: 700; }
+
+  /* ============ Drawer / Modal ============ */
+  .mask { position: fixed; inset: 0; z-index: 60; background: rgba(2, 6, 15, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); opacity: 0; pointer-events: none; transition: opacity .35s; }
+  .mask.open { opacity: 1; pointer-events: auto; }
+  .drawer { position: fixed; top: 0; right: 0; bottom: 0; z-index: 61; width: min(640px, 100vw); transform: translateX(105%); transition: transform .55s cubic-bezier(.22,1,.36,1); display: flex; flex-direction: column; border-radius: 22px 0 0 22px; background: var(--card-solid); border-left: 1px solid var(--line2); box-shadow: -30px 0 80px -30px rgba(0,0,0,.6); }
+  .drawer.open { transform: none; }
+  .drawer .stagger > * { opacity: 0; transform: translateY(10px); }
+  .drawer.open .stagger > * { animation: up .45s cubic-bezier(.22,1,.36,1) forwards; }
+  @keyframes up { to { opacity: 1; transform: none; } }
+  .modal { position: fixed; left: 50%; top: 50%; z-index: 61; width: min(520px, calc(100vw - 32px)); transform: translate(-50%, -46%) scale(.94); opacity: 0; pointer-events: none; transition: all .4s cubic-bezier(.34,1.56,.64,1); background: var(--card-solid); border: 1px solid var(--line2); border-radius: 20px; box-shadow: 0 40px 100px -30px rgba(0,0,0,.7); }
+  .modal.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+  .tabbtn { padding: .45rem .8rem; border-radius: 10px; font-size: 13px; font-weight: 700; color: var(--tx2); transition: all .2s; }
+  .tabbtn.on { color: var(--tx1); background: var(--card2); box-shadow: inset 0 0 0 1px var(--line2); }
+  .seg { display: inline-flex; padding: 3px; border-radius: 12px; background: var(--card2); border: 1px solid var(--line); gap: 2px; }
+  .seg button { padding: .35rem .7rem; border-radius: 9px; font-size: 12px; font-weight: 700; color: var(--tx2); transition: all .25s; }
+  .seg button.on { color: #031018; background: linear-gradient(135deg, #22d3ee, #a78bfa); box-shadow: 0 4px 14px -6px #22d3ee; }
+
+  /* ============ Toast / Overlay ============ */
+  #toasts { position: fixed; right: 18px; bottom: 18px; z-index: 90; display: flex; flex-direction: column; gap: .6rem; align-items: flex-end; }
+  .toast { display: flex; align-items: flex-start; gap: .65rem; min-width: 280px; max-width: 380px; padding: .8rem .95rem; border-radius: 14px; background: var(--card-solid); border: 1px solid var(--line2); box-shadow: 0 20px 50px -18px rgba(0,0,0,.6); animation: toastIn .55s cubic-bezier(.34,1.56,.64,1); position: relative; overflow: hidden; }
+  .toast.out { animation: toastOut .35s ease forwards; }
+  .toast .bar { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--cyan); animation: toastBar linear forwards; }
+  @keyframes toastIn { from { opacity: 0; transform: translateX(60px) scale(.9); } to { opacity: 1; transform: none; } }
+  @keyframes toastOut { to { opacity: 0; transform: translateX(60px); } }
+  @keyframes toastBar { from { width: 100%; } to { width: 0; } }
+  #confetti { position: fixed; inset: 0; z-index: 95; pointer-events: none; }
+  #checkOv { position: fixed; inset: 0; z-index: 94; display: grid; place-items: center; pointer-events: none; opacity: 0; }
+  #checkOv.show { animation: ovFade 1.9s ease forwards; }
+  @keyframes ovFade { 0% { opacity: 0; } 12% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+  #checkOv .disc { width: 150px; height: 150px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle, rgba(52,211,153,.35), rgba(52,211,153,0) 70%); }
+  #checkOv.show .disc { animation: discPop .9s cubic-bezier(.34,1.8,.5,1); }
+  @keyframes discPop { 0% { transform: scale(.2); } 100% { transform: scale(1); } }
+  #checkOv circle { stroke-dasharray: 300; stroke-dashoffset: 300; }
+  #checkOv path { stroke-dasharray: 80; stroke-dashoffset: 80; }
+  #checkOv.show circle { animation: draw .7s ease forwards; }
+  #checkOv.show path { animation: draw .45s .55s ease forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  .reveal { opacity: 0; transform: translateY(18px); animation: reveal .8s cubic-bezier(.22,1,.36,1) forwards; }
+  @keyframes reveal { to { opacity: 1; transform: none; } }
+  .tooltip-wrap { position: relative; }
+  .tooltip-wrap .tt { position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translate(-50%, 6px); opacity: 0; pointer-events: none; transition: all .25s; z-index: 40; width: max-content; max-width: 240px; font-size: 11.5px; padding: .45rem .65rem; border-radius: 10px; background: var(--card-solid); border: 1px solid var(--line2); color: var(--tx1); box-shadow: 0 14px 30px -12px rgba(0,0,0,.6); white-space: normal; }
+  .tooltip-wrap:hover .tt { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body class="min-h-screen">
+<div class="scene" aria-hidden="true"><div class="gridbg"></div><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+
+<!-- ================= HEADER ================= -->
+<header class="hdr sticky top-0 z-40">
+  <div class="max-w-[1480px] mx-auto px-4 lg:px-6 h-16 flex items-center gap-4">
+    <div class="flex items-center gap-3 min-w-0">
+      <div class="logo-mark">KJ</div>
+      <div class="min-w-0">
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold tracking-tight text-[15px]">금오정밀 KJ-OMS</span>
+          <span class="chip on hidden sm:inline-flex">Phase 1 / 5</span>
+        </div>
+        <div class="text-[11.5px] t3 truncate">수주·납품 관리 Back-office · 1번 화면 「수주 접수·검증·실시간 집계 워크스페이스」</div>
+      </div>
+    </div>
+    <div class="ml-auto flex items-center gap-2">
+      <div class="hidden md:flex items-center gap-2 chip mono" title="현재 시각"><i data-lucide="clock-3" class="w-3.5 h-3.5"></i><span id="clock">--</span></div>
+      <div class="flex items-center gap-2">
+        <i data-lucide="user-round-cog" class="w-4 h-4 t3 hidden sm:block"></i>
+        <select id="roleSel" class="sel !py-2 !text-[13px]" aria-label="사용자 권한 전환">
+          <option value="sales">김영업 · 영업 실무자</option>
+          <option value="quality">정품질 · 품질·출하 담당</option>
+          <option value="manager">박승인 · 승인 책임자</option>
+        </select>
+      </div>
+      <button id="btnMaster" class="btn"><i data-lucide="database" class="w-4 h-4"></i><span class="hidden sm:inline">기준정보 마스터</span><span class="chip !py-0 !px-1.5 mono" id="masterCount">12·8</span></button>
+      <button id="btnTheme" class="btn icon-btn" aria-label="라이트/다크 테마 전환"><i data-lucide="sun" class="w-4 h-4 dark-only"></i></button>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-[1480px] mx-auto px-4 lg:px-6 py-6 space-y-6">
+
+  <!-- ================= A. SYSTEM MAP ================= -->
+  <section id="sysmap" class="glass p-5 reveal" style="animation-delay:.05s">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+      <div>
+        <div class="flex items-center gap-2"><i data-lucide="network" class="w-4 h-4 c-cyan"></i><h2 class="sec-title text-[15px]">금오정밀 사내 시스템 지도</h2></div>
+        <p class="text-[12px] t3 mt-0.5">영업 ➔ 생산 ➔ 구매 ➔ 품질 ➔ 경영지원 — 모든 부서가 <b class="t2">같은 기준정보(품번·발주처·단위)</b>를 공유하는 확장형 구조</p>
+      </div>
+      <div class="flex items-center gap-2 text-[11.5px] t3"><span class="sys-node !p-0 !border-0 !bg-transparent"><span class="live-dot"></span></span>운영 중 <span class="mx-1">·</span><i data-lucide="lock" class="w-3.5 h-3.5"></i>확장 예정</div>
+    </div>
+    <div class="overflow-x-auto pb-1"><div class="sys-wrap" id="sysNodes"></div></div>
+  </section>
+
+  <!-- ================= B. PIPELINE ================= -->
+  <section id="pipeline" class="glass p-5 reveal" style="animation-delay:.12s">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-3">
+      <div class="flex items-center gap-2">
+        <i data-lucide="workflow" class="w-4 h-4 c-violet"></i>
+        <h2 class="sec-title text-[15px]">Back-office 5대 동작 라이브 파이프라인</h2>
+        <span class="chip mono" id="pipeLabel">—</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-[12px] t3">진행률</span>
+        <span class="mono font-bold text-[15px] c-cyan" id="pipePct">0%</span>
+      </div>
+    </div>
+    <div class="pipe-track mb-4"><div class="pipe-fill" id="pipeFill"></div></div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-3" id="pipeSteps"></div>
+  </section>
+
+  <!-- ================= C. KPI ================= -->
+  <section class="grid grid-cols-2 xl:grid-cols-4 gap-4 reveal" style="animation-delay:.18s" id="kpis">
+    <div class="glass kpi">
+      <div class="flex items-center gap-2 text-[12px] t2 font-semibold"><i data-lucide="inbox" class="w-4 h-4 c-cyan"></i>① 접수 건수</div>
+      <div class="big mt-2 mono" id="kTotal">0</div>
+      <div class="text-[11.5px] t3 mt-1" id="kTotalSub">—</div>
+      <div class="glyph"><i data-lucide="inbox"></i></div>
+    </div>
+    <div class="glass kpi">
+      <div class="flex items-center gap-2 text-[12px] t2 font-semibold"><i data-lucide="scan-search" class="w-4 h-4 c-warn"></i>② 검증 이슈</div>
+      <div class="big mt-2 mono" id="kIssue">0</div>
+      <div class="text-[11.5px] t3 mt-1 flex flex-wrap gap-1" id="kIssueSub">—</div>
+      <div class="glyph"><i data-lucide="scan-search"></i></div>
+    </div>
+    <div class="glass kpi">
+      <div class="flex items-center gap-2 text-[12px] t2 font-semibold"><i data-lucide="split" class="w-4 h-4 c-err"></i>③ 분리 집계된 품목 수</div>
+      <div class="big mt-2 mono" id="kSplit">0</div>
+      <div class="text-[11.5px] t3 mt-1" id="kSplitSub">—</div>
+      <div class="glyph"><i data-lucide="split"></i></div>
+    </div>
+    <div class="glass kpi">
+      <div class="flex items-center gap-2 text-[12px] t2 font-semibold"><i data-lucide="badge-check" class="w-4 h-4 c-ok"></i>④ 승인 현황</div>
+      <div class="big mt-2 mono" id="kAppr">0</div>
+      <div class="text-[11.5px] t3 mt-1" id="kApprSub">—</div>
+      <div class="glyph"><i data-lucide="badge-check"></i></div>
+    </div>
+  </section>
+
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- ================= LEFT ================= -->
+    <div class="lg:col-span-8 space-y-6 min-w-0">
+
+      <!-- D. RECEIVE -->
+      <section id="sec-receive" class="glass p-5 reveal" style="animation-delay:.24s">
+        <div id="formLock" class="form-lock hidden">
+          <div class="text-center px-6">
+            <div class="mx-auto w-12 h-12 rounded-2xl grid place-items-center mb-3" style="background:var(--card2);border:1px solid var(--line2)"><i data-lucide="lock" class="w-5 h-5 t2"></i></div>
+            <div class="font-bold">접수 권한이 없습니다</div>
+            <div class="text-[12.5px] t3 mt-1">품질·출하 담당은 <b class="t2">조회·검증·교정 요청</b>만 가능합니다.<br/>상단에서 영업 실무자 또는 승인 책임자로 전환하세요.</div>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="step-no">1</span>
+            <h2 class="sec-title text-[15px]" id="formTitle">접수 — 신규 수주 입력 (실시간 정규식 검증)</h2>
+          </div>
+          <div class="flex items-center gap-2 text-[11.5px] t3 mono"><span class="chip">^KJ-[A-Z]\d{4}$</span><span class="chip">YYYY-MM-DD</span><span class="chip">개(EA) | 세트(SET)</span></div>
+        </div>
+        <div id="editBanner" class="hidden mb-4 tip" style="animation:none"></div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-5">
+          <form id="orderForm" class="xl:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-2" autocomplete="off" novalidate>
+            <div class="fld" id="w-part">
+              <label for="f-part"><i data-lucide="cpu" class="w-3.5 h-3.5"></i>품번 <span class="t3 font-normal">(12종 자동완성)</span></label>
+              <div class="inwrap">
+                <input id="f-part" class="inp mono" placeholder="예) KJ-H2201 · 오타 테스트: KJH2201" />
+                <i data-lucide="check-circle-2" class="state-ic i-ok w-5 h-5"></i><i data-lucide="wand-sparkles" class="state-ic i-fix w-5 h-5"></i><i data-lucide="x-circle" class="state-ic i-err w-5 h-5"></i>
+                <div id="ac-part" class="ac hidden"></div>
+              </div>
+              <div class="hint" id="h-part"></div>
+            </div>
+            <div class="fld" id="w-cust">
+              <label for="f-cust"><i data-lucide="building-2" class="w-3.5 h-3.5"></i>발주처 <span class="t3 font-normal">(8곳)</span><span id="custBadge" class="ml-auto"></span></label>
+              <div class="inwrap">
+                <input id="f-cust" class="inp" placeholder="예) 가온체계 · 별칭 테스트: 한결방산" />
+                <i data-lucide="check-circle-2" class="state-ic i-ok w-5 h-5"></i><i data-lucide="wand-sparkles" class="state-ic i-fix w-5 h-5"></i><i data-lucide="x-circle" class="state-ic i-err w-5 h-5"></i>
+                <div id="ac-cust" class="ac hidden"></div>
+              </div>
+              <div class="hint" id="h-cust"></div>
+            </div>
+            <div class="fld" id="w-date">
+              <label for="f-date"><i data-lucide="calendar-days" class="w-3.5 h-3.5"></i>수주일자 <span class="t3 font-normal">(ISO)</span></label>
+              <div class="inwrap">
+                <input id="f-date" class="inp mono" placeholder="2026-01-05 · 테스트: 26/1/12, 1/05" />
+                <i data-lucide="check-circle-2" class="state-ic i-ok w-5 h-5"></i><i data-lucide="wand-sparkles" class="state-ic i-fix w-5 h-5"></i><i data-lucide="x-circle" class="state-ic i-err w-5 h-5"></i>
+              </div>
+              <div class="hint" id="h-date"></div>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+              <div class="fld" id="w-qty">
+                <label for="f-qty"><i data-lucide="hash" class="w-3.5 h-3.5"></i>수량</label>
+                <div class="inwrap">
+                  <input id="f-qty" class="inp mono" inputmode="numeric" placeholder="예) 40" />
+                  <i data-lucide="check-circle-2" class="state-ic i-ok w-5 h-5"></i><i data-lucide="wand-sparkles" class="state-ic i-fix w-5 h-5"></i><i data-lucide="x-circle" class="state-ic i-err w-5 h-5"></i>
+                </div>
+                <div class="hint" id="h-qty"></div>
+              </div>
+              <div class="fld" id="w-unit">
+                <label for="f-unit"><i data-lucide="package" class="w-3.5 h-3.5"></i>단위</label>
+                <div class="inwrap">
+                  <input id="f-unit" class="inp" placeholder="개 / 세트" />
+                  <i data-lucide="check-circle-2" class="state-ic i-ok w-5 h-5"></i><i data-lucide="wand-sparkles" class="state-ic i-fix w-5 h-5"></i><i data-lucide="x-circle" class="state-ic i-err w-5 h-5"></i>
+                </div>
+                <div class="flex gap-1 mt-1.5"><button type="button" class="chip unit-chip" data-unit="개(EA)">개(EA)</button><button type="button" class="chip unit-chip" data-unit="세트(SET)">세트(SET)</button></div>
+              </div>
+            </div>
+            <div class="sm:col-span-2 -mt-1"><div class="hint" id="h-unit"></div></div>
+            <div class="sm:col-span-2 flex flex-wrap items-center gap-3 pt-2 border-t divider mt-1">
+              <label class="flex items-center gap-2 text-[12.5px] t2 cursor-pointer select-none"><input type="checkbox" id="f-autofix" class="ck" />접수 시 교정 추천 자동 적용</label>
+              <span class="text-[11.5px] t3">접수자: <b class="t2" id="f-by">김영업</b></span>
+              <div class="ml-auto flex gap-2">
+                <button type="button" id="btnFormReset" class="btn btn-ghost"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>초기화</button>
+                <button type="submit" id="btnSubmit" class="btn btn-primary"><i data-lucide="send" class="w-4 h-4"></i><span>접수 등록</span></button>
+              </div>
+            </div>
+          </form>
+
+          <div class="flex flex-col gap-3">
+            <label id="drop" class="drop p-5 flex flex-col items-center justify-center text-center gap-2 flex-1 min-h-[170px]">
+              <input type="file" id="fileIn" accept=".csv,.xlsx,.xls" class="hidden" />
+              <div class="drop-ic w-12 h-12 rounded-2xl grid place-items-center" style="background:linear-gradient(135deg,var(--cyan-soft),var(--violet-soft));border:1px solid var(--line2)"><i data-lucide="file-spreadsheet" class="w-6 h-6 c-cyan"></i></div>
+              <div class="font-bold text-[13.5px]">주문서·엑셀 파일 업로드</div>
+              <div class="text-[11.5px] t3 leading-relaxed">.xlsx / .csv 를 끌어놓거나 클릭<br/>열 순서: 날짜, 품번, 발주처, 수량, 단위, 접수자</div>
+            </label>
+            <div class="grid grid-cols-2 gap-2">
+              <button id="btnSampleCsv" class="btn justify-center !text-[12px]"><i data-lucide="download" class="w-4 h-4"></i>샘플 CSV</button>
+              <button id="btnReload" class="btn justify-center !text-[12px]"><i data-lucide="refresh-ccw" class="w-4 h-4"></i>사례 데이터 재로드</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- E. VALIDATE TABLE -->
+      <section id="sec-validate" class="glass p-5 reveal" style="animation-delay:.3s">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="step-no">2</span>
+            <h2 class="sec-title text-[15px]">검증 — 수주·납품대장 (기준정보 기반 실시간 검출)</h2>
+            <span class="chip mono" id="tblCount">0건</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btnRevalidate" class="btn !text-[12px]"><i data-lucide="scan-search" class="w-4 h-4"></i>다시 검증</button>
+            <button id="btnDelSel" class="btn btn-danger !text-[12px]" disabled><i data-lucide="trash-2" class="w-4 h-4"></i>선택 삭제</button>
+            <button id="btnAutoFix" class="btn btn-fix"><i data-lucide="zap" class="w-4 h-4"></i>⚡ 기준정보 일괄 정규화 (Auto-Fix)</button>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mb-3" id="filterChips"></div>
+        <div class="tbl-wrap rounded-2xl border divider" id="tblWrap">
+          <div class="scan-grid" id="scanGrid"></div>
+          <div class="laser" id="laser"><div class="trail"></div><div class="beam"></div></div>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th class="w-8"><input type="checkbox" id="chkAll" class="ck" aria-label="전체 선택" /></th>
+                <th>No</th><th>수주일자</th><th>품번</th><th>발주처 · 구분</th><th class="text-right">수량</th><th>단위</th><th>접수자</th><th>검증 / 승인</th><th class="text-right">작업</th>
+              </tr>
+            </thead>
+            <tbody id="tblBody"></tbody>
+          </table>
+        </div>
+        <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-[11.5px] t3">
+          <span class="flex items-center gap-1"><span class="badge b-ok">VALID</span>기준 일치</span>
+          <span class="flex items-center gap-1"><span class="badge b-fix">FIXABLE</span>자동 교정 가능 (밑줄 = 원본 오표기, ↳ = 교정값)</span>
+          <span class="flex items-center gap-1"><span class="badge b-dup">DUPLICATE</span>중복 의심</span>
+          <span class="flex items-center gap-1"><span class="badge b-err">ERROR</span>수동 확인 필요 (미등록 등)</span>
+        </div>
+      </section>
+
+      <!-- I. AGGREGATE CHARTS -->
+      <section id="sec-aggregate" class="glass p-5 reveal" style="animation-delay:.36s">
+        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="step-no">3</span>
+            <h2 class="sec-title text-[15px]">집계 — 월별 · 담당자별 · 거래처별 · 품목별 실시간 집계</h2>
+          </div>
+          <div class="seg" id="chartMode">
+            <button data-mode="raw">기준 미적용 (원본)</button>
+            <button data-mode="norm" class="on">기준정보 적용</button>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div class="flex flex-wrap gap-1" id="chartTabs">
+            <button class="tabbtn on" data-tab="month">월별</button>
+            <button class="tabbtn" data-tab="manager">담당자별</button>
+            <button class="tabbtn" data-tab="customer">거래처별 (체계업체/1차 협력사)</button>
+            <button class="tabbtn" data-tab="part">품목별</button>
+          </div>
+          <button class="btn btn-ghost !text-[12px] !py-1.5" id="btnChartTable"><i data-lucide="table-2" class="w-4 h-4"></i>표로 보기</button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div class="md:col-span-3 sub-card p-3">
+            <div class="relative h-[280px]"><canvas id="chart" aria-label="집계 차트" role="img"></canvas><div id="chartFallback" class="hidden absolute inset-0 grid place-items-center text-[12px] t3">차트 라이브러리를 불러오지 못했습니다 — 표로 보기를 이용하세요.</div></div>
+            <div id="chartTable" class="hidden mt-3 max-h-[240px] overflow-auto"></div>
+          </div>
+          <div class="sub-card p-4 flex flex-col gap-3">
+            <div>
+              <div class="text-[11.5px] t3">총 수량</div>
+              <div class="text-[26px] font-extrabold mono" id="chartTotal">0</div>
+            </div>
+            <div>
+              <div class="text-[11.5px] t3">집계 그룹 수</div>
+              <div class="text-[22px] font-extrabold mono" id="chartGroups">0</div>
+            </div>
+            <div id="chartLegend" class="flex flex-col gap-1.5 text-[12px]"></div>
+            <div id="chartNote" class="text-[11.5px] t3 leading-relaxed mt-auto"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ================= RIGHT ================= -->
+    <aside class="lg:col-span-4 space-y-6 min-w-0">
+      <!-- F. KILLER COMPARE -->
+      <section id="sec-compare" class="glass p-5 reveal" style="animation-delay:.27s">
+        <div class="flex items-start justify-between gap-3 mb-1">
+          <div>
+            <div class="flex items-center gap-2"><i data-lucide="git-merge" class="w-4 h-4 c-cyan"></i><h2 class="sec-title text-[15px]">기준정보 정규화 전/후 라이브 비교</h2></div>
+            <p class="text-[11.5px] t3 mt-0.5">현재 대장에 적힌 품번 표기 그대로 합산한 결과</p>
+          </div>
+          <span class="mode-pill split" id="cmpPill">—</span>
+        </div>
+        <div class="flex items-center gap-2 my-3">
+          <span class="text-[12px] t3">대상 품목</span>
+          <select id="cmpFocus" class="sel !py-1.5 !text-[12.5px] mono"></select>
+          <button id="btnReplay" class="btn btn-ghost !text-[12px] !py-1.5 ml-auto" title="원본(기준 미적용) 상태로 되돌려 다시 시연"><i data-lucide="rotate-ccw" class="w-4 h-4"></i>다시 시연</button>
+        </div>
+        <div class="cmp-bars" id="cmpBars"></div>
+        <div class="eq mono mt-3 t2" id="cmpEq"></div>
+        <div class="grid grid-cols-3 gap-2 mt-4">
+          <div class="sub-card p-3"><div class="text-[11px] t3">분리 품목</div><div class="mono font-extrabold text-[18px]" id="cmpSplit">-</div></div>
+          <div class="sub-card p-3"><div class="text-[11px] t3">집계 누락분</div><div class="mono font-extrabold text-[18px]" id="cmpMiss">-</div></div>
+          <div class="sub-card p-3"><div class="text-[11px] t3">대장 표기 → 품목</div><div class="mono font-extrabold text-[18px]" id="cmpKinds">-</div></div>
+        </div>
+        <div class="mt-3 text-[11.5px] t3 leading-relaxed" id="cmpGroups"></div>
+        <div class="mt-3 p-3 rounded-xl text-[11.5px] leading-relaxed" style="background:var(--err-soft);border:1px solid color-mix(in srgb,var(--err) 30%,transparent)">
+          <b class="c-err">실제 사례</b> <span class="t2">엑셀 대장 12개월 집계에서 같은 부품 <b class="t1">107개</b>가 별도 품목으로 분리 집계됨 — 이 카드는 그중 <span class="mono">KJ-H2201</span> 사례를 재현합니다.</span>
+        </div>
+      </section>
+
+      <!-- G. APPROVE -->
+      <section id="sec-approve" class="glass p-5 reveal" style="animation-delay:.33s">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2"><span class="step-no">4</span><h2 class="sec-title text-[15px]">승인 — 책임자 최종 확정</h2></div>
+          <span class="chip" id="apRole">—</span>
+        </div>
+        <div class="grid grid-cols-4 gap-2 mb-3 text-center">
+          <div class="sub-card p-2.5"><div class="text-[10.5px] t3">승인 가능</div><div class="mono font-extrabold text-[18px] c-ok" id="apElig">0</div></div>
+          <div class="sub-card p-2.5"><div class="text-[10.5px] t3">보류(이슈)</div><div class="mono font-extrabold text-[18px] c-warn" id="apHold">0</div></div>
+          <div class="sub-card p-2.5"><div class="text-[10.5px] t3">승인 완료</div><div class="mono font-extrabold text-[18px] c-cyan" id="apDone">0</div></div>
+          <div class="sub-card p-2.5"><div class="text-[10.5px] t3">반려</div><div class="mono font-extrabold text-[18px] c-err" id="apRej">0</div></div>
+        </div>
+        <div class="text-[11.5px] t3 mb-3 leading-relaxed" id="apTarget">—</div>
+        <div class="grid grid-cols-1 gap-2">
+          <div class="tooltip-wrap">
+            <button id="btnApprove" class="btn btn-ok w-full justify-center !py-3 !text-[14px]"><i data-lucide="stamp" class="w-4 h-4"></i>책임자 승인 확정</button>
+            <div class="tt" id="apTip">승인 책임자(박승인) 권한이 필요합니다.</div>
+          </div>
+          <button id="btnReject" class="btn btn-danger w-full justify-center"><i data-lucide="octagon-x" class="w-4 h-4"></i>선택 건 반려 (사유 필수)</button>
+        </div>
+        <div class="text-[11px] t3 mt-3 flex items-start gap-1.5"><i data-lucide="info" class="w-3.5 h-3.5 mt-0.5 shrink-0"></i><span>ERROR·DUPLICATE·FIXABLE 상태는 승인되지 않습니다. 표에서 체크한 건이 있으면 그 건만, 없으면 승인 가능 건 전체를 확정합니다.</span></div>
+      </section>
+
+      <!-- H. AUDIT LOG -->
+      <section id="sec-audit" class="glass p-5 reveal" style="animation-delay:.39s">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <div class="flex items-center gap-2"><span class="step-no">5</span><h2 class="sec-title text-[15px]">기록 — 감사 로그 (Audit Log)</h2><span class="chip mono" id="logCount">0</span></div>
+          <button id="btnLogCsv" class="btn btn-ghost !text-[12px] !py-1.5"><i data-lucide="download" class="w-4 h-4"></i>CSV</button>
+        </div>
+        <div class="flex flex-wrap gap-1 mb-2" id="logFilter"></div>
+        <div class="max-h-[560px] overflow-y-auto pr-1 -mr-1"><div class="log-list" id="logList"></div></div>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="text-center text-[11.5px] t3 py-6">
+    금오정밀 KJ-OMS · 실습2 1번 화면 프로토타입 — 데이터는 브라우저 메모리에만 존재하며 새로고침 시 사례 데이터로 초기화됩니다. 발주처명은 실습용 가상 업체명입니다.
+  </footer>
+</main>
+
+<!-- ================= MASTER DRAWER ================= -->
+<div class="mask" id="drawerMask"></div>
+<aside class="drawer" id="drawer" aria-label="기준정보 마스터" aria-hidden="true">
+  <div class="p-5 border-b divider flex items-start gap-3">
+    <div class="w-11 h-11 rounded-2xl grid place-items-center shrink-0" style="background:linear-gradient(135deg,#22d3ee,#a78bfa)"><i data-lucide="database" class="w-5 h-5" style="color:#031018"></i></div>
+    <div class="min-w-0">
+      <div class="font-extrabold text-[16px]">기준정보 마스터 (Master Data)</div>
+      <div class="text-[12px] t3">모든 부서가 공유하는 단일 기준 — 변경은 승인 책임자만 가능</div>
+    </div>
+    <button id="drawerClose" class="btn icon-btn ml-auto" aria-label="닫기"><i data-lucide="x" class="w-4 h-4"></i></button>
+  </div>
+  <div class="px-5 pt-4 flex flex-wrap items-center gap-2">
+    <div class="flex gap-1" id="mTabs">
+      <button class="tabbtn on" data-mt="parts">품번 <span class="mono" id="mCntP">12</span></button>
+      <button class="tabbtn" data-mt="custs">발주처 <span class="mono" id="mCntC">8</span></button>
+      <button class="tabbtn" data-mt="rules">표기 규칙</button>
+    </div>
+    <div class="relative ml-auto w-full sm:w-56">
+      <i data-lucide="search" class="w-4 h-4 t3 absolute left-3 top-1/2 -translate-y-1/2"></i>
+      <input id="mSearch" class="inp w-full !pl-9 !py-2" placeholder="품번·품명·발주처 검색" />
+    </div>
+  </div>
+  <div class="flex-1 overflow-y-auto p-5"><div id="mBody" class="stagger"></div></div>
+</aside>
+
+<!-- ================= REJECT MODAL ================= -->
+<div class="modal p-5" id="rjModal" role="dialog" aria-label="반려 사유 입력">
+  <div class="flex items-center gap-2 mb-1"><i data-lucide="octagon-x" class="w-5 h-5 c-err"></i><div class="font-extrabold text-[16px]">수주 반려</div></div>
+  <div class="text-[12.5px] t3 mb-3" id="rjInfo"></div>
+  <div class="flex flex-wrap gap-1.5 mb-3" id="rjChips"></div>
+  <textarea id="rjReason" rows="3" class="inp w-full" placeholder="반려 사유를 입력하세요 (필수)"></textarea>
+  <div class="flex justify-end gap-2 mt-4">
+    <button class="btn" id="rjCancel">취소</button>
+    <button class="btn btn-danger" id="rjConfirm"><i data-lucide="octagon-x" class="w-4 h-4"></i>반려 확정</button>
+  </div>
+</div>
+
+<div id="toasts" aria-live="polite"></div>
+<canvas id="confetti"></canvas>
+<div id="checkOv" aria-hidden="true"><div class="disc"><svg width="110" height="110" viewBox="0 0 110 110" fill="none"><circle cx="55" cy="55" r="46" stroke="#34d399" stroke-width="6" stroke-linecap="round" transform="rotate(-90 55 55)"/><path d="M34 57 L49 71 L77 41" stroke="#34d399" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   금오정밀 KJ-OMS — 수주·납품 관리 Back-office (실습2 1번 화면)
+   ① 접수 → ② 검증 → ③ 집계 → ④ 승인 → ⑤ 기록
+   ===================================================================== */
+
+/* ---------------- 0. 기준정보 (Master Data) ---------------- */
+const BASE_YEAR = 2026;
+const PART_RE = /^KJ-[A-Z]\d{4}$/;
+const UNIT_EA = '개(EA)', UNIT_SET = '세트(SET)';
+
+const PARTS = [
+  { code: 'KJ-H2201', name: '유압 실린더 하우징', unit: UNIT_EA, cat: '유압' },
+  { code: 'KJ-H2205', name: '유압 매니폴드 블록', unit: UNIT_EA, cat: '유압' },
+  { code: 'KJ-B1105', name: '베어링 블록', unit: UNIT_EA, cat: '베어링' },
+  { code: 'KJ-B1108', name: '베어링 캡', unit: UNIT_EA, cat: '베어링' },
+  { code: 'KJ-S3301', name: '구동 샤프트', unit: UNIT_EA, cat: '샤프트' },
+  { code: 'KJ-S3305', name: '정밀 스핀들', unit: UNIT_EA, cat: '샤프트' },
+  { code: 'KJ-G4410', name: '헬리컬 기어', unit: UNIT_EA, cat: '기어' },
+  { code: 'KJ-P5120', name: '피스톤 핀', unit: UNIT_EA, cat: '핀' },
+  { code: 'KJ-F6002', name: '마운팅 플랜지', unit: UNIT_EA, cat: '플랜지' },
+  { code: 'KJ-C7015', name: '커버 가스켓 세트', unit: UNIT_SET, cat: '커버' },
+  { code: 'KJ-V8030', name: '밸브 바디', unit: UNIT_EA, cat: '밸브' },
+  { code: 'KJ-R9001', name: 'O-링 키트', unit: UNIT_SET, cat: '실링' }
+];
+const CUSTOMERS = [
+  { code: 'C01', name: '가온체계', type: '체계업체', aliases: ['가온', '(주)가온체계'] },
+  { code: 'C02', name: '누리항공체계', type: '체계업체', aliases: ['누리항공', '누리'] },
+  { code: 'C03', name: '한결방산시스템', type: '체계업체', aliases: ['한결방산', '한결'] },
+  { code: 'C04', name: '미르테크', type: '체계업체', aliases: ['미르', '(주)미르테크'] },
+  { code: 'C05', name: '구미정밀공업', type: '1차 협력사', aliases: ['구미정밀', '구미 정밀'] },
+  { code: 'C06', name: '대성하이텍', type: '1차 협력사', aliases: ['대성', '대성하이테크'] },
+  { code: 'C07', name: '선진기공', type: '1차 협력사', aliases: ['선진'] },
+  { code: 'C08', name: '청운메탈', type: '1차 협력사', aliases: ['청운'] }
+];
+const UNIT_SYN = {
+  '개': UNIT_EA, 'EA': UNIT_EA, 'PCS': UNIT_EA, 'PC': UNIT_EA, '개(EA)': UNIT_EA, 'EA(개)': UNIT_EA,
+  '세트': UNIT_SET, 'SET': UNIT_SET, 'ST': UNIT_SET, '세트(SET)': UNIT_SET, 'SET(세트)': UNIT_SET
+};
+const USERS = {
+  sales:   { key: 'sales',   name: '김영업', role: '영업 실무자',     perms: ['receive', 'validate'] },
+  quality: { key: 'quality', name: '정품질', role: '품질·출하 담당',  perms: ['validate'] },
+  manager: { key: 'manager', name: '박승인', role: '승인 책임자',     perms: ['receive', 'validate', 'approve', 'master'] }
+};
+/* 실제 사례 데이터 + 추가 샘플 (PRD 표 2-C와 동일) */
+const SEED = [
+  ['1/05',       'KJ-H2201',  '가온체계',       40,  '개',     '김영업'],
+  ['26/1/12',    'KJH2201',   '가온체계',       35,  'EA',     '이수주'],
+  ['2026-01-20', 'KJ-H2201',  '누리항공체계',   50,  '개(EA)', '이수주'],
+  ['1/27',       'KJH2201',   '구미정밀공업',   22,  'ea',     '최납품'],
+  ['2026-01-08', 'KJ-B1105',  '한결방산시스템', 120, '개(EA)', '김영업'],
+  ['2026.01.15', 'kj-b1105',  '한결방산',       80,  '개',     '최납품'],
+  ['2026-01-22', 'KJ-R9001',  '대성하이텍',     12,  '개(EA)', '이수주'],
+  ['1/29',       'KJ-S 3301', '선진기공',       60,  '개(EA)', '김영업'],
+  ['2026-02-03', 'KJ-G4410',  '미르테크',       30,  '개(EA)', '이수주'],
+  ['2/10',       'KJ-C7015',  '청운메탈',       25,  '세트',   '최납품'],
+  ['2026-02-14', 'KJ-P5120',  '알파상사',       200, '개(EA)', '김영업'],
+  ['2026-02-03', 'KJ-G4410',  '미르테크',       30,  '개(EA)', '최납품'],
+  ['2026-02-18', 'KJ-F6002',  '누리항공체계',   70,  '개(EA)', '이수주'],
+  ['2026-02-25', 'KJ-X9999',  '선진기공',       10,  '개(EA)', '최납품']
+];
+const FIELD_LABEL = { part: '품번', date: '수주일자', customer: '발주처', unit: '단위', qty: '수량' };
+const FIX_FIELDS = ['part', 'date', 'customer', 'unit'];
+
+/* ---------------- 1. 상태 ---------------- */
+const S = {
+  orders: [], logs: [], seq: 0, logSeq: 0,
+  user: 'sales', filter: 'all', logFilter: 'all',
+  chartTab: 'month', chartMode: 'norm', chartTable: false, chart: null,
+  focus: 'KJ-H2201', cmpEls: new Map(),
+  selected: new Set(), editing: null, fixing: false,
+  pipePrev: [], pipeSel: null, kpiPrev: {}, newRows: new Set(), shakeRows: false,
+  renderedLogs: new Set(), mTab: 'parts'
+};
+let V = new Map(); // id -> validation result
+
+/* ---------------- 2. 유틸 ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const pad = n => String(n).padStart(2, '0');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fmt = n => Number(n || 0).toLocaleString('ko-KR');
+const ico = (n, c = 'w-4 h-4') => `<i data-lucide="${n}" class="${c}"></i>`;
+const refreshIcons = () => { try { if (window.lucide) lucide.createIcons(); } catch (e) { /* noop */ } };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const nowStr = () => { const d = new Date(); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`; };
+const me = () => USERS[S.user];
+const can = p => me().perms.includes(p);
+const oid = o => `ORD-${BASE_YEAR}-${o.no}`;
+const partOf = code => PARTS.find(p => p.code === code);
+const custOf = name => CUSTOMERS.find(c => c.name === name);
+const ckey = s => String(s || '').replace(/\(주\)|㈜|주식회사|\s/g, '').toLowerCase();
+const cssVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function countUp(el, from, to, dur = 900, suffix = '') {
+  if (!el) return;
+  cancelAnimationFrame(el._raf);
+  const t0 = performance.now();
+  const step = t => {
+    const k = Math.min(1, (t - t0) / dur);
+    const e = 1 - Math.pow(1 - k, 3);
+    el.textContent = fmt(Math.round(from + (to - from) * e)) + suffix;
+    if (k < 1) el._raf = requestAnimationFrame(step);
+  };
+  el._raf = requestAnimationFrame(step);
+}
+
+/* ---------------- 3. 정규화 / 검증 엔진 ---------------- */
+function normPart(s) {
+  const t = String(s || '').trim().toUpperCase().replace(/[\s_\-.]/g, '');
+  const m = /^KJ([A-Z])(\d{4})$/.exec(t);
+  return m ? `KJ-${m[1]}${m[2]}` : null;
+}
+function partReason(s) {
+  const r = [];
+  if (/\s/.test(s)) r.push('공백 포함');
+  if (/[a-z]/.test(s)) r.push('소문자');
+  if (!s.includes('-')) r.push('하이픈 누락');
+  else if (/_/.test(s) || (s.match(/-/g) || []).length > 1) r.push('구분자 오류');
+  return r.join('·') || '표기 규칙 불일치';
+}
+function checkPart(v) {
+  const s = String(v ?? '');
+  if (!s.trim()) return { lv: 'err', msg: '품번 누락' };
+  if (PART_RE.test(s)) {
+    const p = partOf(s);
+    return p ? { lv: 'ok', msg: `${p.name} · ${p.unit}` } : { lv: 'err', msg: '미등록 품번 (기준정보 12종에 없음)' };
+  }
+  const sug = normPart(s);
+  if (sug && partOf(sug)) return { lv: 'fix', sug, msg: partReason(s) };
+  if (sug) return { lv: 'err', msg: `형식 교정 후에도 미등록 (${sug})` };
+  return { lv: 'err', msg: '품번 형식 오류 (KJ-영문1자+숫자4자리)' };
+}
+function parseDate(raw) {
+  const s = String(raw ?? '').trim();
+  let y, m, d, mm;
+  if ((mm = s.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})\.?$/))) { y = +mm[1]; m = +mm[2]; d = +mm[3]; }
+  else if ((mm = s.match(/^(\d{2})[-./](\d{1,2})[-./](\d{1,2})$/))) { y = 2000 + +mm[1]; m = +mm[2]; d = +mm[3]; }
+  else if ((mm = s.match(/^(\d{1,2})[./](\d{1,2})$/))) { y = BASE_YEAR; m = +mm[1]; d = +mm[2]; }
+  else if ((mm = s.match(/^(\d{4})(\d{2})(\d{2})$/))) { y = +mm[1]; m = +mm[2]; d = +mm[3]; }
+  else return null;
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  if (dt.getUTCFullYear() !== y || dt.getUTCMonth() !== m - 1 || dt.getUTCDate() !== d) return null;
+  return `${y}-${pad(m)}-${pad(d)}`;
+}
+function checkDate(v) {
+  const s = String(v ?? '').trim();
+  if (!s) return { lv: 'err', msg: '날짜 누락' };
+  const iso = parseDate(s);
+  if (!iso) return { lv: 'err', msg: '날짜 형식 오류 또는 존재하지 않는 날짜' };
+  if (iso === String(v)) return { lv: 'ok', msg: 'ISO 표준' };
+  return { lv: 'fix', sug: iso, msg: 'ISO(YYYY-MM-DD) 변환' };
+}
+function canonUnit(v) {
+  const s = String(v ?? '').trim();
+  return UNIT_SYN[s] || UNIT_SYN[s.toUpperCase().replace(/\s/g, '')] || null;
+}
+function checkUnit(v, partCode) {
+  const s = String(v ?? '');
+  if (!s.trim()) return { lv: 'err', msg: '단위 누락' };
+  const c = canonUnit(s);
+  if (!c) return { lv: 'err', msg: '허용되지 않는 단위 (개/세트만)' };
+  const p = partCode ? partOf(partCode) : null;
+  if (p && p.unit !== c) return { lv: 'fix', sug: p.unit, msg: `표준 단위 불일치 (${p.code} = ${p.unit})` };
+  if (c !== s) return { lv: 'fix', sug: c, msg: '단위 표기 통일' };
+  return { lv: 'ok', msg: '표준 단위' };
+}
+function checkCustomer(v) {
+  const s = String(v ?? '');
+  if (!s.trim()) return { lv: 'err', msg: '발주처 누락' };
+  const c = custOf(s);
+  if (c) return { lv: 'ok', msg: c.type, cust: c };
+  const k = ckey(s);
+  const m = CUSTOMERS.find(x => ckey(x.name) === k || x.aliases.some(a => ckey(a) === k));
+  if (m) return { lv: 'fix', sug: m.name, msg: '별칭 → 표준 발주처명', cust: m };
+  return { lv: 'err', msg: '미등록 거래처 (발주처 8곳에 없음)' };
+}
+function checkQty(v) {
+  const n = Number(v);
+  if (String(v ?? '').trim() === '' || !Number.isInteger(n) || n < 1) return { lv: 'err', msg: '수량은 1 이상의 정수' };
+  return { lv: 'ok', msg: '' };
+}
+function validateRow(o) {
+  const part = checkPart(o.cur.part);
+  const rPart = part.lv === 'ok' ? o.cur.part : part.lv === 'fix' ? part.sug : null;
+  const fields = {
+    part, date: checkDate(o.cur.date), customer: checkCustomer(o.cur.customer),
+    unit: checkUnit(o.cur.unit, rPart), qty: checkQty(o.qty)
+  };
+  const res = {};
+  for (const f of FIX_FIELDS) { const c = fields[f]; res[f] = c.lv === 'ok' ? o.cur[f] : c.lv === 'fix' ? c.sug : null; }
+  const cust = fields.customer.cust || null;
+  return { fields, res, cust };
+}
+const SEV = { ok: 0, fix: 1, dup: 2, err: 3 };
+function validateAll() {
+  V = new Map();
+  const seen = new Map();
+  for (const o of S.orders) {
+    const r = validateRow(o);
+    const lvs = Object.values(r.fields).map(c => c.lv);
+    let level = lvs.includes('err') ? 'err' : lvs.includes('fix') ? 'fix' : 'ok';
+    r.dupOf = null;
+    if (level !== 'err' && o.approval !== 'REJECTED') {
+      const key = [r.res.date, r.res.part, r.res.customer, o.qty].join('|');
+      if (seen.has(key)) { r.dupOf = seen.get(key); level = 'dup'; } else seen.set(key, o);
+    }
+    r.level = level;
+    V.set(o.id, r);
+  }
+  return V;
+}
+function applyFixes(o) {
+  const changes = new Map();
+  for (let i = 0; i < 3; i++) {
+    const v = validateRow(o);
+    let any = false;
+    for (const f of FIX_FIELDS) {
+      const c = v.fields[f];
+      if (c.lv === 'fix') {
+        if (!changes.has(f)) changes.set(f, { f, before: o.cur[f] });
+        if (!(f in o.fixed)) o.fixed[f] = o.cur[f];
+        o.cur[f] = c.sug; changes.get(f).after = c.sug; any = true;
+      }
+    }
+    if (!any) break;
+  }
+  return [...changes.values()];
+}
+const hasFixable = o => { const v = validateRow(o); return FIX_FIELDS.some(f => v.fields[f].lv === 'fix'); };
+
+/* ---------------- 4. 데이터 조작 ---------------- */
+function makeOrder(date, part, customer, qty, unit, by) {
+  S.seq += 1;
+  const raw = { date: String(date ?? ''), part: String(part ?? ''), customer: String(customer ?? ''), unit: String(unit ?? '') };
+  return {
+    id: 'o' + S.seq + '_' + Math.random().toString(36).slice(2, 6), no: pad(S.seq).padStart(4, '0'),
+    raw, cur: { ...raw }, qty: Number(qty), by: by || me().name, at: nowStr(),
+    fixed: {}, approval: 'PENDING', decidedBy: null, decidedAt: null, reason: ''
+  };
+}
+function loadSeed() {
+  S.seq = 0; S.selected.clear(); S.editing = null;
+  S.orders = SEED.map(r => makeOrder(...r));
+}
+
+/* ---------------- 5. 감사 로그 ---------------- */
+const ACT = {
+  RECEIVE:       { label: '접수',       icon: 'inbox',          color: 'var(--cyan)' },
+  VALIDATE:      { label: '검증',       icon: 'scan-search',    color: 'var(--blue)' },
+  NORMALIZE:     { label: '정규화',     icon: 'wand-sparkles',  color: 'var(--warn)' },
+  EDIT:          { label: '수정',       icon: 'pencil',         color: 'var(--violet)' },
+  DELETE:        { label: '삭제',       icon: 'trash-2',        color: 'var(--tx3)' },
+  APPROVE:       { label: '승인',       icon: 'badge-check',    color: 'var(--ok)' },
+  REJECT:        { label: '반려',       icon: 'octagon-x',      color: 'var(--err)' },
+  MASTER_CHANGE: { label: '기준정보',   icon: 'database',       color: 'var(--violet)' },
+  SYSTEM:        { label: '시스템',     icon: 'settings-2',     color: 'var(--tx2)' }
+};
+function addLog(action, title, opts = {}) {
+  S.logSeq += 1;
+  const u = opts.actor || me();
+  S.logs.unshift({
+    id: 'LOG-' + String(S.logSeq).padStart(6, '0'), at: nowStr(), action, title,
+    actor: `${u.name}`, role: u.role, orderId: opts.orderId || '', diffs: opts.diffs || [], note: opts.note || ''
+  });
+  renderLogs();
+}
+
+/* ---------------- 6. 렌더: 시스템 지도 ---------------- */
+const DEPTS = [
+  { dept: '영업', mod: '수주·납품 관리', icon: 'handshake', phase: 'Phase 1 · 운영 중', active: true, desc: '수주 접수 → 검증 → 집계 → 승인 → 기록 (이번 구현 대상)' },
+  { dept: '생산', mod: '생산 관리', icon: 'factory', phase: 'Phase 2', desc: '승인된 수주의 품번·수량으로 재고·생산 가능 여부 확인' },
+  { dept: '구매', mod: '발주 관리', icon: 'shopping-cart', phase: 'Phase 3', desc: '부족 자재를 같은 품번 마스터 기준으로 발주' },
+  { dept: '품질', mod: '품질·출하 관리', icon: 'shield-check', phase: 'Phase 4', desc: '출하검사 결과와 납품일을 수주별로 기록' },
+  { dept: '경영지원', mod: '정산·보고', icon: 'calculator', phase: 'Phase 5', desc: '월별·거래처 구분별 집계로 월말 정산' }
+];
+function renderSysMap() {
+  const html = DEPTS.map((d, i) => {
+    const node = `
+      <div class="sys-node tooltip-wrap ${d.active ? 'active' : 'locked'}" data-i="${i}">
+        <div class="ic">${ico(d.icon, 'w-5 h-5')}</div>
+        <div class="min-w-0">
+          <div class="flex items-center gap-1.5 text-[11px] font-bold ${d.active ? 'c-cyan' : 't3'}">${d.active ? '<span class="live-dot"></span>' : ico('lock', 'w-3 h-3')}${esc(d.phase)}</div>
+          <div class="font-extrabold text-[14px] leading-tight mt-0.5">[${esc(d.dept)}] ${esc(d.mod)}</div>
+        </div>
+        <div class="tt">${esc(d.desc)}</div>
+      </div>`;
+    const link = i < DEPTS.length - 1 ? `<div class="sys-link ${i === 0 ? 'flow' : ''}">${i === 0 ? '<span class="pkt"></span><span class="pkt"></span><span class="pkt"></span>' : ''}<span class="arrow"></span></div>` : '';
+    return node + link;
+  }).join('');
+  $('#sysNodes').innerHTML = html;
+  $$('#sysNodes .sys-node').forEach(n => n.addEventListener('click', () => {
+    const d = DEPTS[+n.dataset.i];
+    if (d.active) { selectPipe(0); return; }
+    toast('info', `${d.phase} 확장 예정 — [${d.dept}] ${d.mod}`, `${d.desc}. 품번 ${PARTS.length}종·발주처 ${CUSTOMERS.length}곳 기준정보를 그대로 공유합니다.`);
+  }));
+}
+
+/* ---------------- 7. 렌더: 파이프라인 ---------------- */
+const STEPS = [
+  { k: 'receive', n: '접수', en: 'Receive', icon: 'inbox', target: '#sec-receive' },
+  { k: 'validate', n: '검증', en: 'Validate', icon: 'scan-search', target: '#sec-validate' },
+  { k: 'aggregate', n: '집계', en: 'Aggregate', icon: 'bar-chart-3', target: '#sec-compare' },
+  { k: 'approve', n: '승인', en: 'Approve', icon: 'stamp', target: '#sec-approve' },
+  { k: 'audit', n: '기록', en: 'Audit Log', icon: 'history', target: '#sec-audit' }
+];
+function stats() {
+  let fix = 0, err = 0, dup = 0, ok = 0, elig = 0, appr = 0, rej = 0;
+  for (const o of S.orders) {
+    const v = V.get(o.id);
+    if (o.approval === 'APPROVED') appr++;
+    else if (o.approval === 'REJECTED') rej++;
+    if (o.approval === 'REJECTED') continue;
+    if (v.level === 'fix') fix++; else if (v.level === 'err') err++; else if (v.level === 'dup') dup++; else ok++;
+    if (o.approval === 'PENDING' && v.level === 'ok') elig++;
+  }
+  const pend = S.orders.filter(o => o.approval === 'PENDING').length;
+  return { fix, err, dup, ok, elig, appr, rej, pend, total: S.orders.length };
+}
+function splitInfo() {
+  const rows = S.orders.filter(o => o.approval !== 'REJECTED' && V.get(o.id).res.part);
+  const labels = new Set(rows.map(o => o.cur.part));
+  const kinds = new Set(rows.map(o => V.get(o.id).res.part));
+  return { labels: labels.size, kinds: kinds.size, split: labels.size - kinds.size };
+}
+function renderPipeline() {
+  const st = stats();
+  const n = S.orders.length;
+  const states = [];
+  states[0] = n ? 'done' : 'active';
+  states[1] = !n ? 'wait' : st.fix === 0 ? 'done' : 'active';
+  states[2] = !n ? 'wait' : states[1] === 'done' ? 'done' : 'active';
+  states[3] = st.appr > 0 && st.elig === 0 ? 'done' : states[1] === 'done' ? 'active' : 'wait';
+  states[4] = states[3] === 'done' ? 'done' : 'active';
+  const metric = [
+    `${n}건 접수`,
+    st.fix ? `교정 대기 ${st.fix}` : `이슈 ${st.err + st.dup} 보류`,
+    `품목 ${splitInfo().kinds}종`,
+    st.appr ? `완료 ${st.appr} · 대기 ${st.elig}` : `승인 가능 ${st.elig}`,
+    `로그 ${S.logs.length}건`
+  ];
+  const label = { done: '완료', active: '진행 중', wait: '대기' };
+  const bcls = { done: 'b-ok', active: 'b-appr', wait: 'b-pend' };
+  const wrap = $('#pipeSteps');
+  if (!wrap.children.length) {
+    wrap.innerHTML = STEPS.map((s, i) => `
+      <button class="pipe-step" data-i="${i}">
+        <div class="flex items-center gap-2.5">
+          <div class="num">${i + 1}</div>
+          <div class="min-w-0">
+            <div class="font-extrabold text-[14px] leading-tight">${s.n}</div>
+            <div class="text-[10.5px] t3 mono">${s.en}</div>
+          </div>
+          <span class="ml-auto t3">${ico(s.icon, 'w-4 h-4')}</span>
+        </div>
+        <div class="flex items-center justify-between mt-2.5 gap-2">
+          <span class="badge" data-badge></span>
+          <span class="text-[11px] t3 truncate" data-metric></span>
+        </div>
+      </button>`).join('');
+    $$('.pipe-step', wrap).forEach(b => b.addEventListener('click', () => selectPipe(+b.dataset.i)));
+    refreshIcons();
+  }
+  $$('.pipe-step', wrap).forEach((el, i) => {
+    el.classList.remove('done', 'active', 'wait');
+    el.classList.add(states[i]);
+    el.classList.toggle('selected', S.pipeSel === i);
+    const b = $('[data-badge]', el);
+    const txt = `${states[i] === 'done' ? '✓ ' : states[i] === 'active' ? '● ' : ''}${label[states[i]]}`;
+    if (b.textContent !== txt) {
+      b.className = `badge ${bcls[states[i]]}`; b.textContent = txt;
+      b.classList.remove('spring'); void b.offsetWidth; b.classList.add('spring');
+    }
+    $('[data-metric]', el).textContent = metric[i];
+  });
+  const done = states.filter(s => s === 'done').length;
+  const act = states.filter(s => s === 'active').length;
+  const pct = Math.min(100, Math.round((done / 5) * 100 + (act ? 6 : 0)));
+  $('#pipeFill').style.width = pct + '%';
+  const pctEl = $('#pipePct');
+  countUp(pctEl, parseInt(pctEl.textContent) || 0, pct, 1000, '%');
+  const cur = states.findIndex(s => s !== 'done');
+  $('#pipeLabel').textContent = cur === -1 ? '전 단계 완료' : `현재: ${cur + 1}. ${STEPS[cur].n}`;
+  S.pipePrev = states;
+}
+function selectPipe(i) {
+  S.pipeSel = i;
+  renderPipeline();
+  const sec = $(STEPS[i].target);
+  if (!sec) return;
+  sec.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  sec.classList.remove('focus-ring'); void sec.offsetWidth; sec.classList.add('focus-ring');
+  setTimeout(() => sec.classList.remove('focus-ring'), 1600);
+}
+
+/* ---------------- 8. 렌더: KPI ---------------- */
+function renderKPI() {
+  const st = stats(), sp = splitInfo();
+  const months = {};
+  S.orders.forEach(o => { const d = V.get(o.id).res.date; const k = d ? +d.slice(5, 7) + '월' : '형식 오류'; months[k] = (months[k] || 0) + 1; });
+  const set = (id, val) => { const el = $(id); const prev = S.kpiPrev[id] ?? 0; countUp(el, prev, val); S.kpiPrev[id] = val; };
+  set('#kTotal', st.total);
+  $('#kTotalSub').textContent = Object.entries(months).map(([k, v]) => `${k} ${v}건`).join(' · ') || '—';
+  set('#kIssue', st.fix + st.err + st.dup);
+  $('#kIssueSub').innerHTML = `<span class="badge b-fix">교정 ${st.fix}</span><span class="badge b-err">오류 ${st.err}</span><span class="badge b-dup">중복 ${st.dup}</span>`;
+  set('#kSplit', sp.split);
+  $('#kSplit').style.color = sp.split ? 'var(--err)' : 'var(--ok)';
+  $('#kSplitSub').innerHTML = `대장 표기 <b class="t2">${sp.labels}종</b> → 기준정보 <b class="t2">${sp.kinds}종</b> · 12개월 실데이터 <b class="c-err">107개</b> 분리`;
+  set('#kAppr', st.appr);
+  $('#kApprSub').textContent = `승인 대기 ${st.elig} · 보류 ${st.fix + st.err + st.dup} · 반려 ${st.rej}`;
+}
+
+/* ---------------- 9. 렌더: 검증 테이블 ---------------- */
+function lvBadge(v, o) {
+  if (o.approval === 'REJECTED') return `<span class="badge b-pend">${ico('ban', 'w-3 h-3')}제외</span>`;
+  const m = {
+    ok: `<span class="badge b-ok">${ico('check', 'w-3 h-3')}VALID</span>`,
+    fix: `<span class="badge b-fix">${ico('wand-sparkles', 'w-3 h-3')}FIXABLE</span>`,
+    dup: `<span class="badge b-dup" title="${v.dupOf ? oid(v.dupOf) + '와 동일' : ''}">${ico('copy', 'w-3 h-3')}DUPLICATE</span>`,
+    err: `<span class="badge b-err">${ico('alert-triangle', 'w-3 h-3')}ERROR</span>`
+  };
+  return m[v.level];
+}
+function apBadge(o) {
+  if (o.approval === 'APPROVED') return `<span class="badge b-appr" title="${esc(o.decidedBy)} · ${esc(o.decidedAt)}">${ico('badge-check', 'w-3 h-3')}Approved</span>`;
+  if (o.approval === 'REJECTED') return `<span class="badge b-err" title="${esc(o.reason)}">${ico('octagon-x', 'w-3 h-3')}Rejected</span>`;
+  return `<span class="badge b-pend">${ico('hourglass', 'w-3 h-3')}Pending</span>`;
+}
+function typeBadge(c) {
+  if (!c) return `<span class="badge b-unk">미등록</span>`;
+  return c.type === '체계업체' ? `<span class="badge b-sys">${ico('shield', 'w-3 h-3')}체계업체</span>` : `<span class="badge b-t1">${ico('link-2', 'w-3 h-3')}1차 협력사</span>`;
+}
+function cellHTML(o, f) {
+  const v = V.get(o.id);
+  const c = v.fields[f];
+  const val = f === 'qty' ? fmt(o.qty) : o.cur[f];
+  const cls = c.lv === 'fix' ? 'c-fix' : c.lv === 'err' ? 'c-err' : (o.fixed[f] !== undefined ? 'c-done' : '');
+  let extra = '';
+  if (c.lv === 'fix') extra = `<span class="sug mono">${ico('corner-down-right')}${esc(c.sug)}</span>`;
+  else if (c.lv === 'err') extra = `<span class="emsg">${esc(c.msg.split(' (')[0])}</span>`;
+  else if (o.fixed[f] !== undefined) extra = `<span class="was mono">${esc(o.fixed[f])}</span>`;
+  const mono = (f === 'part' || f === 'date' || f === 'qty') ? 'mono' : '';
+  const sh = S.shakeRows && c.lv !== 'ok' ? ' shake' : '';
+  return `<div class="cell ${cls}${sh}" data-cell="${o.id}-${f}" title="${esc(c.lv !== 'ok' ? `${FIELD_LABEL[f]}: ${c.msg}` : '')}"><span class="v ${mono}">${esc(val)}</span>${extra}</div>`;
+}
+function rowHTML(o) {
+  const v = V.get(o.id);
+  const rc = o.approval === 'REJECTED' ? '' : { err: 'r-err', fix: 'r-fix', dup: 'r-dup', ok: '' }[v.level];
+  const locked = o.approval !== 'PENDING';
+  const shake = '';
+  return `<tr data-id="${o.id}" class="${rc} ${S.newRows.has(o.id) ? 'r-new' : ''}" style="${o.approval === 'REJECTED' ? 'opacity:.55' : ''}">
+    <td><input type="checkbox" class="ck row-ck" data-id="${o.id}" ${S.selected.has(o.id) ? 'checked' : ''} ${o.approval !== 'PENDING' ? 'disabled' : ''} aria-label="${oid(o)} 선택"/></td>
+    <td><span class="mono text-[12px] t2" title="${oid(o)}">#${o.no}</span></td>
+    <td class="${shake}">${cellHTML(o, 'date')}</td>
+    <td class="${shake}">${cellHTML(o, 'part')}</td>
+    <td class="${shake}"><div class="flex flex-col items-start gap-1">${cellHTML(o, 'customer')}<span data-tb="${o.id}">${typeBadge(v.cust)}</span></div></td>
+    <td class="text-right">${cellHTML(o, 'qty')}</td>
+    <td>${cellHTML(o, 'unit')}</td>
+    <td class="t2">${esc(o.by)}</td>
+    <td><div class="flex flex-col items-start gap-1"><span data-status="${o.id}">${lvBadge(v, o)}</span>${apBadge(o)}</div></td>
+    <td class="text-right">
+      <button class="row-act" data-act="edit" data-id="${o.id}" title="수정" ${locked ? 'disabled' : ''}>${ico('pencil', 'w-3.5 h-3.5')}</button>
+      <button class="row-act" data-act="del" data-id="${o.id}" title="삭제" ${locked ? 'disabled' : ''}>${ico('trash-2', 'w-3.5 h-3.5')}</button>
+    </td>
+  </tr>`;
+}
+const FILTERS = [
+  { k: 'all', n: '전체', f: () => true },
+  { k: 'issue', n: '이슈', f: (o, v) => o.approval === 'PENDING' && v.level !== 'ok' },
+  { k: 'ok', n: '검증 통과', f: (o, v) => o.approval === 'PENDING' && v.level === 'ok' },
+  { k: 'approved', n: '승인됨', f: o => o.approval === 'APPROVED' },
+  { k: 'rejected', n: '반려', f: o => o.approval === 'REJECTED' }
+];
+function renderTable() {
+  const flt = FILTERS.find(x => x.k === S.filter);
+  const rows = S.orders.filter(o => flt.f(o, V.get(o.id)));
+  $('#tblBody').innerHTML = rows.length ? rows.map(rowHTML).join('') :
+    `<tr><td colspan="10" class="text-center py-10 t3">${ico('inbox', 'w-6 h-6 mx-auto mb-2')}<div>표시할 수주가 없습니다.</div></td></tr>`;
+  $('#tblCount').textContent = `${S.orders.length}건`;
+  $('#filterChips').innerHTML = FILTERS.map(x => {
+    const n = S.orders.filter(o => x.f(o, V.get(o.id))).length;
+    return `<button class="chip ${S.filter === x.k ? 'on' : ''}" data-filter="${x.k}">${x.n} <span class="mono">${n}</span></button>`;
+  }).join('') + `<span class="text-[11.5px] t3 ml-auto">선택 <b class="mono t2">${S.selected.size}</b>건</span>`;
+  const pendIds = rows.filter(o => o.approval === 'PENDING').map(o => o.id);
+  $('#chkAll').checked = pendIds.length > 0 && pendIds.every(id => S.selected.has(id));
+  $('#btnDelSel').disabled = S.selected.size === 0;
+  S.newRows.clear(); S.shakeRows = false;
+}
+
+/* ---------------- 10. 렌더: 정규화 전/후 비교 (킬러) ---------------- */
+function compareData() {
+  const map = new Map();
+  for (const o of S.orders) {
+    if (o.approval === 'REJECTED') continue;
+    if (V.get(o.id).res.part !== S.focus) continue;
+    map.set(o.cur.part, (map.get(o.cur.part) || 0) + o.qty);
+  }
+  return [...map].map(([label, val]) => ({ label, val, std: label === S.focus }))
+    .sort((a, b) => (b.std - a.std) || (b.val - a.val));
+}
+function renderFocusSelect() {
+  const used = [...new Set(S.orders.map(o => V.get(o.id).res.part).filter(Boolean))];
+  const opts = PARTS.filter(p => used.includes(p.code));
+  if (!opts.find(p => p.code === S.focus) && opts.length) S.focus = opts[0].code;
+  $('#cmpFocus').innerHTML = opts.map(p => {
+    const variants = new Set(S.orders.filter(o => V.get(o.id).res.part === p.code).map(o => o.cur.part)).size;
+    return `<option value="${p.code}" ${p.code === S.focus ? 'selected' : ''}>${p.code}${variants > 1 ? ` (표기 ${variants}종)` : ''}</option>`;
+  }).join('');
+}
+function renderCompare() {
+  const data = compareData();
+  const total = data.reduce((a, d) => a + d.val, 0);
+  const max = Math.max(total, 1);
+  const box = $('#cmpBars');
+  const seen = new Set();
+  let stdRec = null;
+  data.forEach((d, i) => {
+    let rec = S.cmpEls.get(d.label);
+    if (!rec) {
+      const el = document.createElement('div');
+      el.className = 'cmp-row';
+      el.innerHTML = `
+        <div class="lbl">
+          <div class="flex items-center gap-2 min-w-0"><span class="code mono font-bold"></span><span class="tag"></span></div>
+          <div class="flex items-baseline gap-1"><span class="num mono">0</span><span class="text-[11px] t3">개</span></div>
+        </div>
+        <div class="track"><div class="bar"></div></div>`;
+      box.appendChild(el);
+      rec = { el, val: 0 };
+      S.cmpEls.set(d.label, rec);
+    }
+    const el = rec.el;
+    el.classList.remove('merge-out');
+    el.classList.toggle('std', d.std);
+    el.classList.toggle('bad', !d.std);
+    el.style.order = i;
+    $('.code', el).textContent = d.label;
+    $('.tag', el).innerHTML = d.std
+      ? `<span class="badge b-ok">${ico('check', 'w-3 h-3')}표준 품번</span>`
+      : `<span class="badge b-err">${ico('alert-triangle', 'w-3 h-3')}오표기 · 별도 품목</span>`;
+    requestAnimationFrame(() => requestAnimationFrame(() => { $('.bar', el).style.width = (d.val / max * 100).toFixed(2) + '%'; }));
+    countUp($('.num', el), rec.val, d.val, 1100);
+    rec.val = d.val;
+    seen.add(d.label);
+    if (d.std) stdRec = rec;
+  });
+  let merged = 0;
+  for (const [label, rec] of [...S.cmpEls]) {
+    if (seen.has(label)) continue;
+    merged += rec.val;
+    flyChip(rec.el, stdRec && stdRec.el, `+${fmt(rec.val)}`);
+    rec.el.classList.add('merge-out');
+    setTimeout(() => rec.el.remove(), 650);
+    S.cmpEls.delete(label);
+  }
+  if (merged && stdRec) {
+    const t = $('.track', stdRec.el);
+    setTimeout(() => { stdRec.el.classList.remove('absorb'); void stdRec.el.offsetWidth; stdRec.el.classList.add('absorb'); }, 350);
+  }
+  const split = data.length > 1;
+  const pill = $('#cmpPill');
+  pill.className = `mode-pill ${split ? 'split' : 'merged'}`;
+  pill.innerHTML = split ? `${ico('split', 'w-3.5 h-3.5')}기준 미적용 · ${data.length}개로 분리` : `${ico('git-merge', 'w-3.5 h-3.5')}기준정보 적용 · 단일 품목`;
+  const stdVal = (data.find(d => d.std) || { val: 0 }).val;
+  $('#cmpEq').innerHTML = split
+    ? data.map(d => `<span class="${d.std ? 'c-cyan' : 'c-err'}">${esc(d.label)} ${fmt(d.val)}</span>`).join('<span class="op">+</span>') + `<span class="op">⇒ 정규화 시</span><b class="c-ok">${S.focus} ${fmt(total)}</b>`
+    : `<b class="c-ok">${S.focus} = ${fmt(total)}개</b><span class="op">(단일 품목으로 정확히 통합 집계)</span>`;
+  $('#cmpSplit').innerHTML = `<span class="${split ? 'c-err' : 'c-ok'}">${data.length}</span><span class="t3 text-[12px]"> → 1</span>`;
+  const miss = total - stdVal;
+  $('#cmpMiss').innerHTML = `<span class="${miss ? 'c-err' : 'c-ok'}">${fmt(miss)}</span><span class="t3 text-[12px]">개${total ? ` (${Math.round(miss / total * 100)}%)` : ''}</span>`;
+  const sp = splitInfo();
+  $('#cmpKinds').innerHTML = `${sp.labels}<span class="t3 text-[12px]"> → ${sp.kinds}종</span>`;
+  // 다른 품목의 분리 현황
+  const groups = {};
+  S.orders.forEach(o => { const p = V.get(o.id).res.part; if (!p || o.approval === 'REJECTED') return; (groups[p] = groups[p] || new Set()).add(o.cur.part); });
+  const splitGroups = Object.entries(groups).filter(([, s]) => s.size > 1);
+  $('#cmpGroups').innerHTML = splitGroups.length
+    ? `<span class="t2 font-semibold">분리 감지 품목:</span> ` + splitGroups.map(([p, s]) => `<span class="diff mono"><span class="a">${p}</span>← ${[...s].filter(x => x !== p).map(x => `<span class="b">${esc(x)}</span>`).join(', ')}</span>`).join('')
+    : `<span class="c-ok font-semibold">${ico('check-circle-2', 'w-3.5 h-3.5 inline -mt-0.5')} 모든 품목이 기준정보 품번 1개로 통합 집계되고 있습니다.</span>`;
+}
+function flyChip(fromEl, toEl, text) {
+  const card = $('#sec-compare');
+  if (!fromEl || !toEl || !card) return;
+  const cr = card.getBoundingClientRect(), fr = fromEl.getBoundingClientRect(), tr = toEl.getBoundingClientRect();
+  const chip = document.createElement('div');
+  chip.className = 'fly-chip mono';
+  chip.textContent = text;
+  chip.style.left = (fr.right - cr.left - 80) + 'px';
+  chip.style.top = (fr.top - cr.top + fr.height / 2) + 'px';
+  card.appendChild(chip);
+  const dx = (tr.right - fr.right) - 30, dy = (tr.top + tr.height / 2) - (fr.top + fr.height / 2) - 10;
+  chip.animate([
+    { transform: 'translate(0,0) scale(.6)', opacity: 0 },
+    { transform: 'translate(0,-14px) scale(1.15)', opacity: 1, offset: .25 },
+    { transform: `translate(${dx}px, ${dy}px) scale(1)`, opacity: 1, offset: .8 },
+    { transform: `translate(${dx}px, ${dy}px) scale(.4)`, opacity: 0 }
+  ], { duration: 1100, easing: 'cubic-bezier(.22,1,.36,1)' }).onfinish = () => chip.remove();
+}
+
+/* ---------------- 11. 렌더: 승인 패널 ---------------- */
+function approvalTargets() {
+  const sel = S.orders.filter(o => S.selected.has(o.id));
+  const pool = sel.length ? sel : S.orders;
+  return pool.filter(o => o.approval === 'PENDING' && V.get(o.id).level === 'ok');
+}
+function renderApprove() {
+  const st = stats();
+  countUp($('#apElig'), +$('#apElig').textContent.replace(/,/g, '') || 0, st.elig, 600);
+  countUp($('#apHold'), +$('#apHold').textContent.replace(/,/g, '') || 0, st.fix + st.err + st.dup, 600);
+  countUp($('#apDone'), +$('#apDone').textContent.replace(/,/g, '') || 0, st.appr, 600);
+  countUp($('#apRej'), +$('#apRej').textContent.replace(/,/g, '') || 0, st.rej, 600);
+  const isMgr = can('approve');
+  $('#apRole').innerHTML = isMgr ? `${ico('key-round', 'w-3 h-3')}승인 권한 보유` : `${ico('lock', 'w-3 h-3')}권한 없음`;
+  $('#apRole').className = 'chip ' + (isMgr ? 'on' : '');
+  const tg = approvalTargets();
+  const selCnt = S.selected.size;
+  $('#apTarget').innerHTML = selCnt
+    ? `선택 <b class="t1">${selCnt}</b>건 중 승인 가능 <b class="c-ok">${tg.length}</b>건${selCnt - tg.length ? ` · 이슈 <b class="c-warn">${selCnt - tg.length}</b>건은 제외` : ''}`
+    : `선택 없음 → 검증 통과(VALID) <b class="c-ok">${tg.length}</b>건 전체가 승인 대상입니다.${st.fix ? ` <span class="c-warn">교정 대기 ${st.fix}건은 Auto-Fix 후 승인 가능.</span>` : ''}`;
+  const ab = $('#btnApprove');
+  ab.disabled = !isMgr || tg.length === 0;
+  ab.innerHTML = `${ico(isMgr ? 'stamp' : 'lock', 'w-4 h-4')}책임자 승인 확정${isMgr && tg.length ? ` (${tg.length}건)` : ''}`;
+  $('#apTip').textContent = !isMgr ? `현재 ${me().name}(${me().role}) — 승인 책임자(박승인) 권한이 필요합니다.` : tg.length ? `${tg.length}건을 Approved로 확정합니다.` : '승인 가능한 수주가 없습니다.';
+  $('#apTip').parentElement.querySelector('.tt').style.display = '';
+  $('#btnReject').disabled = !isMgr || selCnt === 0;
+}
+
+/* ---------------- 12. 렌더: 감사 로그 ---------------- */
+const LOG_FILTERS = [
+  { k: 'all', n: '전체', f: () => true },
+  { k: 'norm', n: '정규화·검증', f: l => ['NORMALIZE', 'VALIDATE'].includes(l.action) },
+  { k: 'appr', n: '승인·반려', f: l => ['APPROVE', 'REJECT'].includes(l.action) },
+  { k: 'recv', n: '접수·수정', f: l => ['RECEIVE', 'EDIT', 'DELETE'].includes(l.action) },
+  { k: 'master', n: '기준정보', f: l => ['MASTER_CHANGE', 'SYSTEM'].includes(l.action) }
+];
+function renderLogs() {
+  const flt = LOG_FILTERS.find(x => x.k === S.logFilter);
+  const list = S.logs.filter(flt.f).slice(0, 120);
+  $('#logList').innerHTML = list.map(l => {
+    const a = ACT[l.action] || ACT.SYSTEM;
+    const isNew = !S.renderedLogs.has(l.id);
+    return `<div class="log-item ${isNew ? 'new' : ''}">
+      <div class="dot" style="color:${a.color};box-shadow:0 0 16px -6px ${a.color}">${ico(a.icon, 'w-4 h-4')}</div>
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-1.5 flex-wrap">
+          <span class="badge" style="color:${a.color};background:color-mix(in srgb, ${a.color} 13%, transparent)">${a.label}</span>
+          <span class="font-bold text-[12.5px]">${esc(l.title)}</span>
+        </div>
+        ${l.diffs.length ? `<div class="mt-0.5">${l.diffs.map(d => `<span class="diff mono"><span class="t3">${esc(d.label)}</span><span class="b">${esc(d.before)}</span>➔<span class="a">${esc(d.after)}</span></span>`).join('')}</div>` : ''}
+        ${l.note ? `<div class="text-[11.5px] t2 mt-0.5">${esc(l.note)}</div>` : ''}
+        <div class="text-[11px] t3 mt-1 flex items-center gap-1.5 flex-wrap">
+          <span class="inline-flex items-center gap-1">${ico('user-round', 'w-3 h-3')}<b class="t2">${esc(l.actor)}</b> · ${esc(l.role)}</span>
+          <span class="mono">${esc(l.at)}</span>
+          <span class="mono opacity-70">${esc(l.id)}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('') || `<div class="text-center t3 text-[12px] py-6">기록이 없습니다.</div>`;
+  list.forEach(l => S.renderedLogs.add(l.id));
+  $('#logCount').textContent = S.logs.length;
+  $('#logFilter').innerHTML = LOG_FILTERS.map(x => `<button class="chip ${S.logFilter === x.k ? 'on' : ''}" data-lf="${x.k}">${x.n} <span class="mono">${S.logs.filter(x.f).length}</span></button>`).join('');
+  refreshIcons();
+  if ($('#pipeSteps').children.length) {
+    const m = $$('#pipeSteps [data-metric]')[4]; if (m) m.textContent = `로그 ${S.logs.length}건`;
+  }
+}
+
+/* ---------------- 13. 렌더: 집계 차트 ---------------- */
+function aggregate(mode, dim) {
+  const map = new Map();
+  for (const o of S.orders) {
+    if (o.approval === 'REJECTED') continue;
+    const v = V.get(o.id);
+    if (mode === 'norm' && (v.level === 'err' || v.level === 'dup')) continue;
+    let key, kind = 'std';
+    if (dim === 'month') {
+      if (mode === 'norm') key = v.res.date.slice(0, 7);
+      else { key = /^\d{4}-\d{2}-\d{2}$/.test(o.raw.date) ? o.raw.date.slice(0, 7) : '형식 불일치'; if (key === '형식 불일치') kind = 'bad'; }
+    } else if (dim === 'manager') key = o.by;
+    else if (dim === 'customer') {
+      key = mode === 'norm' ? v.res.customer : o.raw.customer;
+      const c = custOf(key);
+      kind = c ? (c.type === '체계업체' ? 'sys' : 't1') : 'bad';
+    } else {
+      key = mode === 'norm' ? v.res.part : o.raw.part;
+      kind = PART_RE.test(key) && partOf(key) ? 'std' : 'bad';
+    }
+    const cur = map.get(key) || { key, val: 0, kind, n: 0 };
+    cur.val += o.qty; cur.n += 1;
+    map.set(key, cur);
+  }
+  let arr = [...map.values()];
+  if (dim === 'month') arr.sort((a, b) => a.key.localeCompare(b.key));
+  else arr.sort((a, b) => b.val - a.val);
+  return arr;
+}
+function renderChart() {
+  const arr = aggregate(S.chartMode, S.chartTab);
+  const col = { std: cssVar('--blue'), sys: cssVar('--blue'), t1: cssVar('--aqua'), bad: cssVar('--err') };
+  const total = arr.reduce((a, d) => a + d.val, 0);
+  countUp($('#chartTotal'), +$('#chartTotal').textContent.replace(/,/g, '') || 0, total, 700);
+  countUp($('#chartGroups'), +$('#chartGroups').textContent || 0, arr.length, 500);
+  const kinds = [...new Set(arr.map(d => d.kind))];
+  const legendName = {
+    month: { std: '수주월', bad: '날짜 형식 불일치(월 미상)' },
+    manager: { std: '접수 담당자' },
+    customer: { sys: '체계업체', t1: '1차 협력사', bad: '미등록·별칭 표기' },
+    part: { std: '표준 품번', bad: '오표기·미등록 품번' }
+  }[S.chartTab];
+  $('#chartLegend').innerHTML = kinds.map(k => `<div class="flex items-center gap-2"><span style="width:10px;height:10px;border-radius:3px;background:${col[k]}"></span><span class="t2">${legendName[k] || k}</span><span class="mono t3 ml-auto">${fmt(arr.filter(d => d.kind === k).reduce((a, d) => a + d.val, 0))}</span></div>`).join('');
+  const st = stats();
+  $('#chartNote').innerHTML = S.chartMode === 'norm'
+    ? `기준정보 정규화값으로 집계합니다. ERROR·중복 <b class="t2">${st.err + st.dup}</b>건과 반려 건은 제외됩니다.`
+    : `원본 입력값 그대로 집계합니다. 같은 부품·같은 거래처가 <b class="c-err">표기 차이로 별도 그룹</b>이 되는 것을 확인하세요.`;
+  $('#chartTable').innerHTML = `<table class="tbl"><thead><tr><th>그룹</th><th>구분</th><th class="text-right">건수</th><th class="text-right">수량</th></tr></thead><tbody>${arr.map(d => `<tr><td class="mono">${esc(d.key)}</td><td class="t2">${legendName[d.kind] || d.kind}</td><td class="text-right mono">${d.n}</td><td class="text-right mono font-bold">${fmt(d.val)}</td></tr>`).join('')}</tbody></table>`;
+  if (!window.Chart) { $('#chartFallback').classList.remove('hidden'); return; }
+  const tx2 = cssVar('--tx2'), grid = cssVar('--grid'), cardSolid = cssVar('--card-solid'), tx1 = cssVar('--tx1'), line2 = cssVar('--line2');
+  const data = {
+    labels: arr.map(d => d.key),
+    datasets: [{
+      label: '수량', data: arr.map(d => d.val),
+      backgroundColor: arr.map(d => col[d.kind]),
+      hoverBackgroundColor: arr.map(d => col[d.kind]),
+      borderRadius: { topLeft: 4, topRight: 4 }, borderSkipped: 'bottom',
+      maxBarThickness: 46, categoryPercentage: .7, barPercentage: .9
+    }]
+  };
+  if (S.chart && S.chart.$tab === S.chartTab) {
+    S.chart.data = data;
+    S.chart.options.scales.x.ticks.color = tx2; S.chart.options.scales.y.ticks.color = tx2; S.chart.options.scales.y.grid.color = grid;
+    S.chart.options.plugins.tooltip.backgroundColor = cardSolid; S.chart.options.plugins.tooltip.titleColor = tx1; S.chart.options.plugins.tooltip.bodyColor = tx2; S.chart.options.plugins.tooltip.borderColor = line2;
+    S.chart.update();
+    return;
+  }
+  if (S.chart) S.chart.destroy();
+  S.chart = new Chart($('#chart'), {
+    type: 'bar', data,
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      animation: { duration: 900, easing: 'easeOutQuart' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: cardSolid, titleColor: tx1, bodyColor: tx2, borderColor: line2, borderWidth: 1, padding: 10, cornerRadius: 10,
+          titleFont: { family: 'JetBrains Mono', weight: '700' },
+          callbacks: { label: ctx => ` 수량 ${fmt(ctx.parsed.y)} · ${arr[ctx.dataIndex] ? arr[ctx.dataIndex].n : 0}건` }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, border: { display: false }, ticks: { color: tx2, font: { family: 'JetBrains Mono', size: 11 }, maxRotation: 30, autoSkip: false } },
+        y: { beginAtZero: true, grid: { color: grid }, border: { display: false }, ticks: { color: tx2, font: { size: 11 }, precision: 0 } }
+      }
+    }
+  });
+  S.chart.$tab = S.chartTab;
+}
+
+/* ---------------- 14. 전체 렌더 ---------------- */
+function renderAll(opts = {}) {
+  validateAll();
+  renderTable();
+  renderFocusSelect();
+  if (!opts.skipCompare) renderCompare();
+  renderKPI();
+  renderApprove();
+  renderPipeline();
+  renderChart();
+  refreshIcons();
+}
+
+/* ---------------- 15. ② 검증: Auto-Fix (스캔 레이저) ---------------- */
+function flipSwap(el, html, color) {
+  if (!el) return;
+  const a = el.animate([{ transform: 'rotateX(0deg)', opacity: 1 }, { transform: 'rotateX(90deg)', opacity: .2 }], { duration: 170, easing: 'ease-in', fill: 'forwards' });
+  a.onfinish = () => {
+    const tmp = document.createElement('div'); tmp.innerHTML = html;
+    const nu = tmp.firstElementChild;
+    el.replaceWith(nu);
+    refreshIcons();
+    nu.animate([
+      { transform: 'rotateX(-90deg)', opacity: .2, boxShadow: `0 0 0 0 ${color}` },
+      { transform: 'rotateX(12deg)', opacity: 1, boxShadow: `0 0 18px 2px ${color}`, offset: .6 },
+      { transform: 'rotateX(0deg)', opacity: 1, boxShadow: `0 0 0 0 transparent` }
+    ], { duration: 520, easing: 'cubic-bezier(.34,1.56,.64,1)' });
+  };
+}
+async function autoFix() {
+  if (S.fixing) return;
+  if (!can('validate')) { toast('err', '권한 없음', '검증·교정 권한이 없습니다.'); return; }
+  const targets = S.orders.filter(o => o.approval === 'PENDING' && hasFixable(o));
+  if (!targets.length) {
+    toast('info', '교정할 항목이 없습니다', '모든 자동 교정 가능 항목이 이미 기준정보와 일치합니다. 남은 ERROR는 수동 확인이 필요합니다.');
+    return;
+  }
+  S.fixing = true;
+  const btn = $('#btnAutoFix');
+  btn.disabled = true;
+  btn.innerHTML = `${ico('loader-2', 'w-4 h-4 animate-spin')}기준정보 스캔 중…`;
+  refreshIcons();
+  if (S.filter !== 'all' && S.filter !== 'issue') { S.filter = 'all'; renderTable(); refreshIcons(); }
+  selectPipeQuiet(1);
+  const wrap = $('#tblWrap'), laser = $('#laser'), grid = $('#scanGrid');
+  const H = wrap.scrollHeight;
+  const D = Math.max(1600, Math.min(2600, H * 2.2));
+  const hud = document.createElement('div'); hud.className = 'scan-hud mono'; hud.textContent = 'SCANNING · MASTER DATA v1'; wrap.appendChild(hud);
+  grid.classList.add('on'); laser.classList.add('run');
+  const anim = laser.animate([{ transform: 'translateY(0px)' }, { transform: `translateY(${H - 4}px)` }], { duration: D, easing: 'linear' });
+  const allChanges = [];
+  const wrapTop = wrap.getBoundingClientRect().top;
+  targets.forEach(o => {
+    const tr = $(`tr[data-id="${o.id}"]`, wrap);
+    const y = tr ? (tr.getBoundingClientRect().top - wrapTop + tr.offsetHeight / 2) : H / 2;
+    setTimeout(() => {
+      const changes = applyFixes(o);
+      if (!changes.length) return;
+      allChanges.push({ o, changes });
+      validateAll();
+      changes.forEach(c => flipSwap($(`[data-cell="${o.id}-${c.f}"]`), cellHTML(o, c.f), cssVar('--ok')));
+      const stEl = $(`[data-status="${o.id}"]`);
+      if (stEl) { stEl.innerHTML = lvBadge(V.get(o.id), o); const b = stEl.firstElementChild; if (b) b.classList.add('spring'); }
+      const tb = $(`[data-tb="${o.id}"]`); if (tb) tb.innerHTML = typeBadge(V.get(o.id).cust);
+      if (tr) { tr.className = ''; tr.classList.add('r-flash'); const lv = V.get(o.id).level; if (lv === 'err') tr.classList.add('r-err'); if (lv === 'dup') tr.classList.add('r-dup'); }
+      refreshIcons();
+      hud.textContent = `NORMALIZED ${allChanges.length}/${targets.length}`;
+    }, Math.max(60, (y / H) * D));
+  });
+  await sleep(D + 150);
+  anim.cancel(); laser.classList.remove('run'); grid.classList.remove('on');
+  hud.textContent = 'SCAN COMPLETE ✓';
+  await sleep(500);
+  hud.remove();
+  // 집계 병합 클라이맥스
+  renderAll();
+  const fieldCnt = allChanges.reduce((a, x) => a + x.changes.length, 0);
+  for (const { o, changes } of allChanges) {
+    addLog('NORMALIZE', `${oid(o)} 기준정보 정규화`, {
+      orderId: oid(o), diffs: changes.map(c => ({ label: FIELD_LABEL[c.f], before: c.before, after: c.after })),
+      note: changes.some(c => c.f === 'part') ? '품번 표기 규칙(^KJ-[A-Z]\\d{4}$) 자동 정규화' : '표기 규칙 자동 정규화'
+    });
+    await sleep(70);
+  }
+  const st = stats();
+  addLog('VALIDATE', `일괄 정규화 완료 — ${allChanges.length}건 · ${fieldCnt}개 필드 교정`, {
+    note: `남은 이슈: ERROR ${st.err}건 · 중복 ${st.dup}건 (수동 확인 필요). 승인 가능 ${st.elig}건.`
+  });
+  toast('ok', `⚡ 기준정보 정규화 완료`, `${allChanges.length}건 ${fieldCnt}개 필드를 표준 표기로 교정했습니다. ${S.focus} 집계가 단일 품목으로 통합되었습니다.`);
+  btn.disabled = false;
+  btn.innerHTML = `${ico('zap', 'w-4 h-4')}⚡ 기준정보 일괄 정규화 (Auto-Fix)`;
+  refreshIcons();
+  S.fixing = false;
+  setTimeout(() => { const c = $('#sec-compare'); if (c && window.innerWidth >= 1024) { c.classList.remove('focus-ring'); void c.offsetWidth; c.classList.add('focus-ring'); setTimeout(() => c.classList.remove('focus-ring'), 1600); } }, 200);
+}
+function selectPipeQuiet(i) { S.pipeSel = i; renderPipeline(); }
+
+/* ---------------- 16. ④ 승인 / 반려 ---------------- */
+function approve() {
+  if (!can('approve')) { toast('err', '승인 권한 없음', '승인 책임자(박승인)로 전환해야 최종 승인할 수 있습니다.'); return; }
+  validateAll();
+  const tg = approvalTargets();
+  if (!tg.length) { toast('info', '승인 대상 없음', '검증 통과(VALID) 상태의 대기 건이 없습니다.'); return; }
+  const at = nowStr();
+  tg.forEach(o => { o.approval = 'APPROVED'; o.decidedBy = me().name; o.decidedAt = at; S.selected.delete(o.id); });
+  const excluded = S.orders.filter(o => o.approval === 'PENDING' && V.get(o.id).level !== 'ok');
+  addLog('APPROVE', `책임자 승인 확정 — ${tg.length}건 승인`, {
+    note: `${tg.map(oid).slice(0, 6).join(', ')}${tg.length > 6 ? ` 외 ${tg.length - 6}건` : ''} · 합계 ${fmt(tg.reduce((a, o) => a + o.qty, 0))}개` + (excluded.length ? ` · 보류 ${excluded.length}건(${excluded.map(o => o.no).join('·')}) 제외` : '')
+  });
+  selectPipeQuiet(3);
+  renderAll();
+  celebrate();
+  toast('ok', `${tg.length}건 수주 확정 (Approved)`, `${me().name} · ${at} — 감사 로그에 기록되었습니다. 승인 건은 [생산] 단계로 전달 대기합니다.`);
+}
+const REJECT_REASONS = ['발주처 확인 필요', '미등록 품번', '중복 접수', '수량 재확인 필요', '납기 협의 필요'];
+function openReject() {
+  if (!can('approve')) { toast('err', '반려 권한 없음', '승인 책임자만 반려할 수 있습니다.'); return; }
+  const sel = S.orders.filter(o => S.selected.has(o.id) && o.approval === 'PENDING');
+  if (!sel.length) { toast('info', '반려할 건을 선택하세요', '표에서 체크박스로 수주를 선택한 뒤 반려할 수 있습니다.'); return; }
+  $('#rjInfo').innerHTML = `선택 <b class="t1">${sel.length}</b>건: <span class="mono">${sel.map(oid).join(', ')}</span>`;
+  $('#rjChips').innerHTML = REJECT_REASONS.map(r => `<button class="chip" data-rr="${r}">${r}</button>`).join('');
+  $('#rjReason').value = '';
+  $('#rjModal').classList.add('open'); $('#drawerMask').classList.add('open');
+  setTimeout(() => $('#rjReason').focus(), 200);
+}
+function closeReject() { $('#rjModal').classList.remove('open'); if (!$('#drawer').classList.contains('open')) $('#drawerMask').classList.remove('open'); }
+function confirmReject() {
+  const reason = $('#rjReason').value.trim();
+  if (!reason) { const t = $('#rjReason'); t.classList.remove('shake'); void t.offsetWidth; t.classList.add('shake'); t.style.borderColor = 'var(--err)'; toast('err', '반려 사유는 필수입니다', '사유 칩을 누르거나 직접 입력하세요.'); return; }
+  const sel = S.orders.filter(o => S.selected.has(o.id) && o.approval === 'PENDING');
+  const at = nowStr();
+  sel.forEach(o => { o.approval = 'REJECTED'; o.reason = reason; o.decidedBy = me().name; o.decidedAt = at; S.selected.delete(o.id); });
+  addLog('REJECT', `수주 반려 — ${sel.length}건`, { note: `${sel.map(oid).join(', ')} · 사유: ${reason}` });
+  closeReject();
+  renderAll();
+  toast('warn', `${sel.length}건 반려 처리`, `사유: ${reason} — 반려 건은 집계에서 제외됩니다.`);
+}
+
+/* ---------------- 17. ① 접수 폼 (실시간 검증) ---------------- */
+const F = { part: '#f-part', customer: '#f-cust', date: '#f-date', qty: '#f-qty', unit: '#f-unit' };
+function setFld(wrapId, lv) { const w = $(wrapId); w.classList.remove('ok', 'fix', 'err'); if (lv) w.classList.add(lv); }
+function tipHTML(title, sug, reason, field) {
+  return `<div class="tip">${ico('wand-sparkles', 'w-4 h-4 c-warn')}<span><b class="c-warn">교정 추천</b> <b class="mono">${esc(sug)}</b> <span class="t3">· ${esc(reason)}</span></span><button type="button" class="apply" data-apply="${field}" data-val="${esc(sug)}">적용</button></div>`;
+}
+function liveValidate() {
+  const vPart = $(F.part).value, vCust = $(F.customer).value, vDate = $(F.date).value, vQty = $(F.qty).value, vUnit = $(F.unit).value;
+  // 품번
+  const hp = $('#h-part');
+  if (!vPart) { setFld('#w-part', null); hp.className = 'hint'; hp.innerHTML = `${ico('info', 'w-3.5 h-3.5')}형식: <span class="mono">KJ-</span> + 영문 대문자 1자 + 숫자 4자리`; }
+  else {
+    const c = checkPart(vPart);
+    setFld('#w-part', c.lv);
+    if (c.lv === 'ok') { hp.className = 'hint ok'; hp.innerHTML = `${ico('check-circle-2', 'w-3.5 h-3.5')}정규식 일치 · 표준 품번 — ${esc(c.msg)}`; }
+    else if (c.lv === 'fix') { hp.className = 'hint'; hp.innerHTML = tipHTML('품번', c.sug, `${c.msg} · ${partOf(c.sug).name}`, 'part'); }
+    else { hp.className = 'hint err'; hp.innerHTML = `${ico('x-circle', 'w-3.5 h-3.5')}${esc(c.msg)}`; }
+  }
+  // 발주처
+  const hc = $('#h-cust'), cb = $('#custBadge');
+  let cust = null;
+  if (!vCust) { setFld('#w-cust', null); hc.className = 'hint'; hc.innerHTML = `${ico('info', 'w-3.5 h-3.5')}체계업체 4곳 · 1차 협력사 4곳 중 선택`; }
+  else {
+    const c = checkCustomer(vCust); cust = c.cust;
+    setFld('#w-cust', c.lv);
+    if (c.lv === 'ok') { hc.className = 'hint ok'; hc.innerHTML = `${ico('check-circle-2', 'w-3.5 h-3.5')}등록 발주처 · ${c.cust.code}`; }
+    else if (c.lv === 'fix') { hc.className = 'hint'; hc.innerHTML = tipHTML('발주처', c.sug, c.msg, 'customer'); }
+    else { hc.className = 'hint err'; hc.innerHTML = `${ico('x-circle', 'w-3.5 h-3.5')}${esc(c.msg)}`; }
+  }
+  const prevB = cb.dataset.t || '';
+  const nowB = cust ? cust.type : '';
+  if (prevB !== nowB) { cb.innerHTML = cust ? typeBadge(cust) : ''; cb.dataset.t = nowB; if (cb.firstElementChild) cb.firstElementChild.classList.add('spring'); }
+  // 날짜
+  const hd = $('#h-date');
+  if (!vDate) { setFld('#w-date', null); hd.className = 'hint'; hd.innerHTML = `${ico('info', 'w-3.5 h-3.5')}<span class="mono">YYYY-MM-DD</span> · <span class="mono">1/05</span>, <span class="mono">26/1/12</span> 입력 시 자동 변환 제안`; }
+  else {
+    const c = checkDate(vDate);
+    setFld('#w-date', c.lv);
+    if (c.lv === 'ok') { const wd = '일월화수목금토'[new Date(vDate + 'T00:00:00').getDay()]; hd.className = 'hint ok'; hd.innerHTML = `${ico('check-circle-2', 'w-3.5 h-3.5')}ISO 표준 날짜 (${wd}요일)`; }
+    else if (c.lv === 'fix') { hd.className = 'hint'; hd.innerHTML = tipHTML('날짜', c.sug, `${vDate} → ISO 변환`, 'date'); }
+    else { hd.className = 'hint err'; hd.innerHTML = `${ico('x-circle', 'w-3.5 h-3.5')}${esc(c.msg)}`; }
+  }
+  // 수량
+  const hq = $('#h-qty');
+  if (!vQty) { setFld('#w-qty', null); hq.className = 'hint'; hq.textContent = '1 이상 정수'; }
+  else { const c = checkQty(vQty); setFld('#w-qty', c.lv); hq.className = 'hint ' + (c.lv === 'ok' ? 'ok' : 'err'); hq.innerHTML = c.lv === 'ok' ? `${ico('check-circle-2', 'w-3.5 h-3.5')}${fmt(vQty)}` : `${ico('x-circle', 'w-3.5 h-3.5')}${c.msg}`; }
+  // 단위 (품번 표준 단위와 정합)
+  const hu = $('#h-unit');
+  const pc = checkPart(vPart); const rPart = pc.lv === 'ok' ? vPart : pc.lv === 'fix' ? pc.sug : null;
+  if (!vUnit) { setFld('#w-unit', null); hu.className = 'hint'; hu.innerHTML = `${ico('info', 'w-3.5 h-3.5')}단위는 <b class="t2">개(EA)</b> 또는 <b class="t2">세트(SET)</b>${rPart ? ` · ${rPart} 표준 단위: <b class="t2">${partOf(rPart).unit}</b>` : ''}`; }
+  else {
+    const c = checkUnit(vUnit, rPart);
+    setFld('#w-unit', c.lv);
+    if (c.lv === 'ok') { hu.className = 'hint ok'; hu.innerHTML = `${ico('check-circle-2', 'w-3.5 h-3.5')}표준 단위 ${esc(vUnit)}${rPart ? ` · ${rPart} 기준정보와 일치` : ''}`; }
+    else if (c.lv === 'fix') { hu.className = 'hint'; hu.innerHTML = tipHTML('단위', c.sug, c.msg, 'unit'); }
+    else { hu.className = 'hint err'; hu.innerHTML = `${ico('x-circle', 'w-3.5 h-3.5')}${esc(c.msg)}`; }
+  }
+  $$('.unit-chip').forEach(b => b.classList.toggle('on', b.dataset.unit === vUnit));
+  refreshIcons();
+}
+function formValues() {
+  return { part: $(F.part).value.trim() === '' ? '' : $(F.part).value, customer: $(F.customer).value, date: $(F.date).value.trim(), qty: $(F.qty).value.trim(), unit: $(F.unit).value.trim() };
+}
+function resetForm() {
+  Object.values(F).forEach(s => { $(s).value = ''; });
+  S.editing = null;
+  $('#editBanner').classList.add('hidden');
+  $('#btnSubmit span').textContent = '접수 등록';
+  $('#formTitle').textContent = '접수 — 신규 수주 입력 (실시간 정규식 검증)';
+  liveValidate();
+}
+function submitForm(e) {
+  e.preventDefault();
+  if (!can('receive')) { toast('err', '접수 권한 없음', '품질·출하 담당은 접수할 수 없습니다.'); return; }
+  const v = formValues();
+  const miss = Object.entries(v).filter(([, x]) => String(x).trim() === '').map(([k]) => FIELD_LABEL[k]);
+  if (miss.length) {
+    toast('err', '필수 항목 누락', `${miss.join(', ')}을(를) 입력하세요.`);
+    Object.entries(v).forEach(([k, x]) => { if (String(x).trim() === '') { const w = $(F[k]).closest('.fld'); w.classList.add('err'); w.classList.remove('shake'); void w.offsetWidth; w.classList.add('shake'); } });
+    return;
+  }
+  if (S.editing) {
+    const o = S.orders.find(x => x.id === S.editing);
+    if (!o || o.approval !== 'PENDING') { resetForm(); return; }
+    const diffs = [];
+    for (const f of FIX_FIELDS) if (o.cur[f] !== v[f]) { diffs.push({ label: FIELD_LABEL[f], before: o.cur[f], after: v[f] }); o.cur[f] = v[f]; delete o.fixed[f]; }
+    if (Number(v.qty) !== o.qty) { diffs.push({ label: '수량', before: String(o.qty), after: String(Number(v.qty)) }); o.qty = Number(v.qty); }
+    if ($('#f-autofix').checked) applyFixes(o).forEach(c => diffs.push({ label: FIELD_LABEL[c.f] + '(자동)', before: c.before, after: c.after }));
+    addLog('EDIT', `${oid(o)} 수동 수정`, { orderId: oid(o), diffs, note: diffs.length ? '' : '변경 사항 없음' });
+    S.newRows.add(o.id);
+    resetForm(); renderAll();
+    toast('ok', `${oid(o)} 수정 저장`, `${diffs.length}개 항목 변경 · 재검증 완료`);
+    return;
+  }
+  const o = makeOrder(v.date, v.part, v.customer, v.qty, v.unit, me().name);
+  let fixes = [];
+  if ($('#f-autofix').checked) fixes = applyFixes(o);
+  S.orders.unshift(o);
+  S.newRows.add(o.id);
+  addLog('RECEIVE', `${oid(o)} 신규 수주 접수`, { orderId: oid(o), note: `${o.raw.part} · ${o.raw.customer} · ${o.qty} ${o.raw.unit} · ${o.raw.date}` });
+  if (fixes.length) addLog('NORMALIZE', `${oid(o)} 접수 시 자동 교정`, { orderId: oid(o), diffs: fixes.map(c => ({ label: FIELD_LABEL[c.f], before: c.before, after: c.after })) });
+  S.filter = 'all';
+  resetForm();
+  renderAll();
+  const lv = V.get(o.id).level;
+  toast(lv === 'ok' ? 'ok' : lv === 'fix' ? 'warn' : 'err', `${oid(o)} 접수 완료`, lv === 'ok' ? '기준정보 검증 통과 (VALID)' : lv === 'fix' ? '오표기 감지 — Auto-Fix로 교정할 수 있습니다.' : lv === 'dup' ? '중복 의심 건으로 표시되었습니다.' : '수동 확인이 필요한 오류가 있습니다.');
+  selectPipeQuiet(0);
+}
+function startEdit(id) {
+  const o = S.orders.find(x => x.id === id);
+  if (!o || o.approval !== 'PENDING') return;
+  if (!can('receive')) { toast('err', '수정 권한 없음', '품질·출하 담당은 교정 요청만 가능합니다. (영업 실무자/책임자로 전환)'); return; }
+  S.editing = id;
+  $(F.part).value = o.cur.part; $(F.customer).value = o.cur.customer; $(F.date).value = o.cur.date; $(F.qty).value = o.qty; $(F.unit).value = o.cur.unit;
+  $('#formTitle').textContent = `접수 — ${oid(o)} 수정 중`;
+  $('#btnSubmit span').textContent = '수정 저장';
+  const bn = $('#editBanner');
+  bn.classList.remove('hidden');
+  bn.innerHTML = `${ico('pencil', 'w-4 h-4 c-violet')}<span><b>${oid(o)}</b> 수정 모드 — 원본 접수값: <span class="mono t2">${esc(o.raw.date)} · ${esc(o.raw.part)} · ${esc(o.raw.customer)} · ${esc(o.raw.unit)}</span></span><button type="button" class="apply" id="btnEditCancel">취소</button>`;
+  liveValidate();
+  $('#sec-receive').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  $('#btnEditCancel').addEventListener('click', resetForm);
+}
+function deleteRows(ids) {
+  if (!can('receive')) { toast('err', '삭제 권한 없음', '영업 실무자 또는 책임자만 접수 건을 삭제할 수 있습니다.'); return; }
+  const list = S.orders.filter(o => ids.includes(o.id) && o.approval === 'PENDING');
+  if (!list.length) return;
+  list.forEach(o => { const tr = $(`tr[data-id="${o.id}"]`); if (tr) tr.classList.add('r-out'); });
+  setTimeout(() => {
+    S.orders = S.orders.filter(o => !list.includes(o));
+    list.forEach(o => S.selected.delete(o.id));
+    addLog('DELETE', `수주 삭제 — ${list.length}건`, { note: list.map(o => `${oid(o)} (${o.cur.part} ${o.qty})`).join(', ') });
+    renderAll();
+    toast('info', `${list.length}건 삭제`, '감사 로그에 삭제 이력이 남았습니다.');
+  }, 420);
+}
+
+/* 자동완성 */
+function setupAC(inputSel, boxSel, source) {
+  const inp = $(inputSel), box = $(boxSel);
+  let hi = -1, items = [];
+  const close = () => { box.classList.add('hidden'); hi = -1; };
+  const open = () => {
+    items = source(inp.value);
+    if (!items.length) { close(); return; }
+    box.innerHTML = items.map((it, i) => `<div class="ac-item ${i === hi ? 'hi' : ''}" data-i="${i}">${it.html}</div>`).join('');
+    box.classList.remove('hidden');
+    refreshIcons();
+  };
+  inp.addEventListener('focus', open);
+  inp.addEventListener('input', () => { hi = -1; open(); });
+  inp.addEventListener('keydown', e => {
+    if (box.classList.contains('hidden')) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); hi = Math.min(items.length - 1, hi + 1); open(); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); hi = Math.max(0, hi - 1); open(); }
+    else if (e.key === 'Enter' && hi >= 0) { e.preventDefault(); items[hi].pick(); close(); liveValidate(); }
+    else if (e.key === 'Escape') close();
+  });
+  box.addEventListener('mousedown', e => {
+    const it = e.target.closest('.ac-item'); if (!it) return;
+    e.preventDefault(); items[+it.dataset.i].pick(); close(); liveValidate();
+  });
+  inp.addEventListener('blur', () => setTimeout(close, 120));
+}
+function hl(text, q) {
+  if (!q) return esc(text);
+  const i = text.toUpperCase().indexOf(q.toUpperCase());
+  return i < 0 ? esc(text) : esc(text.slice(0, i)) + '<mark>' + esc(text.slice(i, i + q.length)) + '</mark>' + esc(text.slice(i + q.length));
+}
+function partSource(q) {
+  const qs = String(q || '').toUpperCase().replace(/[^A-Z0-9가-힣]/g, '');
+  return PARTS.filter(p => !qs || p.code.replace('-', '').includes(qs) || p.name.includes(q.trim()))
+    .map(p => ({
+      html: `<span class="mono font-bold">${hl(p.code, q.trim())}</span><span class="t2 text-[12.5px] truncate">${esc(p.name)}</span><span class="badge ${p.unit === UNIT_SET ? 'b-t1' : 'b-pend'} ml-auto">${p.unit}</span>`,
+      pick: () => { $(F.part).value = p.code; if (!$(F.unit).value || canonUnit($(F.unit).value) !== p.unit) $(F.unit).value = p.unit; }
+    }));
+}
+function custSource(q) {
+  const k = ckey(q);
+  return CUSTOMERS.filter(c => !k || ckey(c.name).includes(k) || c.aliases.some(a => ckey(a).includes(k)))
+    .map(c => ({
+      html: `<span class="mono t3 text-[11px]">${c.code}</span><span class="font-semibold">${hl(c.name, q.trim())}</span><span class="ml-auto">${typeBadge(c)}</span>`,
+      pick: () => { $(F.customer).value = c.name; }
+    }));
+}
+
+/* ---------------- 18. 업로드 / 샘플 ---------------- */
+function ingestRows(rows, source) {
+  if (!can('receive')) { toast('err', '접수 권한 없음', '품질·출하 담당은 업로드할 수 없습니다.'); return; }
+  const body = rows.filter(r => r && r.some(x => String(x ?? '').trim() !== ''));
+  if (body.length && /날짜|date/i.test(String(body[0][0])) ) body.shift();
+  const added = [];
+  body.forEach(r => {
+    const [date, part, customer, qty, unit, by] = r.map((x, i) => x === undefined || x === null ? '' : (i === 0 && typeof x === 'number' && x > 30000 && x < 60000 ? excelDate(x) : String(x).trim()));
+    if (!part && !date) return;
+    const o = makeOrder(date, part, customer, Number(String(qty).replace(/,/g, '')) || 0, unit, by || me().name);
+    S.orders.push(o); S.newRows.add(o.id); added.push(o);
+  });
+  if (!added.length) { toast('err', '읽을 수 있는 행이 없습니다', '열 순서: 날짜, 품번, 발주처, 수량, 단위, 접수자'); return; }
+  validateAll();
+  const issues = added.filter(o => V.get(o.id).level !== 'ok').length;
+  addLog('RECEIVE', `${source} 업로드 — ${added.length}건 접수`, { note: `${added[0] ? oid(added[0]) : ''} ~ ${oid(added[added.length - 1])} · 검증 이슈 ${issues}건` });
+  S.filter = 'all';
+  S.shakeRows = true;
+  renderAll();
+  toast(issues ? 'warn' : 'ok', `${added.length}건 업로드 완료`, issues ? `${issues}건에서 기준정보 불일치를 검출했습니다.` : '모든 행이 기준정보와 일치합니다.');
+  selectPipe(1);
+}
+function excelDate(n) { const d = new Date(Math.round((n - 25569) * 86400 * 1000)); return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`; }
+function parseCSV(text) {
+  const rows = []; let row = [], cur = '', q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { cur += '"'; i++; } else q = false; } else cur += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === ',') { row.push(cur); cur = ''; }
+    else if (ch === '\n' || ch === '\r') { if (ch === '\r' && text[i + 1] === '\n') i++; row.push(cur); rows.push(row); row = []; cur = ''; }
+    else cur += ch;
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+function handleFile(file) {
+  if (!file) return;
+  const name = file.name;
+  if (/\.(xlsx|xls)$/i.test(name)) {
+    if (!window.XLSX) { toast('err', '엑셀 모듈 로드 실패', 'CSV로 저장 후 업로드하세요.'); return; }
+    const fr = new FileReader();
+    fr.onload = () => {
+      try {
+        const wb = XLSX.read(new Uint8Array(fr.result), { type: 'array' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        ingestRows(XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: '' }), `엑셀(${name})`);
+      } catch (err) { toast('err', '엑셀 파일을 읽지 못했습니다', String(err.message || err)); }
+    };
+    fr.readAsArrayBuffer(file);
+  } else {
+    const fr = new FileReader();
+    fr.onload = () => ingestRows(parseCSV(String(fr.result).replace(/^﻿/, '')), `CSV(${name})`);
+    fr.readAsText(file, 'utf-8');
+  }
+}
+function download(name, text) {
+  const blob = new Blob(['﻿' + text], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+const csvCell = x => /[",\n]/.test(String(x)) ? `"${String(x).replace(/"/g, '""')}"` : String(x);
+function sampleCSV() {
+  const rows = [['날짜', '품번', '발주처', '수량', '단위', '접수자'],
+    ['3/02', 'kj-h2205', '가온', '18', 'ea', '김영업'],
+    ['26/3/05', 'KJ-V8030', '대성하이텍', '40', '개', '이수주'],
+    ['2026-03-09', 'KJ-C7015', '청운메탈', '6', '개(EA)', '최납품'],
+    ['2026.3.12', 'KJS3305', '구미 정밀', '15', 'PCS', '김영업'],
+    ['2026-03-30', 'KJ-B1108', '베타산업', '9', '개(EA)', '이수주']];
+  download('금오정밀_수주대장_샘플.csv', rows.map(r => r.map(csvCell).join(',')).join('\r\n'));
+  toast('info', '샘플 CSV 다운로드', '오표기·별칭·미등록 거래처가 섞인 5건입니다. 그대로 업로드해 검증해 보세요.');
+}
+function logCSV() {
+  const rows = [['log_id', 'acted_at', 'action', 'actor', 'role', 'title', 'changes', 'note']];
+  [...S.logs].reverse().forEach(l => rows.push([l.id, l.at, l.action, l.actor, l.role, l.title, l.diffs.map(d => `${d.label}:${d.before}->${d.after}`).join(' | '), l.note]));
+  download(`KJ-OMS_audit_log_${nowStr().replace(/[: ]/g, '-')}.csv`, rows.map(r => r.map(csvCell).join(',')).join('\r\n'));
+}
+
+/* ---------------- 19. 기준정보 마스터 패널 ---------------- */
+function openDrawer() { $('#drawer').classList.add('open'); $('#drawer').setAttribute('aria-hidden', 'false'); $('#drawerMask').classList.add('open'); renderMaster(); setTimeout(() => $('#mSearch').focus(), 300); }
+function closeDrawer() { $('#drawer').classList.remove('open'); $('#drawer').setAttribute('aria-hidden', 'true'); if (!$('#rjModal').classList.contains('open')) $('#drawerMask').classList.remove('open'); }
+function renderMaster() {
+  const q = $('#mSearch').value.trim();
+  const qk = ckey(q);
+  const isMgr = can('master');
+  $('#mCntP').textContent = PARTS.length; $('#mCntC').textContent = CUSTOMERS.length;
+  $('#masterCount').textContent = `${PARTS.length}·${CUSTOMERS.length}`;
+  $$('#mTabs .tabbtn').forEach(b => b.classList.toggle('on', b.dataset.mt === S.mTab));
+  const usage = {};
+  S.orders.forEach(o => { const v = V.get(o.id); if (!v) return; if (v.res.part) usage[v.res.part] = (usage[v.res.part] || 0) + 1; if (v.res.customer) usage[v.res.customer] = (usage[v.res.customer] || 0) + 1; });
+  let html = '';
+  const lockNote = `<div class="sub-card p-3 text-[12px] t3 flex items-center gap-2">${ico('lock', 'w-4 h-4')}기준정보 변경은 <b class="t2">승인 책임자(박승인)</b>만 가능합니다. 현재: ${me().name} (${me().role})</div>`;
+  if (S.mTab === 'parts') {
+    const list = PARTS.filter(p => !q || ckey(p.code).includes(qk) || ckey(p.code.replace('-', '')).includes(qk.replace('-', '')) || p.name.includes(q));
+    html += `<div class="grid grid-cols-2 gap-2 mb-1">
+        <div class="sub-card p-3"><div class="text-[11px] t3">품번 표기 규칙</div><div class="mono font-bold c-cyan">^KJ-[A-Z]\\d{4}$</div></div>
+        <div class="sub-card p-3"><div class="text-[11px] t3">등록 품번</div><div class="mono font-bold">${PARTS.length}종 <span class="t3 text-[11px]">(EA ${PARTS.filter(p => p.unit === UNIT_EA).length} · SET ${PARTS.filter(p => p.unit === UNIT_SET).length})</span></div></div>
+      </div>`;
+    html += `<div class="rounded-2xl border divider overflow-hidden"><table class="tbl"><thead><tr><th>No</th><th>품번</th><th>품명</th><th>분류</th><th>표준 단위</th><th class="text-right">수주</th></tr></thead><tbody>${list.map((p, i) => `
+      <tr><td class="t3 mono">${PARTS.indexOf(p) + 1}</td><td><span class="mono font-bold">${hl(p.code, q)}</span> <span class="c-ok">${ico('check', 'w-3 h-3 inline')}</span></td><td>${hl(p.name, q)}</td><td class="t2">${esc(p.cat)}</td><td><span class="badge ${p.unit === UNIT_SET ? 'b-t1' : 'b-pend'}">${p.unit}</span></td><td class="text-right mono t2">${usage[p.code] || 0}</td></tr>`).join('') || `<tr><td colspan="6" class="text-center t3 py-6">검색 결과 없음</td></tr>`}</tbody></table></div>`;
+    html += isMgr ? `<form id="mAddPart" class="sub-card p-4 grid grid-cols-1 sm:grid-cols-4 gap-2 items-start" autocomplete="off">
+        <div class="sm:col-span-4 font-bold text-[13px] flex items-center gap-2">${ico('plus-circle', 'w-4 h-4 c-cyan')}품번 추가 (책임자 전용)</div>
+        <div><input id="mpCode" class="inp w-full mono" placeholder="KJ-X9999" /><div class="hint" id="mpHint"></div></div>
+        <input id="mpName" class="inp sm:col-span-2" placeholder="품명" />
+        <select id="mpUnit" class="sel"><option>${UNIT_EA}</option><option>${UNIT_SET}</option></select>
+        <button class="btn btn-primary sm:col-span-4 justify-center">${ico('database', 'w-4 h-4')}기준정보에 등록</button>
+      </form>` : lockNote;
+  } else if (S.mTab === 'custs') {
+    const list = CUSTOMERS.filter(c => !q || ckey(c.name).includes(qk) || c.code.toLowerCase().includes(q.toLowerCase()) || c.type.includes(q) || c.aliases.some(a => ckey(a).includes(qk)));
+    html += `<div class="grid grid-cols-2 gap-2 mb-1">
+        <div class="sub-card p-3"><div class="text-[11px] t3">체계업체</div><div class="mono font-bold" style="color:var(--blue)">${CUSTOMERS.filter(c => c.type === '체계업체').length}곳</div></div>
+        <div class="sub-card p-3"><div class="text-[11px] t3">1차 협력사</div><div class="mono font-bold" style="color:var(--aqua)">${CUSTOMERS.filter(c => c.type === '1차 협력사').length}곳</div></div>
+      </div>`;
+    html += `<div class="rounded-2xl border divider overflow-hidden"><table class="tbl"><thead><tr><th>코드</th><th>발주처</th><th>구분</th><th>허용 별칭</th><th class="text-right">수주</th></tr></thead><tbody>${list.map(c => `
+      <tr><td class="mono t3">${c.code}</td><td class="font-semibold">${hl(c.name, q)}</td><td>${typeBadge(c)}</td><td class="t3 text-[12px] whitespace-normal">${c.aliases.map(esc).join(', ')}</td><td class="text-right mono t2">${usage[c.name] || 0}</td></tr>`).join('') || `<tr><td colspan="5" class="text-center t3 py-6">검색 결과 없음</td></tr>`}</tbody></table></div>`;
+    html += isMgr ? `<form id="mAddCust" class="sub-card p-4 grid grid-cols-1 sm:grid-cols-4 gap-2" autocomplete="off">
+        <div class="sm:col-span-4 font-bold text-[13px] flex items-center gap-2">${ico('plus-circle', 'w-4 h-4 c-cyan')}발주처 추가 (책임자 전용 · 구분 필수)</div>
+        <input id="mcName" class="inp sm:col-span-2" placeholder="발주처 표준명 (예: 알파상사)" />
+        <select id="mcType" class="sel"><option value="">구분 선택</option><option>체계업체</option><option>1차 협력사</option></select>
+        <button class="btn btn-primary justify-center">${ico('database', 'w-4 h-4')}등록</button>
+      </form>` : lockNote;
+  } else {
+    html += `
+      <div class="sub-card p-4"><div class="font-bold mb-2 flex items-center gap-2">${ico('cpu', 'w-4 h-4 c-cyan')}① 부품 명칭 (품번 표기 규칙)</div>
+        <div class="text-[12.5px] t2 leading-relaxed">반드시 <b class="mono">'KJ-' + 영문 대문자 1자 + 숫자 4자리</b> — 정규식 <span class="mono c-cyan">^KJ-[A-Z]\\d{4}$</span></div>
+        <div class="mt-2 flex flex-wrap gap-1">${[['KJH2201', '하이픈 누락'], ['kj-h2201', '소문자'], ['KJ-H 2201', '공백 포함']].map(([a, r]) => `<span class="diff mono"><span class="b">${a}</span>➔<span class="a">KJ-H2201</span><span class="t3">${r}</span></span>`).join('')}</div></div>
+      <div class="sub-card p-4"><div class="font-bold mb-2 flex items-center gap-2">${ico('building-2', 'w-4 h-4 c-cyan')}② 거래처 구분 (발주처 구분 기준)</div>
+        <div class="text-[12.5px] t2 leading-relaxed">발주처 마스터 <b>${CUSTOMERS.length}곳</b>, 모든 발주처는 반드시 ${typeBadge({ type: '체계업체' })} 또는 ${typeBadge({ type: '1차 협력사' })} 중 하나로 분류. 별칭 입력 시 표준명으로 치환, 미등록 거래처는 ERROR.</div></div>
+      <div class="sub-card p-4"><div class="font-bold mb-2 flex items-center gap-2">${ico('calendar-days', 'w-4 h-4 c-cyan')}③ 날짜·단위 표기 규칙</div>
+        <div class="text-[12.5px] t2 leading-relaxed">날짜는 ISO 표준 <span class="mono">YYYY-MM-DD</span>로 통일. 단위는 <b>개(EA)</b> 또는 <b>세트(SET)</b>로 구분하며 품번별 표준 단위와 일치해야 함.</div>
+        <div class="mt-2 flex flex-wrap gap-1">${[['1/05', '2026-01-05'], ['26/1/12', '2026-01-12'], ['2026.01.15', '2026-01-15'], ['ea', '개(EA)'], ['세트', '세트(SET)']].map(([a, b]) => `<span class="diff mono"><span class="b">${a}</span>➔<span class="a">${b}</span></span>`).join('')}</div></div>
+      <div class="sub-card p-4 text-[12px] t3">기준정보는 영업·생산·구매·품질·경영지원 5개 부서가 공유하는 <b class="t2">단일 원천(Single Source of Truth)</b>입니다.</div>`;
+  }
+  const body = $('#mBody');
+  body.innerHTML = html;
+  // stagger
+  [...body.children].forEach((c, i) => { c.style.animationDelay = (i * 60) + 'ms'; });
+  body.style.display = 'flex'; body.style.flexDirection = 'column'; body.style.gap = '12px';
+  const drawer = $('#drawer');
+  if (drawer.classList.contains('open')) { [...body.children].forEach(c => { c.style.animation = 'none'; void c.offsetWidth; c.style.animation = ''; }); }
+  refreshIcons();
+  const fp = $('#mAddPart');
+  if (fp) {
+    const code = $('#mpCode'), hint = $('#mpHint');
+    code.addEventListener('input', () => {
+      const v = code.value;
+      if (!v) { hint.className = 'hint'; hint.textContent = ''; return; }
+      if (PART_RE.test(v)) { hint.className = 'hint ' + (partOf(v) ? 'err' : 'ok'); hint.textContent = partOf(v) ? '이미 등록된 품번' : '✓ 규칙 일치'; }
+      else { const s = normPart(v); hint.className = 'hint err'; hint.textContent = s ? `규칙 불일치 → ${s} ?` : '규칙 불일치'; }
+    });
+    fp.addEventListener('submit', e => {
+      e.preventDefault();
+      const c = code.value.trim(), n = $('#mpName').value.trim(), u = $('#mpUnit').value;
+      if (!PART_RE.test(c)) { toast('err', '품번 규칙 위반', `${c || '(빈 값)'} — ^KJ-[A-Z]\\d{4}$ 형식만 등록할 수 있습니다.`); return; }
+      if (partOf(c)) { toast('err', '중복 품번', `${c}는 이미 등록되어 있습니다.`); return; }
+      if (!n) { toast('err', '품명 누락', '품명을 입력하세요.'); return; }
+      PARTS.push({ code: c, name: n, unit: u, cat: '신규' });
+      addLog('MASTER_CHANGE', `품번 마스터 추가 — ${c}`, { diffs: [{ label: '품번', before: '(없음)', after: `${c} ${n} ${u}` }], note: `품번 ${PARTS.length}종으로 확장 · 관련 수주 재검증` });
+      renderAll(); renderMaster();
+      toast('ok', `품번 ${c} 등록`, '기준정보가 변경되어 전체 수주를 재검증했습니다.');
+    });
+  }
+  const fc = $('#mAddCust');
+  if (fc) fc.addEventListener('submit', e => {
+    e.preventDefault();
+    const n = $('#mcName').value.trim(), t = $('#mcType').value;
+    if (!n) { toast('err', '발주처명 누락', '표준 발주처명을 입력하세요.'); return; }
+    if (!t) { toast('err', '구분 필수', '체계업체 또는 1차 협력사 중 하나를 선택해야 합니다.'); return; }
+    if (custOf(n)) { toast('err', '중복 발주처', `${n}는 이미 등록되어 있습니다.`); return; }
+    const code = 'C' + pad(CUSTOMERS.length + 1);
+    CUSTOMERS.push({ code, name: n, type: t, aliases: [] });
+    addLog('MASTER_CHANGE', `발주처 마스터 추가 — ${n}`, { diffs: [{ label: '발주처', before: '(없음)', after: `${code} ${n} · ${t}` }], note: `발주처 ${CUSTOMERS.length}곳으로 확장 · 관련 수주 재검증` });
+    renderAll(); renderMaster();
+    toast('ok', `발주처 ${n} 등록 (${t})`, '기준정보가 변경되어 전체 수주를 재검증했습니다.');
+  });
+}
+
+/* ---------------- 20. 토스트 / 파티클 ---------------- */
+function toast(type, title, msg = '', dur = 4200) {
+  const meta = { ok: ['check-circle-2', 'var(--ok)'], err: ['x-circle', 'var(--err)'], warn: ['alert-triangle', 'var(--warn)'], info: ['info', 'var(--cyan)'] }[type] || ['info', 'var(--cyan)'];
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<div style="color:${meta[1]}" class="mt-0.5">${ico(meta[0], 'w-5 h-5')}</div><div class="min-w-0"><div class="font-bold text-[13px]">${esc(title)}</div>${msg ? `<div class="text-[12px] t2 mt-0.5 leading-relaxed">${esc(msg)}</div>` : ''}</div><div class="bar" style="background:${meta[1]};animation-duration:${dur}ms"></div>`;
+  $('#toasts').appendChild(el);
+  refreshIcons();
+  const kill = () => { el.classList.add('out'); setTimeout(() => el.remove(), 350); };
+  const t = setTimeout(kill, dur);
+  el.addEventListener('click', () => { clearTimeout(t); kill(); });
+  const all = $$('#toasts .toast'); if (all.length > 4) all[0].remove();
+}
+function celebrate() {
+  const ov = $('#checkOv'); ov.classList.remove('show'); void ov.offsetWidth; ov.classList.add('show');
+  const cv = $('#confetti'), ctx = cv.getContext('2d');
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = innerWidth * dpr; cv.height = innerHeight * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const colors = ['#22d3ee', '#a78bfa', '#34d399', '#fbbf24', '#f472b6', '#60a5fa', '#ffffff'];
+  const P = [];
+  const burst = (x, y, n, spread) => {
+    for (let i = 0; i < n; i++) {
+      const a = (Math.random() * spread - spread / 2) - Math.PI / 2, sp = 7 + Math.random() * 11;
+      P.push({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, g: .32 + Math.random() * .12, s: 5 + Math.random() * 7, r: Math.random() * 6, vr: (Math.random() - .5) * .35, c: colors[(Math.random() * colors.length) | 0], life: 0, shape: Math.random() < .3 ? 'c' : 'r' });
+    }
+  };
+  burst(innerWidth * .5, innerHeight * .55, 140, Math.PI * 1.1);
+  setTimeout(() => { burst(innerWidth * .15, innerHeight, 70, Math.PI * .5); burst(innerWidth * .85, innerHeight, 70, Math.PI * .5); }, 180);
+  const t0 = performance.now();
+  const tick = t => {
+    ctx.clearRect(0, 0, innerWidth, innerHeight);
+    P.forEach(p => {
+      p.vx *= .985; p.vy = p.vy * .985 + p.g; p.x += p.vx; p.y += p.vy; p.r += p.vr; p.life++;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.globalAlpha = Math.max(0, 1 - p.life / 170);
+      ctx.fillStyle = p.c;
+      if (p.shape === 'c') { ctx.beginPath(); ctx.arc(0, 0, p.s / 2.4, 0, Math.PI * 2); ctx.fill(); }
+      else ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      ctx.restore();
+    });
+    if (t - t0 < 3200) requestAnimationFrame(tick); else ctx.clearRect(0, 0, innerWidth, innerHeight);
+  };
+  requestAnimationFrame(tick);
+}
+
+/* ---------------- 21. 테마 / 시계 / 권한 ---------------- */
+function applyTheme(t) {
+  document.documentElement.classList.toggle('dark', t === 'dark');
+  $('#btnTheme').innerHTML = ico(t === 'dark' ? 'sun' : 'moon', 'w-4 h-4');
+  $('#btnTheme').title = t === 'dark' ? '라이트 테마로' : '다크 테마로';
+  try { localStorage.setItem('kjoms-theme', t); } catch (e) { /* noop */ }
+  refreshIcons();
+  if (S.chart) { S.chart.destroy(); S.chart = null; }
+  if (S.orders.length) renderChart();
+}
+function tickClock() { $('#clock').textContent = nowStr(); }
+function applyRole() {
+  const u = me();
+  $('#f-by').textContent = u.name;
+  $('#formLock').classList.toggle('hidden', can('receive'));
+  if ($('#drawer').classList.contains('open')) renderMaster();
+}
+
+/* ---------------- 22. 이벤트 바인딩 ---------------- */
+function bind() {
+  $('#btnTheme').addEventListener('click', () => applyTheme(document.documentElement.classList.contains('dark') ? 'light' : 'dark'));
+  $('#roleSel').addEventListener('change', e => {
+    S.user = e.target.value;
+    applyRole(); renderAll();
+    toast('info', `권한 전환: ${me().name} (${me().role})`, can('approve') ? '최종 승인·반려와 기준정보 변경이 가능합니다.' : can('receive') ? '접수·검증·교정 요청이 가능합니다. 승인은 책임자 전용입니다.' : '조회·검증·교정 요청만 가능합니다.');
+  });
+  $('#btnMaster').addEventListener('click', openDrawer);
+  $('#drawerClose').addEventListener('click', closeDrawer);
+  $('#drawerMask').addEventListener('click', () => { closeDrawer(); closeReject(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') { closeDrawer(); closeReject(); } });
+  $('#mTabs').addEventListener('click', e => { const b = e.target.closest('[data-mt]'); if (!b) return; S.mTab = b.dataset.mt; renderMaster(); });
+  $('#mSearch').addEventListener('input', renderMaster);
+
+  // 폼
+  Object.values(F).forEach(s => $(s).addEventListener('input', liveValidate));
+  $('#orderForm').addEventListener('submit', submitForm);
+  $('#btnFormReset').addEventListener('click', resetForm);
+  $('#orderForm').addEventListener('click', e => {
+    const ap = e.target.closest('[data-apply]');
+    if (ap) {
+      const f = ap.dataset.apply;
+      const inp = $(F[f]);
+      inp.value = ap.dataset.val;
+      inp.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.03)', boxShadow: '0 0 24px var(--ok)' }, { transform: 'scale(1)' }], { duration: 450, easing: 'cubic-bezier(.34,1.56,.64,1)' });
+      liveValidate();
+      return;
+    }
+    const uc = e.target.closest('.unit-chip');
+    if (uc) { $(F.unit).value = uc.dataset.unit; liveValidate(); }
+  });
+  setupAC(F.part, '#ac-part', partSource);
+  setupAC(F.customer, '#ac-cust', custSource);
+
+  // 업로드
+  const drop = $('#drop');
+  $('#fileIn').addEventListener('change', e => { handleFile(e.target.files[0]); e.target.value = ''; });
+  ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => handleFile(e.dataTransfer.files[0]));
+  $('#btnSampleCsv').addEventListener('click', sampleCSV);
+  $('#btnReload').addEventListener('click', () => replay('사례 데이터 재로드'));
+  $('#btnReplay').addEventListener('click', () => replay('정규화 전/후 다시 시연'));
+
+  // 테이블
+  $('#btnAutoFix').addEventListener('click', autoFix);
+  $('#btnRevalidate').addEventListener('click', () => {
+    S.shakeRows = true; renderAll(); const st = stats();
+    addLog('VALIDATE', `기준정보 재검증 — ${S.orders.length}건`, { note: `VALID ${st.ok} · FIXABLE ${st.fix} · ERROR ${st.err} · DUPLICATE ${st.dup}` });
+    toast('info', '재검증 완료', `교정 가능 ${st.fix} · 오류 ${st.err} · 중복 ${st.dup}`);
+    selectPipe(1);
+  });
+  $('#filterChips').addEventListener('click', e => { const b = e.target.closest('[data-filter]'); if (!b) return; S.filter = b.dataset.filter; renderTable(); refreshIcons(); });
+  $('#tblBody').addEventListener('change', e => {
+    const c = e.target.closest('.row-ck'); if (!c) return;
+    c.checked ? S.selected.add(c.dataset.id) : S.selected.delete(c.dataset.id);
+    renderTable(); renderApprove(); refreshIcons();
+  });
+  $('#chkAll').addEventListener('change', e => {
+    const flt = FILTERS.find(x => x.k === S.filter);
+    S.orders.filter(o => o.approval === 'PENDING' && flt.f(o, V.get(o.id))).forEach(o => e.target.checked ? S.selected.add(o.id) : S.selected.delete(o.id));
+    renderTable(); renderApprove(); refreshIcons();
+  });
+  $('#tblBody').addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b || b.disabled) return;
+    if (b.dataset.act === 'edit') startEdit(b.dataset.id);
+    else deleteRows([b.dataset.id]);
+  });
+  $('#btnDelSel').addEventListener('click', () => deleteRows([...S.selected]));
+
+  // 비교 카드
+  $('#cmpFocus').addEventListener('change', e => {
+    S.focus = e.target.value;
+    S.cmpEls.forEach(r => r.el.remove()); S.cmpEls.clear();
+    renderCompare(); refreshIcons();
+  });
+
+  // 승인
+  $('#btnApprove').addEventListener('click', approve);
+  $('#btnReject').addEventListener('click', openReject);
+  $('#rjCancel').addEventListener('click', closeReject);
+  $('#rjConfirm').addEventListener('click', confirmReject);
+  $('#rjChips').addEventListener('click', e => { const b = e.target.closest('[data-rr]'); if (!b) return; $('#rjReason').value = b.dataset.rr; $('#rjReason').style.borderColor = ''; $$('#rjChips .chip').forEach(c => c.classList.toggle('on', c === b)); });
+
+  // 로그
+  $('#logFilter').addEventListener('click', e => { const b = e.target.closest('[data-lf]'); if (!b) return; S.logFilter = b.dataset.lf; renderLogs(); });
+  $('#btnLogCsv').addEventListener('click', logCSV);
+
+  // 차트
+  $('#chartTabs').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (!b) return; S.chartTab = b.dataset.tab; $$('#chartTabs .tabbtn').forEach(x => x.classList.toggle('on', x === b)); renderChart(); selectPipeQuiet(2); });
+  $('#chartMode').addEventListener('click', e => { const b = e.target.closest('[data-mode]'); if (!b) return; S.chartMode = b.dataset.mode; $$('#chartMode button').forEach(x => x.classList.toggle('on', x === b)); renderChart(); });
+  $('#btnChartTable').addEventListener('click', () => { S.chartTable = !S.chartTable; $('#chartTable').classList.toggle('hidden', !S.chartTable); $('#btnChartTable').classList.toggle('on', S.chartTable); });
+
+  window.addEventListener('resize', () => { if (S.chart) S.chart.resize(); });
+}
+function replay(reason) {
+  if (S.fixing) return;
+  loadSeed();
+  S.filter = 'all';
+  S.shakeRows = true;
+  addLog('SYSTEM', `${reason} — 실제 사례 14건 (기준 미적용 원본)`, { note: 'KJ-H2201 40·50 / KJH2201 35·22 포함' });
+  renderAll();
+  toast('info', reason, '원본(기준 미적용) 상태입니다. ⚡ Auto-Fix로 정규화를 다시 실행해 보세요.');
+}
+
+/* ---------------- 23. 초기화 ---------------- */
+function init() {
+  let theme = 'dark';
+  try { theme = localStorage.getItem('kjoms-theme') || 'dark'; } catch (e) { /* noop */ }
+  document.documentElement.classList.toggle('dark', theme === 'dark');
+  $('#btnTheme').innerHTML = ico(theme === 'dark' ? 'sun' : 'moon', 'w-4 h-4');
+  renderSysMap();
+  bind();
+  loadSeed();
+  validateAll();
+  const st = stats();
+  addLog('RECEIVE', '엑셀 수주·납품대장 업로드 — 14건 접수', { actor: USERS.sales, note: '1~2월 수주 대장 (실제 사례 KJ-H2201 4건 포함)' });
+  addLog('VALIDATE', `기준정보 자동 검증 — 이슈 ${st.fix + st.err + st.dup}건 검출`, { actor: { name: 'KJ-OMS', role: '검증 엔진' }, note: `FIXABLE ${st.fix} · ERROR ${st.err} · DUPLICATE ${st.dup} · 품번 오표기 KJH2201 2건` });
+  S.shakeRows = true;
+  applyRole();
+  liveValidate();
+  renderAll();
+  tickClock(); setInterval(tickClock, 1000);
+  // 기준 미적용 오표기 셀: 주기적으로 미세하게 흔들어 주의 환기
+  setInterval(() => {
+    if (S.fixing || document.hidden) return;
+    $$('#tblBody .cell.c-fix, #tblBody .cell.c-err').forEach((c, i) => setTimeout(() => { c.classList.remove('shake'); void c.offsetWidth; c.classList.add('shake'); }, i * 40));
+  }, 6500);
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
