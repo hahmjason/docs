@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f5fb8">
+<meta name="description" content="금오공과대학교(KIT) 공강 시간·날씨·계절·시간대 맞춤형 교내 산책 코스 추천 웹 앱">
+<title>KIT 공강 산책 — 금오공대 상황 맞춤 산책 코스</title>
+<link rel="preload" as="image" href="./%EC%9B%B9%EC%82%AC%EC%9D%B4%ED%8A%B8%20%EC%9D%B8%ED%8A%B8%EB%A1%9C.gif">
+<link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<!-- 인트로 (웹사이트 인트로.gif) -->
+<div class="intro" id="intro" role="dialog" aria-label="웹사이트 인트로" aria-live="polite">
+  <div class="intro-in">
+    <img id="introImg" src="./%EC%9B%B9%EC%82%AC%EC%9D%B4%ED%8A%B8%20%EC%9D%B8%ED%8A%B8%EB%A1%9C.gif" alt="KIT 공강 산책 인트로 애니메이션" width="480" height="268" decoding="async" fetchpriority="high">
+    <p class="intro-title">KIT 공강 산책</p>
+    <p class="intro-sub">keep it up! kit. — 오늘의 날씨·계절·시간에 맞춘 캠퍼스 산책</p>
+    <div class="intro-bar"><i id="introBar"></i></div>
+    <button type="button" class="btn small intro-skip" id="introSkip">건너뛰기</button>
+  </div>
+</div>
+
+<header class="top">
+  <div class="wrap bar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">kit</span>
+      <div>
+        <h1>공강 산책 코스</h1>
+        <p class="sub">금오공대 날씨·계절·시간대 맞춤 교내 산책</p>
+      </div>
+    </div>
+    <div class="clock" title="현재 시각(테스트 시각 설정 시 테스트 시각)">
+      <span class="chip ctx" id="ctxChip">-</span>
+      <span class="clock-day" id="clockDay">-</span>
+      <strong id="clockTime">--:--</strong>
+      <span class="chip warn" id="clockMode" hidden>테스트 시각</span>
+    </div>
+  </div>
+  <nav class="wrap tabs" role="tablist" aria-label="화면 전환">
+    <button type="button" role="tab" class="tab" data-tab="plan" aria-selected="true">코스 추천</button>
+    <button type="button" role="tab" class="tab" data-tab="timetable" aria-selected="false">내 시간표</button>
+    <button type="button" role="tab" class="tab" data-tab="history" aria-selected="false">기록·즐겨찾기</button>
+    <button type="button" class="tab tab-end" id="introReplay" title="인트로 다시 보기">인트로 ▶</button>
+  </nav>
+</header>
+
+<div class="wrap"><div class="banner" id="banner" hidden></div></div>
+
+<main class="wrap">
+  <!-- ① 코스 추천 화면 -->
+  <section class="view" id="v-plan" aria-label="코스 추천">
+    <div class="layout">
+      <div class="col col-left">
+      <!-- 조건 입력 -->
+      <section class="card cond" id="condCard" aria-labelledby="condTitle">
+        <div class="card-h">
+          <h2 id="condTitle">산책 조건</h2>
+          <button type="button" class="btn small ghost" id="autofill" title="시간표에서 다음 수업 건물과 남은 시간을 가져옵니다">시간표에서 자동 채우기</button>
+        </div>
+        <p class="hint" id="autofillInfo">시간표를 등록하면 다음 수업과 남은 공강 시간을 자동으로 채워요.</p>
+
+        <div class="route-pick">
+          <label class="field">
+            <span>출발 건물 (현재 위치)</span>
+            <select id="start"></select>
+          </label>
+          <button type="button" class="btn icon" id="swap" title="출발/도착 바꾸기" aria-label="출발과 도착 바꾸기">⇅</button>
+          <label class="field">
+            <span>다음 수업 건물 (도착)</span>
+            <select id="end"></select>
+          </label>
+        </div>
+
+        <div class="field">
+          <span class="field-row"><span>다음 수업까지 남은 시간</span><output id="availOut" for="avail">40분</output></span>
+          <input type="range" id="avail" min="5" max="120" step="1" value="40" aria-label="남은 시간(분)">
+          <div class="presets" id="availPresets">
+            <button type="button" class="chip-btn" data-min="15">15분</button>
+            <button type="button" class="chip-btn" data-min="30">30분</button>
+            <button type="button" class="chip-btn" data-min="45">45분</button>
+            <button type="button" class="chip-btn" data-min="60">1시간</button>
+            <button type="button" class="chip-btn" data-min="90">1시간 30분</button>
+          </div>
+        </div>
+
+        <fieldset class="field">
+          <legend>걷기 속도</legend>
+          <div class="seg" id="speedSeg" role="radiogroup" aria-label="걷기 속도"></div>
+        </fieldset>
+
+        <fieldset class="field">
+          <legend>선호 테마</legend>
+          <div class="chips" id="themeChips" role="radiogroup" aria-label="선호 테마"></div>
+        </fieldset>
+
+        <label class="field inline">
+          <span>수업 준비 버퍼</span>
+          <select id="buffer">
+            <option value="3">3분</option>
+            <option value="5" selected>5분</option>
+            <option value="10">10분</option>
+          </select>
+        </label>
+
+        <button type="button" class="btn primary block" id="go">코스 추천 받기</button>
+      </section>
+
+      <!-- 날씨 + 상황 시뮬레이터 -->
+      <section class="card weather" id="weatherCard" aria-labelledby="wxTitle" aria-live="polite">
+        <div class="card-h">
+          <h2 id="wxTitle">현재 상황 <small>금오공대 · 양호동</small></h2>
+          <span class="chip" id="wxSource">불러오는 중</span>
+        </div>
+        <div class="wx-main">
+          <div class="wx-temp"><strong id="wxTemp">--</strong><span>°C</span></div>
+          <div class="wx-desc">
+            <div id="wxLabel">날씨 정보 불러오는 중…</div>
+            <div class="row tight"><span class="chip" id="wxCat">-</span><span class="chip" id="seasonChip">-</span><span class="chip" id="timeChip">-</span></div>
+          </div>
+          <div class="wx-suit" id="wxSuit">
+            <span class="wx-suit-label">야외 산책 적합도</span>
+            <strong id="wxSuitBadge" class="badge">-</strong>
+            <div class="meter"><i id="wxSuitBar" style="width:0%"></i></div>
+          </div>
+        </div>
+        <dl class="wx-grid">
+          <div><dt>체감</dt><dd id="wxFeel">-</dd></div>
+          <div><dt>강수</dt><dd id="wxPrecip">-</dd></div>
+          <div><dt>바람</dt><dd id="wxWind">-</dd></div>
+          <div><dt>습도</dt><dd id="wxHum">-</dd></div>
+          <div><dt>미세먼지</dt><dd id="wxDust">-</dd></div>
+        </dl>
+        <div class="sim">
+          <div class="sim-h"><b>상황 시뮬레이터</b><button type="button" class="link" id="simReset">모두 실시간으로</button></div>
+          <div class="field">
+            <span class="field-row"><span>날씨</span><button type="button" class="link" id="wxRefresh">날씨 새로고침</button></span>
+            <div class="seg wrap-seg" id="wxModeSeg" role="radiogroup" aria-label="날씨 모드"></div>
+          </div>
+          <div class="field">
+            <span class="field-row"><span>계절</span><span class="hint" id="seasonAuto"></span></span>
+            <div class="seg" id="seasonSeg" role="radiogroup" aria-label="계절"></div>
+          </div>
+          <div class="field">
+            <span class="field-row"><span>시간대</span><span class="hint" id="timeAuto"></span></span>
+            <div class="seg" id="timeSeg" role="radiogroup" aria-label="시간대"></div>
+          </div>
+        </div>
+        <ul class="tips" id="wxTips"></ul>
+        <p class="hint" id="wxMeta"></p>
+      </section>
+      </div>
+
+      <div class="col col-right">
+      <!-- 상황별 실사 포토 프리뷰 -->
+      <section class="card hero" id="hero" aria-labelledby="heroTitle">
+        <figure class="hero-fig">
+          <img id="heroImg" alt="" decoding="async" loading="eager">
+          <figcaption>
+            <div class="hero-chips" id="heroChips"></div>
+            <h2 id="heroTitle">캠퍼스 사진 불러오는 중…</h2>
+            <p id="heroCap" class="hero-cap"></p>
+          </figcaption>
+        </figure>
+        <div class="gallery" id="gallery" aria-label="관련 사진 갤러리"></div>
+      </section>
+
+      <!-- 지도 -->
+      <section class="card map-card" aria-labelledby="mapTitle">
+        <div class="card-h">
+          <h2 id="mapTitle">캠퍼스 지도</h2>
+          <div class="toolbar">
+            <button type="button" class="btn small ghost" id="zoomOut" aria-label="축소">−</button>
+            <span class="zoom-val" id="zoomVal">100%</span>
+            <button type="button" class="btn small ghost" id="zoomIn" aria-label="확대">+</button>
+            <button type="button" class="btn small ghost" id="toggleNames" aria-pressed="false">이름</button>
+            <button type="button" class="btn small ghost" id="toggleNet" aria-pressed="false">보행망</button>
+            <button type="button" class="btn small ghost" id="toggleLegend" aria-pressed="false">원본 범례</button>
+            <button type="button" class="btn small ghost" id="toggleCalib" aria-pressed="false" title="개발용: 마커 좌표 확인·미세조정">좌표 보정</button>
+          </div>
+        </div>
+        <div class="map-scroll" id="mapScroll">
+          <div class="map-inner" id="mapInner">
+            <img id="mapImg" src="./kumoh_ac_kr_20120125_164421.jpg" alt="금오공과대학교 캠퍼스 안내도" width="550" height="397" decoding="async">
+            <svg id="overlay" viewBox="0 0 550 397" preserveAspectRatio="xMinYMin meet" role="img" aria-label="캠퍼스 지점 및 산책 경로 오버레이">
+              <defs>
+                <filter id="halo" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="0.6" stdDeviation="0.8" flood-color="#000" flood-opacity="0.35"/>
+                </filter>
+                <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feGaussianBlur stdDeviation="2.2"/>
+                </filter>
+              </defs>
+              <rect id="nightTint" x="0" y="0" width="550" height="320" fill="#06142e" opacity="0" pointer-events="none"/>
+              <g id="gNet"></g>
+              <g id="gHighlight"></g>
+              <g id="gRoute"></g>
+              <g id="gMarkers"></g>
+              <g id="gLabels"></g>
+            </svg>
+          </div>
+        </div>
+        <div class="pop" id="pop" hidden role="dialog" aria-label="지점 정보"></div>
+        <div class="map-legend">
+          <span><i class="lg lg-start"></i>출발</span>
+          <span><i class="lg lg-spot"></i>경유 스팟</span>
+          <span><i class="lg lg-end"></i>다음 수업</span>
+          <span><i class="lg lg-route"></i>산책 동선(화살표=진행 방향)</span>
+          <span id="hlLegend" class="hl-legend"></span>
+          <span class="muted">마커를 누르면 실사 사진과 설명을 볼 수 있어요</span>
+        </div>
+        <div class="calib" id="calibPanel" hidden>
+          <p><b>좌표 보정 모드(개발용)</b> — 마커(또는 교차점)를 누르고 지도 위 원하는 위치를 누르면 이동합니다. 보정값은 이 브라우저에 저장되며 거리 계산에도 반영됩니다.</p>
+          <p class="mono">커서: <span id="calibCursor">-</span> · 선택: <span id="calibSel">없음</span></p>
+          <div class="row">
+            <button type="button" class="btn small" id="calibCopy">보정값 JSON 복사</button>
+            <button type="button" class="btn small ghost" id="calibReset">보정값 초기화</button>
+          </div>
+          <textarea id="calibOut" class="mono" rows="3" readonly hidden></textarea>
+        </div>
+      </section>
+
+      <!-- 결과 -->
+      <section class="results" id="results" aria-labelledby="resTitle">
+        <div class="res-h">
+          <h2 id="resTitle">추천 코스 TOP 3</h2>
+          <p class="hint" id="resCtx"></p>
+        </div>
+        <div class="alert" id="resWarn" hidden></div>
+        <div class="cards" id="cards"></div>
+        <section class="card detail" id="detail" hidden></section>
+      </section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ③ 내 시간표 -->
+  <section class="view" id="v-timetable" aria-label="내 시간표" hidden>
+    <div class="grid2">
+      <section class="card">
+        <div class="card-h"><h2 id="ttFormTitle">수업 추가</h2></div>
+        <form id="ttForm" class="tt-form" novalidate>
+          <input type="hidden" id="ttId">
+          <label class="field"><span>요일</span><select id="ttDay"></select></label>
+          <div class="row2">
+            <label class="field"><span>시작</span><input type="time" id="ttStart" value="09:00" required></label>
+            <label class="field"><span>종료</span><input type="time" id="ttEnd" value="10:15" required></label>
+          </div>
+          <label class="field"><span>과목명</span><input type="text" id="ttTitle" maxlength="30" placeholder="예: 자료구조"></label>
+          <label class="field"><span>강의 건물</span><select id="ttBuilding"></select></label>
+          <p class="form-err" id="ttErr" role="alert"></p>
+          <div class="row">
+            <button type="submit" class="btn primary" id="ttSubmit">추가</button>
+            <button type="button" class="btn ghost" id="ttCancel" hidden>취소</button>
+          </div>
+        </form>
+        <hr>
+        <div class="card-h"><h2>테스트 시각</h2></div>
+        <p class="hint">시연용으로 앱의 '현재 시각'을 바꿀 수 있어요. 계절·시간대 자동 판별과 시간표 계산에 함께 반영되며, 설정 후에도 시계는 계속 흐릅니다.</p>
+        <div class="row">
+          <input type="datetime-local" id="testTime" aria-label="테스트 시각">
+          <button type="button" class="btn small" id="testApply">적용</button>
+          <button type="button" class="btn small ghost" id="testClear">실제 시각</button>
+        </div>
+        <div class="next-box" id="nextBox"></div>
+      </section>
+      <section class="card">
+        <div class="card-h">
+          <h2>주간 시간표</h2>
+          <div class="toolbar">
+            <button type="button" class="btn small ghost" id="ttSample">예시 시간표 불러오기</button>
+            <button type="button" class="btn small ghost danger" id="ttClear">전체 삭제</button>
+          </div>
+        </div>
+        <div class="week" id="week"></div>
+      </section>
+    </div>
+  </section>
+
+  <!-- ③ 기록·즐겨찾기 -->
+  <section class="view" id="v-history" aria-label="기록과 즐겨찾기" hidden>
+    <div class="stats" id="stats"></div>
+    <div class="grid2">
+      <section class="card">
+        <div class="card-h"><h2>즐겨찾기 코스</h2></div>
+        <ul class="list" id="favList"></ul>
+      </section>
+      <section class="card">
+        <div class="card-h">
+          <h2>산책 기록</h2>
+          <button type="button" class="btn small ghost danger" id="histClear">기록 비우기</button>
+        </div>
+        <ul class="list" id="histList"></ul>
+      </section>
+    </div>
+  </section>
+</main>
+
+<footer class="wrap foot">
+  <p>캠퍼스 안내도·사진: 금오공과대학교 · 날씨: <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a> · 지점 좌표와 거리는 안내도 기준 추정값입니다.</p>
+</footer>
+
+<!-- 산책 타이머 -->
+<aside class="timer" id="timer" hidden aria-live="polite" aria-label="산책 타이머">
+  <div class="wrap timer-in">
+    <div class="timer-top">
+      <img class="timer-thumb" id="tmThumb" alt="" loading="lazy" decoding="async" hidden>
+      <div class="timer-head">
+        <div class="timer-title" id="tmTitle">-</div>
+        <div class="hint" id="tmChain">-</div>
+      </div>
+      <button type="button" class="btn small ghost" id="tmFold" aria-expanded="true">접기</button>
+    </div>
+    <div class="timer-body" id="tmBody">
+      <div class="timer-nums">
+        <div><span class="lbl">다음 수업까지</span><strong id="tmClass">--:--</strong><span class="hint" id="tmClassAt">-</span></div>
+        <div id="tmReturnBox"><span class="lbl">복귀 출발 권장 시각</span><strong id="tmReturn">--:--</strong><span class="hint" id="tmReturnAt">-</span></div>
+      </div>
+      <div class="meter big"><i id="tmBar" style="width:0%"></i><b id="tmReturnTick"></b></div>
+      <p class="timer-msg" id="tmMsg">-</p>
+      <div class="row">
+        <button type="button" class="btn primary" id="tmDone">산책 완료 · 기록하기</button>
+        <button type="button" class="btn ghost" id="tmStop">중단</button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-label="사진 크게 보기">
+  <button type="button" class="lb-x" id="lbClose" aria-label="닫기">×</button>
+  <img id="lbImg" alt="" decoding="async">
+  <p id="lbCap"></p>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="fatal" id="fatal" hidden>앱 스크립트를 불러오지 못했습니다. 파일 구성(data/, js/ 폴더)이 index.html과 같은 위치에 있는지 확인하세요.</div>
+<noscript><div class="fatal">이 앱은 JavaScript가 필요합니다.</div><style>.intro{display:none}</style></noscript>
+
+<script src="./data/campus-data.js"></script>
+<script src="./data/photo-catalog.js"></script>
+<script src="./js/engine.js"></script>
+<script src="./js/weather.js"></script>
+<script src="./js/context.js"></script>
+<script src="./js/photo-matcher.js"></script>
+<script src="./js/timetable.js"></script>
+<script src="./app.js"></script>
+</body>
+</html>
