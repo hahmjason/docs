@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UGCS 조종 콘솔</title>
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/console.css">
+<script type="module" src="js/app.js"></script>
+</head>
+<body>
+<!-- 로그인 -->
+<div id="login" class="overlay">
+  <form id="login-form" class="login-card" autocomplete="off">
+    <div class="login-brand"><img src="assets/favicon.svg" alt="" width="34" height="34"><div><b>UGCS</b><span>무인기 지상통제 시스템 · 차량 탑재 콘솔</span></div></div>
+    <label for="login-user">운용자</label>
+    <select id="login-user" required></select>
+    <label for="login-pin">PIN</label>
+    <input id="login-pin" type="password" inputmode="numeric" maxlength="12" required>
+    <button type="submit" class="btn primary">접속</button>
+    <p class="hint" id="login-msg">폐쇄망 로컬 서버 전용 · 외부 네트워크 미사용</p>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header class="topbar">
+    <div class="brand"><img src="assets/favicon.svg" alt="" width="22" height="22"><b>UGCS</b></div>
+    <div class="ac-select">
+      <label for="ac-select" class="sr">연결 기체</label>
+      <select id="ac-select" title="연결 기체 (제어권 보유자만 변경)"></select>
+      <span id="ac-status" class="badge">—</span>
+    </div>
+    <div class="pills" id="pills">
+      <span class="pill" id="p-mode"><i>MODE</i><b>—</b></span>
+      <span class="pill" id="p-link"><i>LINK</i><b>—</b></span>
+      <span class="pill" id="p-batt"><i>BATT</i><b>—</b></span>
+      <span class="pill" id="p-gps"><i>GNSS</i><b>—</b></span>
+      <span class="pill" id="p-flt"><i>FLT</i><b>—</b></span>
+    </div>
+    <span class="spacer"></span>
+    <div class="ctl" id="ctl">
+      <span class="ctl-label">제어권</span><b id="ctl-holder">없음</b>
+      <button class="btn sm" id="ctl-btn" type="button">제어권 인수</button>
+    </div>
+    <div class="me"><b id="me-name">—</b><span id="me-role" class="badge">—</span>
+      <button class="btn sm ghost" id="mute-btn" type="button" title="경보음">경보음 켜짐</button>
+      <button class="btn sm ghost" id="logout-btn" type="button">로그아웃</button></div>
+  </header>
+
+  <main class="layout">
+    <!-- ① 지도 패널 -->
+    <section class="panel map-panel" aria-label="전술 지도">
+      <div class="panel-head">
+        <h2>전술 지도</h2>
+        <div class="tools">
+          <button class="btn sm toggle on" id="m-follow" type="button" aria-pressed="true">기체 추종</button>
+          <button class="btn sm toggle" id="m-edit" type="button" aria-pressed="false">경로 편집</button>
+          <button class="btn sm" id="m-fit" type="button">전체 보기</button>
+          <button class="btn sm" id="m-clear-trail" type="button">궤적 지우기</button>
+        </div>
+      </div>
+      <div class="map-wrap"><canvas id="map" tabindex="0" aria-label="오프라인 전술 지도 캔버스"></canvas>
+        <div class="map-read" id="map-read">—</div>
+        <div class="map-hint" id="map-hint" hidden>클릭: 웨이포인트 추가 · 드래그: 이동 · 우클릭: 삭제</div>
+      </div>
+    </section>
+
+    <!-- ① 영상 패널 -->
+    <section class="panel video-panel" aria-label="EO/IR 영상">
+      <div class="panel-head">
+        <h2>EO/IR 영상</h2>
+        <div class="tools">
+          <div class="seg" role="group" aria-label="카메라 모드">
+            <button type="button" class="on" data-cam="EO">EO</button><button type="button" data-cam="IR">IR</button>
+          </div>
+          <label class="sr" for="v-source">영상 소스</label>
+          <select id="v-source" class="sm"></select>
+        </div>
+      </div>
+      <div class="video-wrap"><canvas id="video" aria-label="모의 EO/IR 영상과 HUD"></canvas></div>
+      <div class="gimbal">
+        <label for="g-pitch">짐벌 Pitch <b id="g-pitch-v">-30°</b></label><input id="g-pitch" type="range" min="-90" max="20" value="-30">
+        <label for="g-yaw">Yaw <b id="g-yaw-v">0°</b></label><input id="g-yaw" type="range" min="-180" max="180" value="0">
+      </div>
+    </section>
+
+    <!-- ① 경보 패널 -->
+    <section class="panel alert-panel" aria-label="경보 및 상태">
+      <div class="panel-head"><h2>경보 · 상태</h2>
+        <div class="seg" role="group" aria-label="경보 보기">
+          <button type="button" class="on" data-alerts="active">활성 <span id="alert-count">0</span></button><button type="button" data-alerts="history">이력</button>
+        </div>
+      </div>
+      <div class="status-grid" id="status-grid">
+        <div class="stat" id="s-rssi"><i>RSSI</i><b>—</b><em>dBm</em><div class="bar"><span></span></div></div>
+        <div class="stat" id="s-lat"><i>지연</i><b>—</b><em>ms</em></div>
+        <div class="stat" id="s-loss"><i>패킷손실</i><b>—</b><em>%</em></div>
+        <div class="stat" id="s-batt"><i>배터리</i><b>—</b><em>%</em><div class="bar"><span></span></div></div>
+        <div class="stat" id="s-gps"><i>GNSS 위성</i><b>—</b><em>—</em></div>
+        <div class="stat" id="s-range"><i>기체↔차량</i><b>—</b><em>—</em></div>
+      </div>
+      <ol class="alerts" id="alerts" aria-live="polite"></ol>
+    </section>
+
+    <!-- 비행 제어 명령 -->
+    <section class="panel cmd-panel" aria-label="비행 제어">
+      <div class="panel-head"><h2>비행 제어</h2><span class="note" id="cmd-note">제어권을 인수해야 명령할 수 있습니다</span></div>
+      <div class="cmds">
+        <div class="cmd-group">
+          <label for="to-alt">이륙 고도</label>
+          <input id="to-alt" type="number" min="5" max="150" value="30" class="num">
+          <button class="btn cmd" data-cmd="TAKEOFF" type="button">이륙</button>
+        </div>
+        <button class="btn cmd" data-cmd="UPLOAD_MISSION" type="button">임무 업로드</button>
+        <button class="btn cmd" data-cmd="START_MISSION" type="button">임무 시작</button>
+        <button class="btn cmd" data-cmd="PAUSE" type="button">일시정지</button>
+        <button class="btn cmd" data-cmd="RESUME" type="button">재개</button>
+        <button class="btn cmd warn" data-cmd="RTL" type="button">복귀 RTL</button>
+        <button class="btn cmd warn" data-cmd="LAND" type="button">착륙</button>
+        <button class="btn cmd danger" data-cmd="ESTOP" type="button">비상정지</button>
+      </div>
+    </section>
+
+    <!-- 운용 탭 -->
+    <section class="panel ops-panel" aria-label="운용 기능">
+      <div class="tabs" role="tablist">
+        <button role="tab" type="button" class="on" data-tab="planner">임무 계획</button>
+        <button role="tab" type="button" data-tab="flights">비행 기록 · 재생</button>
+        <button role="tab" type="button" data-tab="maint">정비 이력</button>
+        <button role="tab" type="button" data-tab="sim">시뮬레이터</button>
+        <button role="tab" type="button" data-tab="audit">감사 로그</button>
+      </div>
+      <div class="tab-body" id="tab-planner"></div>
+      <div class="tab-body" id="tab-flights" hidden></div>
+      <div class="tab-body" id="tab-maint" hidden></div>
+      <div class="tab-body" id="tab-sim" hidden></div>
+      <div class="tab-body" id="tab-audit" hidden></div>
+    </section>
+  </main>
+</div>
+
+<div class="overlay" id="modal" hidden><div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title" id="modal-card"></div></div>
+<div class="toast" id="toast" role="status"></div>
+</body>
+</html>
