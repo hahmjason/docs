@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KIT 공강 산책 — 로직 테스트</title>
+<style>
+  body{font-family:system-ui,"Malgun Gothic","Apple SD Gothic Neo",sans-serif;max-width:860px;margin:24px auto;padding:0 16px;line-height:1.5}
+  h1{font-size:1.2rem}
+  .sum{font-weight:700;padding:10px 12px;border-radius:8px;background:#eef3ef}
+  .sum.fail{background:#fbe5e2;color:#bf342a}.sum.pass{background:#e2f1e8;color:#1d7a4f}
+  li{margin:3px 0} .ok{color:#1d7a4f} .ng{color:#bf342a} code{font-size:.85em;color:#555}
+</style>
+</head>
+<body>
+<h1>KIT 공강 산책 — 핵심 로직 검증 테스트</h1>
+<p>Node에서는 <code>node tests/run-tests.js</code>로 같은 테스트를 실행할 수 있습니다. <a href="../index.html?nointro">앱으로 돌아가기</a></p>
+<div class="sum" id="sum">실행 중…</div>
+<ol id="list"></ol>
+<script src="../data/campus-data.js"></script>
+<script src="../data/photo-catalog.js"></script>
+<script src="../js/engine.js"></script>
+<script src="../js/weather.js"></script>
+<script src="../js/context.js"></script>
+<script src="../js/photo-matcher.js"></script>
+<script src="../js/timetable.js"></script>
+<script src="./specs.js"></script>
+<script>
+(function () {
+  var tests = [];
+  window.KITWalkSpecs({ test: function (n, f) { tests.push({ name: n, fn: f }); } },
+    { D: window.KITWalkData, PH: window.KITWalkPhotos, E: window.KITWalkEngine, W: window.KITWalkWeather, C: window.KITWalkContext, MT: window.KITWalkPhotoMatcher, T: window.KITWalkTimetable });
+  var list = document.getElementById('list'), pass = 0, fail = 0, i = 0;
+  function esc(s) { return String(s).replace(/[&<>]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]; }); }
+  function next() {
+    if (i >= tests.length) {
+      var s = document.getElementById('sum');
+      s.textContent = pass + '개 통과, ' + fail + '개 실패 (총 ' + tests.length + '개)';
+      s.className = 'sum ' + (fail ? 'fail' : 'pass');
+      window.__TEST_RESULT__ = { pass: pass, fail: fail, total: tests.length };
+      return;
+    }
+    var t = tests[i++], li = document.createElement('li');
+    Promise.resolve().then(t.fn).then(function () {
+      pass++; li.innerHTML = '<span class="ok">✓</span> ' + esc(t.name);
+    }, function (e) {
+      fail++; li.innerHTML = '<span class="ng">✗</span> ' + esc(t.name) + '<br><code>' + esc(e && e.message) + '</code>';
+    }).then(function () { list.appendChild(li); next(); });
+  }
+  next();
+})();
+</script>
+</body>
+</html>
