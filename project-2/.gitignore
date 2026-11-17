@@ -1,0 +1,6 @@
+# 런타임 DB (운용 데이터는 저장소에 올리지 않음)
+data/*.sqlite3
+data/*.sqlite3-wal
+data/*.sqlite3-shm
+__pycache__/
+*.pyc
