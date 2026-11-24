@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>금오정밀 품목 조회</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{color-scheme:light;--bg:#f6f7f9;--card:#fff;--ink:#1b1f24;--muted:#5d6672;--line:#e3e6ea;--accent:#1f5fae;
+        --full:#b4232c;--full-bg:#fdecee;--samp:#1d6b48;--samp-bg:#e8f5ee;--alias:#8a5a00;--alias-bg:#fff4d6}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Noto Sans KR",system-ui,sans-serif}
+  .wrap{max-width:1100px;margin:0 auto;padding:24px 20px 40px}
+  header h1{font-size:20px;margin:0 0 2px}
+  header p{margin:0;color:var(--muted);font-size:12.5px}
+  .notice{margin:14px 0 16px;padding:10px 14px;background:#eef3fb;border:1px solid #d3e0f3;border-radius:8px;font-size:12.5px;color:#2c3e57}
+  .notice b{color:#1b2f4d}
+  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px}
+  .tab{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;cursor:pointer}
+  .tab .n{color:var(--muted);margin-left:4px;font-size:12px}
+  .tab[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+  .tab[aria-pressed="true"] .n{color:#d6e4f7}
+  .search{display:flex;align-items:center;gap:8px}
+  .search input{width:260px;max-width:60vw;padding:8px 12px;border:1px solid #c9ced5;border-radius:8px;font:inherit;font-size:15px;
+    background:#fff !important;color:#1b1f24 !important;-webkit-text-fill-color:#1b1f24 !important;caret-color:#1f5fae;opacity:1;color-scheme:light}
+  .search input::placeholder{color:#8a929c;-webkit-text-fill-color:#8a929c;opacity:1}
+  .echo{margin:-4px 0 12px;font-size:13px;color:var(--ink)}
+  .echo b{font-family:ui-monospace,Consolas,monospace;background:#eef3fb;border:1px solid #d3e0f3;border-radius:4px;padding:1px 6px}
+  .echo .warn{color:var(--full)}
+  .echo button{margin-left:8px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;padding:1px 8px;font:inherit;font-size:12px;cursor:pointer}
+  .search input:focus{outline:2px solid #bcd3f0;border-color:var(--accent)}
+  .count{color:var(--muted);font-size:12.5px;white-space:nowrap}
+  .via{margin-top:3px;font-family:"Noto Sans KR",sans-serif;font-weight:500;font-size:11.5px;color:var(--alias);background:var(--alias-bg);border-radius:4px;padding:2px 6px;display:block;width:fit-content;max-width:200px;white-space:normal;line-height:1.4}
+  .hint{margin:-4px 0 12px;color:var(--muted);font-size:12px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  table{width:100%;border-collapse:collapse}
+  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+  th{background:#fafbfc;font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap}
+  tr:last-child td{border-bottom:0}
+  tbody tr:hover{background:#f8fafd}
+  td.code{font-family:ui-monospace,Consolas,monospace;font-weight:600;white-space:nowrap}
+  td.cls{color:var(--muted);font-size:12.5px}
+  td.cls .l1{color:var(--ink)}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.num{font-weight:600}
+  .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+  .b-전수{color:var(--full);background:var(--full-bg)}
+  .b-샘플링{color:var(--samp);background:var(--samp-bg)}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  footer{margin-top:14px;color:var(--muted);font-size:12px}
+  @media (max-width:720px){
+    thead{display:none} table,tbody,tr,td{display:block;width:100%}
+    tr{padding:10px 12px;border-bottom:1px solid var(--line)} td{border:0;padding:2px 0}
+    td.num{text-align:left}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>품목 조회</h1>
+    <p>금오정밀 영업팀 · 견적/납기 회신 전 단가·출하검사 확인용</p>
+  </header>
+  <div class="notice">단가는 <b>표준단가(원)</b>로, 견적가가 아닙니다. 부가세 포함 여부와 수량별 할인은 기준정보에 없어 표시하지 않습니다.</div>
+  <div class="controls">
+    <div class="tabs" id="tabs" role="group" aria-label="대분류 필터"></div>
+    <div class="search">
+      <input id="q" type="search" placeholder="품번 검색 (예: H2201, GR-HNS-01)" aria-label="품번 검색" autocomplete="off">
+      <span class="count" id="count"></span>
+    </div>
+  </div>
+  <div class="echo" id="echo" hidden></div>
+  <div class="hint">대소문자·하이픈·공백은 무시합니다. 발주처 도면번호와 구 개정판 품번도 표준 품번으로 찾아줍니다.</div>
+  <div class="card">
+    <table>
+      <thead><tr><th>품번</th><th>품명</th><th>분류 (대 › 중 › 소)</th><th>단위</th><th class="num">표준단가(원)</th><th>출하검사</th></tr></thead>
+      <tbody id="rows"></tbody>
+    </table>
+    <div class="empty" id="empty" hidden>조건에 맞는 품목이 없습니다.</div>
+  </div>
+  <footer>출처: 02_금오정밀_기준정보.xlsx › 품목마스터(12건), 품번별칭(9건) · 추출일 2026-11-24 · 원본 파일은 수정하지 않음. 기준정보가 바뀌면 이 화면도 다시 반영해야 합니다.</footer>
+</div>
+<script>
+const DATA = {"items": [{"code": "KJ-H2201", "name": "케이블 하네스(통신)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "통신용", "unit": "EA", "price": 185000, "insp": "전수"}, {"code": "KJ-H2305", "name": "케이블 하네스(전원)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "전원용", "unit": "EA", "price": 142000, "insp": "전수"}, {"code": "KJ-C1208", "name": "커넥터 조립체 12핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "12핀", "unit": "EA", "price": 28000, "insp": "샘플링"}, {"code": "KJ-C2410", "name": "커넥터 조립체 24핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "24핀", "unit": "EA", "price": 42000, "insp": "샘플링"}, {"code": "KJ-S4102", "name": "신호 변환 보드", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "신호 처리", "unit": "EA", "price": 480000, "insp": "전수"}, {"code": "KJ-P3301", "name": "전원 분배 모듈", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "전원 분배", "unit": "EA", "price": 620000, "insp": "전수"}, {"code": "KJ-F8204", "name": "필터 어셈블리", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "EMI 필터", "unit": "EA", "price": 73000, "insp": "샘플링"}, {"code": "KJ-B1107", "name": "방열 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "방열", "unit": "EA", "price": 18000, "insp": "샘플링"}, {"code": "KJ-B1120", "name": "장착 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "장착", "unit": "EA", "price": 15500, "insp": "샘플링"}, {"code": "KJ-E5010", "name": "차폐 케이스", "l1": "기구 부품", "l2": "하우징", "l3": "전자파 차폐", "unit": "EA", "price": 96000, "insp": "샘플링"}, {"code": "KJ-K6003", "name": "고정 클램프 세트", "l1": "소모성 부품", "l2": "체결류", "l3": "클램프", "unit": "SET", "price": 9800, "insp": "샘플링"}, {"code": "KJ-O7001", "name": "O-링 세트", "l1": "소모성 부품", "l2": "실링류", "l3": "O-링", "unit": "SET", "price": 6500, "insp": "샘플링"}], "aliases": [{"alias": "KJH2201", "key": "KJ-H2201", "reason": "하이픈 누락 표기"}, {"alias": "KJ-H-2201", "key": "KJ-H2201", "reason": "하이픈 중복 표기(구 시스템 이관분)"}, {"alias": "KJ H2201", "key": "KJ-H2201", "reason": "하이픈 대신 공백 입력"}, {"alias": "kj-h2201", "key": "KJ-H2201", "reason": "영문 소문자 입력"}, {"alias": "KJH2305", "key": "KJ-H2305", "reason": "하이픈 누락 표기"}, {"alias": "KJC2410", "key": "KJ-C2410", "reason": "하이픈 누락 표기"}, {"alias": "GR-HNS-01", "key": "KJ-H2201", "reason": "발주처 품번(가람체계 도면 번호)"}, {"alias": "HW-SB4102", "key": "KJ-S4102", "reason": "발주처 품번(한울시스템즈 도면 번호)"}, {"alias": "KJ-B1107A", "key": "KJ-B1107", "reason": "구 개정판 품번(개정 A, 2025-06 폐지)"}]};
+const fmt = n => n.toLocaleString('ko-KR');
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $ = id => document.getElementById(id);
+
+function render(list){
+  $('rows').innerHTML = list.map(({it, via}) => `
+    <tr>
+      <td class="code">${esc(it.code)}${via ? `<div class="via">${esc(via)}</div>` : ''}</td>
+      <td>${esc(it.name)}</td>
+      <td class="cls"><span class="l1">${esc(it.l1)}</span> › ${esc(it.l2)} › ${esc(it.l3)}</td>
+      <td>${esc(it.unit)}</td>
+      <td class="num">${fmt(it.price)}</td>
+      <td><span class="badge b-${esc(it.insp)}">${esc(it.insp)}</span></td>
+    </tr>`).join('');
+  $('empty').hidden = list.length > 0;
+}
+// 대분류: 원문 등장 순서 유지
+const L1 = [...new Set(DATA.items.map(i => i.l1))];
+const state = { l1: '전체', q: '' };
+
+function drawTabs(){
+  const opts = ['전체', ...L1];
+  $('tabs').innerHTML = opts.map(o => {
+    const n = o === '전체' ? DATA.items.length : DATA.items.filter(i => i.l1 === o).length;
+    return `<button class="tab" type="button" data-l1="${esc(o)}" aria-pressed="${o === state.l1}">${esc(o)}<span class="n">${n}</span></button>`;
+  }).join('');
+}
+$('tabs').addEventListener('click', e => {
+  const b = e.target.closest('.tab'); if (!b) return;
+  state.l1 = b.dataset.l1; drawTabs(); update();
+});
+// 정규화: 대문자화 + 영문·숫자 외 제거 (하이픈·공백 표기 차이 흡수)
+const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z]/g, '');
+const ALIAS = DATA.aliases.map(a => ({ ...a, n: norm(a.alias) }));
+
+function matches(it){
+  const q = norm(state.q);
+  if (!q) return { ok: true, via: null };
+  if (norm(it.code).includes(q)) return { ok: true, via: null };
+  // 표준 품번에 안 걸리면 별칭(발주처 도면번호·구 개정판 등)으로 확인
+  const a = ALIAS.find(a => a.key === it.code && a.n.includes(q));
+  return a ? { ok: true, via: `별칭 일치: ${a.alias} — ${a.reason}` } : { ok: false };
+}
+$('q').addEventListener('input', e => { state.q = e.target.value; update(); });
+$('q').addEventListener('keydown', e => { if (e.key === 'Escape'){ e.target.value = ''; state.q = ''; update(); } });
+
+function update(){
+  const list = [];
+  for (const it of DATA.items){
+    if (state.l1 !== '전체' && it.l1 !== state.l1) continue;
+    const m = matches(it);
+    if (m.ok) list.push({ it, via: m.via });
+  }
+  render(list);
+  $('count').textContent = `${list.length}건`;
+  // 입력한 검색어를 표 위에 다시 보여줌 (입력칸이 안 보이는 환경 대비)
+  const raw = state.q.trim(), echo = $('echo');
+  echo.hidden = !raw;
+  if (raw){
+    const hangul = /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(raw);
+    echo.innerHTML = `검색어 <b>${esc(raw)}</b> · ${list.length}건` +
+      (hangul ? ` <span class="warn">— 한글이 입력됐습니다. 한/영 키로 영문 전환 후 입력하세요.</span>` : '') +
+      ` <button type="button" id="clr">지우기</button>`;
+    $('clr').onclick = () => { $('q').value = ''; state.q = ''; update(); $('q').focus(); };
+  }
+}
+drawTabs(); update();
+</script>
+</body>
+</html>
