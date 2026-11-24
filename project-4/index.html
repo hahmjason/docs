@@ -3,154 +3,325 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>금오정밀 품목 조회</title>
+<title>금오정밀 기준정보 조회</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-  :root{color-scheme:light;--bg:#f6f7f9;--card:#fff;--ink:#1b1f24;--muted:#5d6672;--line:#e3e6ea;--accent:#1f5fae;
-        --full:#b4232c;--full-bg:#fdecee;--samp:#1d6b48;--samp-bg:#e8f5ee;--alias:#8a5a00;--alias-bg:#fff4d6}
+  :root{color-scheme:light;--bg:#f6f7f9;--card:#fff;--ink:#1b1f24;--muted:#5d6672;--line:#e3e6ea;--accent:#1f5fae;--accent-bg:#eef3fb;
+        --bad:#b4232c;--bad-bg:#fdecee;--good:#1d6b48;--good-bg:#e8f5ee;--warn:#8a5a00;--warn-bg:#fff4d6}
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Noto Sans KR",system-ui,sans-serif}
-  .wrap{max-width:1100px;margin:0 auto;padding:24px 20px 40px}
-  header h1{font-size:20px;margin:0 0 2px}
-  header p{margin:0;color:var(--muted);font-size:12.5px}
-  .notice{margin:14px 0 16px;padding:10px 14px;background:#eef3fb;border:1px solid #d3e0f3;border-radius:8px;font-size:12.5px;color:#2c3e57}
-  .notice b{color:#1b2f4d}
-  .controls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;margin-bottom:12px}
-  .tabs{display:flex;flex-wrap:wrap;gap:6px}
-  .tab{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:6px 14px;font:inherit;font-size:13px;cursor:pointer}
-  .tab .n{color:var(--muted);margin-left:4px;font-size:12px}
-  .tab[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
-  .tab[aria-pressed="true"] .n{color:#d6e4f7}
-  .search{display:flex;align-items:center;gap:8px}
-  .search input{width:260px;max-width:60vw;padding:8px 12px;border:1px solid #c9ced5;border-radius:8px;font:inherit;font-size:15px;
-    background:#fff !important;color:#1b1f24 !important;-webkit-text-fill-color:#1b1f24 !important;caret-color:#1f5fae;opacity:1;color-scheme:light}
-  .search input::placeholder{color:#8a929c;-webkit-text-fill-color:#8a929c;opacity:1}
-  .echo{margin:-4px 0 12px;font-size:13px;color:var(--ink)}
-  .echo b{font-family:ui-monospace,Consolas,monospace;background:#eef3fb;border:1px solid #d3e0f3;border-radius:4px;padding:1px 6px}
-  .echo .warn{color:var(--full)}
-  .echo button{margin-left:8px;border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;padding:1px 8px;font:inherit;font-size:12px;cursor:pointer}
-  .search input:focus{outline:2px solid #bcd3f0;border-color:var(--accent)}
-  .count{color:var(--muted);font-size:12.5px;white-space:nowrap}
-  .via{margin-top:3px;font-family:"Noto Sans KR",sans-serif;font-weight:500;font-size:11.5px;color:var(--alias);background:var(--alias-bg);border-radius:4px;padding:2px 6px;display:block;width:fit-content;max-width:200px;white-space:normal;line-height:1.4}
-  .hint{margin:-4px 0 12px;color:var(--muted);font-size:12px}
+  .wrap{max-width:1140px;margin:0 auto;padding:20px 20px 40px}
+  .top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+  .top h1{font-size:19px;margin:0}
+  .top p{margin:0;color:var(--muted);font-size:12px}
+  nav{display:flex;gap:4px;background:#e9ecf0;padding:4px;border-radius:10px}
+  nav a{padding:7px 16px;border-radius:7px;color:var(--ink);text-decoration:none;font-weight:500;font-size:13.5px}
+  nav a[aria-current="page"]{background:#fff;color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  .countbar{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:12px}
+  .countbar .big{font-size:22px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+  .countbar .of{color:var(--muted)}
+  .countbar .chips{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+  .chip{font-size:12px;padding:2px 9px;border-radius:999px;background:#f1f3f5;color:var(--muted)}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
+  label.f{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
+  select,input[type=search],input[type=text]{font:inherit;font-size:14.5px;padding:7px 10px;border:1px solid #c9ced5;border-radius:8px;
+    background:#fff !important;color:#1b1f24 !important;-webkit-text-fill-color:#1b1f24 !important;caret-color:var(--accent);color-scheme:light}
+  input::placeholder{color:#8a929c;-webkit-text-fill-color:#8a929c;opacity:1}
+  select:focus,input:focus{outline:2px solid #bcd3f0;border-color:var(--accent)}
+  input[type=search]{width:280px;max-width:70vw}
+  .echo{font-size:13px;margin:-2px 0 10px}
+  .echo b{font-family:ui-monospace,Consolas,monospace;background:var(--accent-bg);border:1px solid #d3e0f3;border-radius:4px;padding:1px 6px}
+  .echo .warn{color:var(--bad)}
+  button.s{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;padding:2px 9px;font:inherit;font-size:12px;cursor:pointer}
+  button.p{border:0;background:var(--accent);color:#fff;border-radius:7px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+  .notice{padding:8px 12px;background:var(--accent-bg);border:1px solid #d3e0f3;border-radius:8px;font-size:12.5px;color:#2c3e57;margin-bottom:10px}
   .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
   table{width:100%;border-collapse:collapse}
-  th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
   th{background:#fafbfc;font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap}
-  tr:last-child td{border-bottom:0}
-  tbody tr:hover{background:#f8fafd}
-  td.code{font-family:ui-monospace,Consolas,monospace;font-weight:600;white-space:nowrap}
-  td.cls{color:var(--muted);font-size:12.5px}
-  td.cls .l1{color:var(--ink)}
-  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  tbody tr.row{cursor:pointer} tbody tr.row:hover{background:#f8fafd}
+  tbody tr.open{background:#f3f7fd}
+  .mono{font-family:ui-monospace,Consolas,monospace;font-weight:600;white-space:nowrap}
+  .muted{color:var(--muted);font-size:12.5px}
+  .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   td.num{font-weight:600}
   .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
-  .b-전수{color:var(--full);background:var(--full-bg)}
-  .b-샘플링{color:var(--samp);background:var(--samp-bg)}
-  .empty{padding:40px;text-align:center;color:var(--muted)}
-  footer{margin-top:14px;color:var(--muted);font-size:12px}
-  @media (max-width:720px){
-    thead{display:none} table,tbody,tr,td{display:block;width:100%}
-    tr{padding:10px 12px;border-bottom:1px solid var(--line)} td{border:0;padding:2px 0}
-    td.num{text-align:left}
+  .b-bad{color:var(--bad);background:var(--bad-bg)} .b-good{color:var(--good);background:var(--good-bg)}
+  .b-blue{color:var(--accent);background:var(--accent-bg)} .b-warn{color:var(--warn);background:var(--warn-bg)}
+  .via{margin-top:3px;font-family:"Noto Sans KR",sans-serif;font-weight:500;font-size:11.5px;color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:2px 6px;display:block;width:fit-content;max-width:200px;white-space:normal;line-height:1.4}
+  .atp{font-weight:700} .atp.neg{color:var(--bad)} .atp.zero{color:var(--warn)}
+  tr.detail td{background:#fbfcfe;padding:14px 16px}
+  .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+  .dbox h4{margin:0 0 6px;font-size:12.5px;color:var(--muted);font-weight:500}
+  .dbox table td,.dbox table th{padding:4px 6px;font-size:12.5px}
+  .formula{font-size:13px;line-height:1.9}
+  .formula b{font-variant-numeric:tabular-nums}
+  .empty{padding:36px;text-align:center;color:var(--muted)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .panel h3{margin:0 0 4px;font-size:15px}
+  .panel .sub{margin:0 0 10px;color:var(--muted);font-size:12px}
+  .verdict{margin-top:10px;padding:10px 12px;border-radius:8px;font-size:13.5px}
+  .verdict.ok{background:var(--good-bg);color:var(--good)} .verdict.ng{background:var(--bad-bg);color:var(--bad)}
+  .verdict .cand{margin-top:6px;color:var(--ink);font-size:12.5px}
+  .verdict .cand button{margin:2px 4px 0 0}
+  .bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#eee;margin:8px 0}
+  .bar span{display:block}
+  .rows{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);word-break:break-all}
+  footer{margin-top:16px;color:var(--muted);font-size:12px}
+  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1b1f24;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.on{opacity:1}
+  textarea.copy{width:100%;height:96px;font:12.5px/1.5 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:6px;padding:6px;color:#1b1f24;background:#fff}
+  @media (max-width:760px){
+    .grid2{grid-template-columns:1fr}
+    thead{display:none} table.main,table.main tbody,table.main tr,table.main td{display:block;width:100%}
+    table.main tr{padding:8px 12px;border-bottom:1px solid var(--line)} table.main td{border:0;padding:2px 0}
+    table.main td.num{text-align:left}
   }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <h1>품목 조회</h1>
-    <p>금오정밀 영업팀 · 견적/납기 회신 전 단가·출하검사 확인용</p>
-  </header>
-  <div class="notice">단가는 <b>표준단가(원)</b>로, 견적가가 아닙니다. 부가세 포함 여부와 수량별 할인은 기준정보에 없어 표시하지 않습니다.</div>
-  <div class="controls">
-    <div class="tabs" id="tabs" role="group" aria-label="대분류 필터"></div>
-    <div class="search">
-      <input id="q" type="search" placeholder="품번 검색 (예: H2201, GR-HNS-01)" aria-label="품번 검색" autocomplete="off">
-      <span class="count" id="count"></span>
+  <div class="top">
+    <div><h1>금오정밀 기준정보 조회</h1><p>영업팀 · 견적/납기 회신 전 확인용</p></div>
+    <nav aria-label="메뉴">
+      <a href="#items" data-view="items">품목 조회</a>
+      <a href="#customers" data-view="customers">발주처 조회</a>
+    </nav>
+  </div>
+
+  <div class="countbar" aria-live="polite">
+    <span>조회</span><span class="big" id="cNow">0</span><span>건</span>
+    <span class="of" id="cAll"></span>
+    <span class="chips" id="cChips"></span>
+  </div>
+
+  <!-- ① 품목 조회 -->
+  <section id="v-items" hidden>
+    <div class="controls">
+      <label class="f">대분류 <select id="iL1" aria-label="대분류 선택"></select></label>
+      <input id="iQ" type="search" placeholder="품번 검색 (예: H2201, GR-HNS-01)" aria-label="품번 검색" autocomplete="off">
     </div>
-  </div>
-  <div class="echo" id="echo" hidden></div>
-  <div class="hint">대소문자·하이픈·공백은 무시합니다. 발주처 도면번호와 구 개정판 품번도 표준 품번으로 찾아줍니다.</div>
-  <div class="card">
-    <table>
-      <thead><tr><th>품번</th><th>품명</th><th>분류 (대 › 중 › 소)</th><th>단위</th><th class="num">표준단가(원)</th><th>출하검사</th></tr></thead>
-      <tbody id="rows"></tbody>
-    </table>
-    <div class="empty" id="empty" hidden>조건에 맞는 품목이 없습니다.</div>
-  </div>
-  <footer>출처: 02_금오정밀_기준정보.xlsx › 품목마스터(12건), 품번별칭(9건) · 추출일 2026-11-24 · 원본 파일은 수정하지 않음. 기준정보가 바뀌면 이 화면도 다시 반영해야 합니다.</footer>
+    <div class="echo" id="iEcho" hidden></div>
+    <div class="notice">단가는 <b>표준단가</b>로, 견적가가 아닙니다(부가세·수량 할인 정보 없음). <b>납기회신 가능</b> = 출하 가능 재고(G1-AVL) + 입고예정 − 미출고 확정 수주, 재고 기준일 <span id="asof1"></span>. 행을 누르면 계산 근거가 열립니다.</div>
+    <div class="card">
+      <table class="main">
+        <thead><tr><th>품번</th><th>품명</th><th>분류 (대 › 중 › 소)</th><th>단위</th><th class="num">표준단가(원)</th><th>출하검사</th><th class="num">납기회신 가능</th></tr></thead>
+        <tbody id="iRows"></tbody>
+      </table>
+      <div class="empty" id="iEmpty" hidden>조건에 맞는 품목이 없습니다.</div>
+    </div>
+  </section>
+
+  <!-- ② 발주처 조회 -->
+  <section id="v-customers" hidden>
+    <div class="controls">
+      <label class="f">구분 <select id="cType" aria-label="구분 선택"></select></label>
+      <input id="cQ" type="search" placeholder="코드·이름 검색 (예: C03, 누리)" aria-label="발주처 검색" autocomplete="off">
+    </div>
+    <div class="echo" id="cEcho" hidden></div>
+    <div class="card">
+      <table class="main">
+        <thead><tr><th>발주처코드</th><th>발주처명</th><th>구분</th><th class="num">수주대장 행수</th><th class="num">미출고 수주</th></tr></thead>
+        <tbody id="cRows"></tbody>
+      </table>
+      <div class="empty" id="cEmpty" hidden>조건에 맞는 발주처가 없습니다.</div>
+    </div>
+
+    <div class="grid2">
+      <div class="panel">
+        <h3>발주처 검증</h3>
+        <p class="sub">수주·견적에 적힌 발주처를 이 기준정보와 대조합니다. 정확히 일치해야 '등록'으로 판정합니다.</p>
+        <input id="vIn" type="text" placeholder="발주처명 또는 코드 입력 (예: 가람 체계, c04)" aria-label="검증할 발주처" autocomplete="off" style="width:100%">
+        <div id="vOut"></div>
+      </div>
+      <div class="panel">
+        <h3>수주납품대장 발주처 점검</h3>
+        <p class="sub" id="lgSub"></p>
+        <div id="lgOut"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer id="src"></footer>
 </div>
+<div class="toast" id="toast"></div>
 <script>
-const DATA = {"items": [{"code": "KJ-H2201", "name": "케이블 하네스(통신)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "통신용", "unit": "EA", "price": 185000, "insp": "전수"}, {"code": "KJ-H2305", "name": "케이블 하네스(전원)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "전원용", "unit": "EA", "price": 142000, "insp": "전수"}, {"code": "KJ-C1208", "name": "커넥터 조립체 12핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "12핀", "unit": "EA", "price": 28000, "insp": "샘플링"}, {"code": "KJ-C2410", "name": "커넥터 조립체 24핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "24핀", "unit": "EA", "price": 42000, "insp": "샘플링"}, {"code": "KJ-S4102", "name": "신호 변환 보드", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "신호 처리", "unit": "EA", "price": 480000, "insp": "전수"}, {"code": "KJ-P3301", "name": "전원 분배 모듈", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "전원 분배", "unit": "EA", "price": 620000, "insp": "전수"}, {"code": "KJ-F8204", "name": "필터 어셈블리", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "EMI 필터", "unit": "EA", "price": 73000, "insp": "샘플링"}, {"code": "KJ-B1107", "name": "방열 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "방열", "unit": "EA", "price": 18000, "insp": "샘플링"}, {"code": "KJ-B1120", "name": "장착 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "장착", "unit": "EA", "price": 15500, "insp": "샘플링"}, {"code": "KJ-E5010", "name": "차폐 케이스", "l1": "기구 부품", "l2": "하우징", "l3": "전자파 차폐", "unit": "EA", "price": 96000, "insp": "샘플링"}, {"code": "KJ-K6003", "name": "고정 클램프 세트", "l1": "소모성 부품", "l2": "체결류", "l3": "클램프", "unit": "SET", "price": 9800, "insp": "샘플링"}, {"code": "KJ-O7001", "name": "O-링 세트", "l1": "소모성 부품", "l2": "실링류", "l3": "O-링", "unit": "SET", "price": 6500, "insp": "샘플링"}], "aliases": [{"alias": "KJH2201", "key": "KJ-H2201", "reason": "하이픈 누락 표기"}, {"alias": "KJ-H-2201", "key": "KJ-H2201", "reason": "하이픈 중복 표기(구 시스템 이관분)"}, {"alias": "KJ H2201", "key": "KJ-H2201", "reason": "하이픈 대신 공백 입력"}, {"alias": "kj-h2201", "key": "KJ-H2201", "reason": "영문 소문자 입력"}, {"alias": "KJH2305", "key": "KJ-H2305", "reason": "하이픈 누락 표기"}, {"alias": "KJC2410", "key": "KJ-C2410", "reason": "하이픈 누락 표기"}, {"alias": "GR-HNS-01", "key": "KJ-H2201", "reason": "발주처 품번(가람체계 도면 번호)"}, {"alias": "HW-SB4102", "key": "KJ-S4102", "reason": "발주처 품번(한울시스템즈 도면 번호)"}, {"alias": "KJ-B1107A", "key": "KJ-B1107", "reason": "구 개정판 품번(개정 A, 2025-06 폐지)"}]};
-const fmt = n => n.toLocaleString('ko-KR');
-const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const DATA = {"items": [{"code": "KJ-H2201", "name": "케이블 하네스(통신)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "통신용", "unit": "EA", "price": 185000, "lot": "Y", "insp": "전수"}, {"code": "KJ-H2305", "name": "케이블 하네스(전원)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "전원용", "unit": "EA", "price": 142000, "lot": "Y", "insp": "전수"}, {"code": "KJ-C1208", "name": "커넥터 조립체 12핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "12핀", "unit": "EA", "price": 28000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-C2410", "name": "커넥터 조립체 24핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "24핀", "unit": "EA", "price": 42000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-S4102", "name": "신호 변환 보드", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "신호 처리", "unit": "EA", "price": 480000, "lot": "Y", "insp": "전수"}, {"code": "KJ-P3301", "name": "전원 분배 모듈", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "전원 분배", "unit": "EA", "price": 620000, "lot": "Y", "insp": "전수"}, {"code": "KJ-F8204", "name": "필터 어셈블리", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "EMI 필터", "unit": "EA", "price": 73000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1107", "name": "방열 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "방열", "unit": "EA", "price": 18000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1120", "name": "장착 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "장착", "unit": "EA", "price": 15500, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-E5010", "name": "차폐 케이스", "l1": "기구 부품", "l2": "하우징", "l3": "전자파 차폐", "unit": "EA", "price": 96000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-K6003", "name": "고정 클램프 세트", "l1": "소모성 부품", "l2": "체결류", "l3": "클램프", "unit": "SET", "price": 9800, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-O7001", "name": "O-링 세트", "l1": "소모성 부품", "l2": "실링류", "l3": "O-링", "unit": "SET", "price": 6500, "lot": "Y", "insp": "샘플링"}], "aliases": [{"alias": "KJH2201", "key": "KJ-H2201", "reason": "하이픈 누락 표기"}, {"alias": "KJ-H-2201", "key": "KJ-H2201", "reason": "하이픈 중복 표기(구 시스템 이관분)"}, {"alias": "KJ H2201", "key": "KJ-H2201", "reason": "하이픈 대신 공백 입력"}, {"alias": "kj-h2201", "key": "KJ-H2201", "reason": "영문 소문자 입력"}, {"alias": "KJH2305", "key": "KJ-H2305", "reason": "하이픈 누락 표기"}, {"alias": "KJC2410", "key": "KJ-C2410", "reason": "하이픈 누락 표기"}, {"alias": "GR-HNS-01", "key": "KJ-H2201", "reason": "발주처 품번(가람체계 도면 번호)"}, {"alias": "HW-SB4102", "key": "KJ-S4102", "reason": "발주처 품번(한울시스템즈 도면 번호)"}, {"alias": "KJ-B1107A", "key": "KJ-B1107", "reason": "구 개정판 품번(개정 A, 2025-06 폐지)"}], "customers": [{"code": "C01", "name": "가람체계", "type": "체계업체"}, {"code": "C02", "name": "한울시스템즈", "type": "체계업체"}, {"code": "C03", "name": "미르방산", "type": "체계업체"}, {"code": "C04", "name": "누리테크", "type": "1차 협력사"}, {"code": "C05", "name": "다온항공", "type": "1차 협력사"}, {"code": "C06", "name": "바른기계", "type": "1차 협력사"}, {"code": "C07", "name": "새솔정밀", "type": "1차 협력사"}, {"code": "C08", "name": "온빛전자", "type": "1차 협력사"}], "wh": {"G1-AVL": {"name": "출하 가능", "ship": "Y", "rule": "출하검사 합격 · 소유권 금오정밀 · 수주에 할당 가능한 재고"}, "G1-QI": {"name": "출하검사 대기", "ship": "N", "rule": "생산 완료 후 품질팀 출하검사 전 — 합격 시 G1-AVL 로 이동"}, "G1-NCR": {"name": "부적합 격리", "ship": "N", "rule": "검사 불합격·반품 — 재작업 또는 폐기 판정 전까지 출하 금지"}, "G1-CSG": {"name": "고객 위탁 보관", "ship": "N", "rule": "납품 완료(소유권 고객)했으나 고객 요청으로 보관 중 — 금오정밀 재고 아님"}, "G1-SPR": {"name": "수리부속 비축", "ship": "N", "rule": "정비 지원 계약에 따라 비축 의무가 있는 수량 — 일반 수주 할당 금지"}, "M1-OWN": {"name": "사급 자재", "ship": "-", "rule": "금오정밀이 직접 구매한 자재"}, "M1-GFM": {"name": "지급 자재(관급·고객 지급)", "ship": "-", "rule": "발주처가 지급한 자재 — 해당 수주에만 사용, 사용량 보고 대상"}}, "asof": "2026-08-31", "inv": {"KJ-H2201": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 42}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 12}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 3}, {"wh": "G1-CSG", "lot": "L2608-034", "qty": 10}, {"wh": "G1-SPR", "lot": "L2608-042", "qty": 8}], "KJ-S4102": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 18}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 6}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 1}, {"wh": "G1-SPR", "lot": "L2608-034", "qty": 4}], "KJ-C2410": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 120}, {"wh": "G1-QI", "lot": "L2608-017", "qty": 40}, {"wh": "G1-NCR", "lot": "L2608-025", "qty": 6}], "KJ-P3301": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 9}, {"wh": "G1-QI", "lot": "L2608-020", "qty": 4}, {"wh": "G1-SPR", "lot": "L2608-028", "qty": 2}], "KJ-H2305": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 35}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 10}, {"wh": "G1-CSG", "lot": "L2608-026", "qty": 6}], "KJ-C1208": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 150}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 4}], "KJ-F8204": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 60}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 15}], "KJ-B1107": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 210}, {"wh": "G1-NCR", "lot": "L2608-020", "qty": 9}], "KJ-B1120": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 180}], "KJ-E5010": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 48}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 8}], "KJ-K6003": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 300}], "KJ-O7001": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 420}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 20}]}, "incoming": {"KJ-H2201": [{"date": "2026-09-04", "qty": 20, "note": "생산 완료 예정(출하검사 후 G1-AVL 입고)"}], "KJ-S4102": [{"date": "2026-09-07", "qty": 10, "note": "생산 완료 예정"}], "KJ-C2410": [{"date": "2026-09-03", "qty": 60, "note": "생산 완료 예정"}], "KJ-P3301": [{"date": "2026-09-10", "qty": 6, "note": "생산 완료 예정"}], "KJ-H2305": [{"date": "2026-09-05", "qty": 15, "note": "생산 완료 예정"}]}, "open": {"KJ-H2201": [{"so": "SO-2608-118", "cust": "가람체계", "qty": 30, "due": "2026-09-08"}, {"so": "SO-2608-121", "cust": "미르방산", "qty": 16, "due": "2026-09-12"}], "KJ-S4102": [{"so": "SO-2608-125", "cust": "한울시스템즈", "qty": 20, "due": "2026-09-09"}], "KJ-C2410": [{"so": "SO-2608-130", "cust": "누리테크", "qty": 90, "due": "2026-09-05"}], "KJ-P3301": [{"so": "SO-2608-133", "cust": "다온항공", "qty": 12, "due": "2026-09-11"}], "KJ-H2305": [{"so": "SO-2608-137", "cust": "온빛전자", "qty": 25, "due": "2026-09-10"}]}, "ledger": {"rows": 1984, "matched": 1969, "per": {"가람체계": 234, "누리테크": 238, "다온항공": 240, "새솔정밀": 243, "한울시스템즈": 243, "미르방산": 250, "바른기계": 268, "온빛전자": 253}, "blank": [190, 390, 566, 646, 659, 684, 853, 865, 1136, 1301, 1321, 1566, 1598, 1819, 1910], "unknown": {}, "period": ["2025-09-01", "2026-08-28"]}};
+const fmt = n => Number(n).toLocaleString('ko-KR');
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
-
-function render(list){
-  $('rows').innerHTML = list.map(({it, via}) => `
-    <tr>
-      <td class="code">${esc(it.code)}${via ? `<div class="via">${esc(via)}</div>` : ''}</td>
-      <td>${esc(it.name)}</td>
-      <td class="cls"><span class="l1">${esc(it.l1)}</span> › ${esc(it.l2)} › ${esc(it.l3)}</td>
-      <td>${esc(it.unit)}</td>
-      <td class="num">${fmt(it.price)}</td>
-      <td><span class="badge b-${esc(it.insp)}">${esc(it.insp)}</span></td>
-    </tr>`).join('');
-  $('empty').hidden = list.length > 0;
-}
-// 대분류: 원문 등장 순서 유지
-const L1 = [...new Set(DATA.items.map(i => i.l1))];
-const state = { l1: '전체', q: '' };
-
-function drawTabs(){
-  const opts = ['전체', ...L1];
-  $('tabs').innerHTML = opts.map(o => {
-    const n = o === '전체' ? DATA.items.length : DATA.items.filter(i => i.l1 === o).length;
-    return `<button class="tab" type="button" data-l1="${esc(o)}" aria-pressed="${o === state.l1}">${esc(o)}<span class="n">${n}</span></button>`;
-  }).join('');
-}
-$('tabs').addEventListener('click', e => {
-  const b = e.target.closest('.tab'); if (!b) return;
-  state.l1 = b.dataset.l1; drawTabs(); update();
-});
-// 정규화: 대문자화 + 영문·숫자 외 제거 (하이픈·공백 표기 차이 흡수)
 const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z]/g, '');
-const ALIAS = DATA.aliases.map(a => ({ ...a, n: norm(a.alias) }));
+const hangul = s => /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(s);
+function toast(m){ const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 1600); }
+function setCount(now, all, chips){
+  $('cNow').textContent = now; $('cAll').textContent = `/ 전체 ${all}건`;
+  $('cChips').innerHTML = chips.map(c => `<span class="chip">${esc(c)}</span>`).join('');
+}
+function echo(el, raw, n, warnHangul, clear){
+  raw = raw.trim(); el.hidden = !raw; if (!raw) return;
+  el.innerHTML = `검색어 <b>${esc(raw)}</b> · ${n}건` +
+    (warnHangul && hangul(raw) ? ` <span class="warn">— 한글이 입력됐습니다. 한/영 키로 영문 전환 후 입력하세요.</span>` : '') +
+    ` <button type="button" class="s">지우기</button>`;
+  el.querySelector('button').onclick = clear;
+}
+async function copyText(text, fallbackBox){
+  try { await navigator.clipboard.writeText(text); toast('복사했습니다'); }
+  catch { fallbackBox.hidden = false; fallbackBox.value = text; fallbackBox.select(); toast('자동 복사가 막혀 있어 아래 글을 직접 복사하세요'); }
+}
 
-function matches(it){
-  const q = norm(state.q);
-  if (!q) return { ok: true, via: null };
-  if (norm(it.code).includes(q)) return { ok: true, via: null };
-  // 표준 품번에 안 걸리면 별칭(발주처 도면번호·구 개정판 등)으로 확인
+/* ---------- 품목: 납기회신 가능 수량(ATP) ---------- */
+const sum = a => a.reduce((s, x) => s + x.qty, 0);
+function atpOf(code){
+  const inv = DATA.inv[code] || [];
+  const avl = sum(inv.filter(x => DATA.wh[x.wh]?.ship === 'Y'));
+  const inc = sum(DATA.incoming[code] || []);
+  const open = sum(DATA.open[code] || []);
+  return { avl, inc, open, atp: avl + inc - open, inv };
+}
+const ATP = Object.fromEntries(DATA.items.map(i => [i.code, atpOf(i.code)]));
+
+const L1 = [...new Set(DATA.items.map(i => i.l1))];
+const IS = { l1: '전체', q: '', open: null };
+$('iL1').innerHTML = ['전체', ...L1].map(o => {
+  const n = o === '전체' ? DATA.items.length : DATA.items.filter(i => i.l1 === o).length;
+  return `<option value="${esc(o)}">${esc(o)} (${n})</option>`;
+}).join('');
+const ALIAS = DATA.aliases.map(a => ({ ...a, n: norm(a.alias) }));
+function itemMatch(it){
+  const q = norm(IS.q);
+  if (!q) return { ok: true };
+  if (norm(it.code).includes(q)) return { ok: true };
   const a = ALIAS.find(a => a.key === it.code && a.n.includes(q));
   return a ? { ok: true, via: `별칭 일치: ${a.alias} — ${a.reason}` } : { ok: false };
 }
-$('q').addEventListener('input', e => { state.q = e.target.value; update(); });
-$('q').addEventListener('keydown', e => { if (e.key === 'Escape'){ e.target.value = ''; state.q = ''; update(); } });
-
-function update(){
+function detailHTML(it){
+  const A = ATP[it.code];
+  const whRows = A.inv.map(x => { const w = DATA.wh[x.wh];
+    return `<tr><td class="mono">${esc(x.wh)}</td><td>${esc(w.name)}</td><td class="num">${fmt(x.qty)}</td><td>${w.ship === 'Y' ? '<span class="badge b-good">할당 가능</span>' : '<span class="badge b-bad">할당 불가</span>'}</td></tr>`; }).join('');
+  const inc = (DATA.incoming[it.code] || []).map(x => `<tr><td>${esc(x.date)}</td><td class="num">+${fmt(x.qty)}</td><td class="muted">${esc(x.note)}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">없음</td></tr>';
+  const op = (DATA.open[it.code] || []).map(x => `<tr><td class="mono">${esc(x.so)}</td><td>${esc(x.cust)}</td><td class="num">−${fmt(x.qty)}</td><td>${esc(x.due)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">없음</td></tr>';
+  return `<div class="dgrid">
+    <div class="dbox"><h4>납기회신 가능 수량 계산 (기준일 ${esc(DATA.asof)})</h4>
+      <div class="formula">출하 가능 재고 <b>${fmt(A.avl)}</b> + 입고예정 <b>${fmt(A.inc)}</b> − 미출고 수주 <b>${fmt(A.open)}</b><br>= <span class="atp ${A.atp < 0 ? 'neg' : A.atp === 0 ? 'zero' : ''}">${fmt(A.atp)} ${esc(it.unit)}</span>${A.atp < 0 ? ' <span class="badge b-bad">부족</span>' : ''}</div>
+      <div style="margin-top:8px"><button type="button" class="p" data-copy="${esc(it.code)}">회신 메모 복사</button></div>
+      <textarea class="copy" hidden aria-label="복사할 회신 메모"></textarea></div>
+    <div class="dbox"><h4>가상창고별 재고 (WH-G1)</h4><table><tbody>${whRows || '<tr><td class="muted">재고 없음</td></tr>'}</tbody></table></div>
+    <div class="dbox"><h4>입고예정</h4><table><tbody>${inc}</tbody></table>
+      <h4 style="margin-top:10px">미출고 확정 수주</h4><table><tbody>${op}</tbody></table></div>
+  </div>`;
+}
+function memo(it){
+  const A = ATP[it.code];
+  return `[금오정밀 품목 확인] ${it.code} ${it.name}\n표준단가 ${fmt(it.price)}원/${it.unit} (견적가 아님) · 출하검사 ${it.insp}\n납기회신 가능 ${fmt(A.atp)} ${it.unit} = 출하가능 ${fmt(A.avl)} + 입고예정 ${fmt(A.inc)} − 미출고 ${fmt(A.open)} (재고 기준일 ${DATA.asof})`;
+}
+function renderItems(){
   const list = [];
   for (const it of DATA.items){
-    if (state.l1 !== '전체' && it.l1 !== state.l1) continue;
-    const m = matches(it);
-    if (m.ok) list.push({ it, via: m.via });
+    if (IS.l1 !== '전체' && it.l1 !== IS.l1) continue;
+    const m = itemMatch(it); if (m.ok) list.push({ it, via: m.via });
   }
-  render(list);
-  $('count').textContent = `${list.length}건`;
-  // 입력한 검색어를 표 위에 다시 보여줌 (입력칸이 안 보이는 환경 대비)
-  const raw = state.q.trim(), echo = $('echo');
-  echo.hidden = !raw;
-  if (raw){
-    const hangul = /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(raw);
-    echo.innerHTML = `검색어 <b>${esc(raw)}</b> · ${list.length}건` +
-      (hangul ? ` <span class="warn">— 한글이 입력됐습니다. 한/영 키로 영문 전환 후 입력하세요.</span>` : '') +
-      ` <button type="button" id="clr">지우기</button>`;
-    $('clr').onclick = () => { $('q').value = ''; state.q = ''; update(); $('q').focus(); };
-  }
+  $('iRows').innerHTML = list.map(({ it, via }) => {
+    const A = ATP[it.code], open = IS.open === it.code;
+    return `<tr class="row${open ? ' open' : ''}" data-code="${esc(it.code)}" tabindex="0" aria-expanded="${open}">
+      <td class="mono">${esc(it.code)}${via ? `<div class="via">${esc(via)}</div>` : ''}</td>
+      <td>${esc(it.name)}</td>
+      <td class="muted"><span style="color:var(--ink)">${esc(it.l1)}</span> › ${esc(it.l2)} › ${esc(it.l3)}</td>
+      <td>${esc(it.unit)}</td>
+      <td class="num">${fmt(it.price)}</td>
+      <td><span class="badge ${it.insp === '전수' ? 'b-bad' : 'b-good'}">${esc(it.insp)}</span></td>
+      <td class="num"><span class="atp ${A.atp < 0 ? 'neg' : A.atp === 0 ? 'zero' : ''}">${fmt(A.atp)}</span></td>
+    </tr>${open ? `<tr class="detail"><td colspan="7">${detailHTML(it)}</td></tr>` : ''}`;
+  }).join('');
+  $('iEmpty').hidden = list.length > 0;
+  const by = L1.map(l => `${l} ${list.filter(x => x.it.l1 === l).length}`);
+  setCount(list.length, DATA.items.length, by);
+  echo($('iEcho'), IS.q, list.length, true, () => { $('iQ').value = ''; IS.q = ''; renderItems(); $('iQ').focus(); });
 }
-drawTabs(); update();
+$('iL1').onchange = e => { IS.l1 = e.target.value; renderItems(); };
+$('iQ').oninput = e => { IS.q = e.target.value; renderItems(); };
+$('iQ').onkeydown = e => { if (e.key === 'Escape'){ e.target.value = ''; IS.q = ''; renderItems(); } };
+$('iRows').addEventListener('click', e => {
+  const cp = e.target.closest('[data-copy]');
+  if (cp){ const it = DATA.items.find(i => i.code === cp.dataset.copy); copyText(memo(it), cp.closest('.dbox').querySelector('textarea')); return; }
+  if (e.target.closest('tr.detail')) return;
+  const tr = e.target.closest('tr.row'); if (!tr) return;
+  IS.open = IS.open === tr.dataset.code ? null : tr.dataset.code; renderItems();
+});
+$('iRows').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('tr.row')) e.target.click(); });
+
+/* ---------- 발주처 ---------- */
+const TYPES = [...new Set(DATA.customers.map(c => c.type))];
+const CS = { type: '전체', q: '' };
+const openByCust = {};
+for (const arr of Object.values(DATA.open)) for (const o of arr) openByCust[o.cust] = (openByCust[o.cust] || 0) + 1;
+$('cType').innerHTML = ['전체', ...TYPES].map(o => {
+  const n = o === '전체' ? DATA.customers.length : DATA.customers.filter(c => c.type === o).length;
+  return `<option value="${esc(o)}">${esc(o)} (${n})</option>`;
+}).join('');
+const cnorm = s => String(s).toLowerCase().replace(/\s|\(주\)|㈜|주식회사|[-_.]/g, '');
+function renderCustomers(){
+  const q = cnorm(CS.q);
+  const list = DATA.customers.filter(c => (CS.type === '전체' || c.type === CS.type) && (!q || cnorm(c.code).includes(q) || cnorm(c.name).includes(q)));
+  $('cRows').innerHTML = list.map(c => `<tr>
+    <td class="mono">${esc(c.code)}</td><td>${esc(c.name)}</td>
+    <td><span class="badge ${c.type === '체계업체' ? 'b-blue' : 'b-good'}">${esc(c.type)}</span></td>
+    <td class="num">${fmt(DATA.ledger.per[c.name] || 0)}</td>
+    <td class="num">${openByCust[c.name] ? fmt(openByCust[c.name]) + '건' : '<span class="muted">-</span>'}</td></tr>`).join('');
+  $('cEmpty').hidden = list.length > 0;
+  setCount(list.length, DATA.customers.length, TYPES.map(t => `${t} ${list.filter(c => c.type === t).length}`));
+  echo($('cEcho'), CS.q, list.length, false, () => { $('cQ').value = ''; CS.q = ''; renderCustomers(); $('cQ').focus(); });
+}
+$('cType').onchange = e => { CS.type = e.target.value; renderCustomers(); };
+$('cQ').oninput = e => { CS.q = e.target.value; renderCustomers(); };
+
+// 발주처 검증: 정확 일치만 '등록', 그 외는 후보 제시
+function lev(a, b){ const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+  return d[a.length][b.length]; }
+function verify(raw){
+  const v = raw.trim(); if (!v) return '';
+  const exact = DATA.customers.find(c => c.name === v || c.code === v);
+  const show = c => `<b>${esc(c.code)} ${esc(c.name)}</b> · ${esc(c.type)}`;
+  if (exact) return `<div class="verdict ok">✓ 등록된 발주처: ${show(exact)}</div>`;
+  const n = cnorm(v);
+  const cands = DATA.customers.map(c => ({ c, d: Math.min(lev(n, cnorm(c.name)), lev(n, cnorm(c.code))),
+      inc: n.length >= 2 && (cnorm(c.name).includes(n) || n.includes(cnorm(c.name))) }))
+    .filter(x => x.d === 0 || x.inc || x.d <= Math.max(1, Math.floor(cnorm(x.c.name).length / 3)))
+    .sort((a, b) => a.d - b.d).slice(0, 3);
+  return `<div class="verdict ng">✗ 미등록 — 기준정보와 정확히 일치하지 않습니다. 수주 입력 전 발주처마스터 표기로 바꿔야 합니다.
+    ${cands.length ? `<div class="cand">혹시 이 발주처인가요? ${cands.map(x => `<button type="button" class="s" data-pick="${esc(x.c.name)}">${esc(x.c.code)} ${esc(x.c.name)}</button>`).join('')}</div>` : '<div class="cand">비슷한 등록 발주처가 없습니다. 신규 발주처라면 기준정보 등록이 먼저입니다.</div>'}</div>`;
+}
+$('vIn').oninput = e => { $('vOut').innerHTML = verify(e.target.value); };
+$('vOut').addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (!b) return; $('vIn').value = b.dataset.pick; $('vOut').innerHTML = verify(b.dataset.pick); });
+
+// 수주납품대장 점검 결과
+(function(){
+  const L = DATA.ledger, bad = L.blank.length + Object.values(L.unknown).reduce((s, x) => s + x, 0);
+  $('lgSub').textContent = `01_수주납품대장 ${fmt(L.rows)}행 (${L.period[0]} ~ ${L.period[1]})의 발주처 열을 발주처마스터와 대조한 결과`;
+  const pct = x => (x / L.rows * 100).toFixed(1);
+  const unk = Object.entries(L.unknown);
+  $('lgOut').innerHTML = `
+    <div class="bar"><span style="width:${pct(L.matched)}%;background:var(--good)"></span><span style="width:${pct(L.blank.length)}%;background:var(--warn)"></span><span style="width:${pct(bad - L.blank.length)}%;background:var(--bad)"></span></div>
+    <div>✓ 일치 <b>${fmt(L.matched)}</b>행 · <span style="color:var(--warn)">공란 <b>${fmt(L.blank.length)}</b>행</span> · <span style="color:var(--bad)">미등록 표기 <b>${fmt(bad - L.blank.length)}</b>행</span></div>
+    ${L.blank.length ? `<div style="margin-top:8px;font-size:12.5px">발주처가 비어 있는 엑셀 행 번호 (집계에서 빠지므로 확인 필요):</div><div class="rows">${L.blank.join(', ')}</div>` : ''}
+    ${unk.length ? `<div style="margin-top:8px;font-size:12.5px">미등록 표기: ${unk.map(([k, v]) => `${esc(k)} ${v}행`).join(', ')}</div>` : '<div class="muted" style="margin-top:6px">미등록 이름 표기는 없습니다. 입력된 발주처명은 모두 기준정보와 같습니다.</div>'}`;
+})();
+
+/* ---------- 메뉴(해시) ---------- */
+function route(){
+  const v = location.hash === '#customers' ? 'customers' : 'items';
+  for (const s of ['items', 'customers']) $('v-' + s).hidden = s !== v;
+  document.querySelectorAll('nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === v ? 'page' : 'false'));
+  v === 'items' ? renderItems() : renderCustomers();
+}
+window.addEventListener('hashchange', route);
+$('asof1').textContent = DATA.asof;
+$('src').textContent = `출처: 02_금오정밀_기준정보.xlsx(품목마스터·품번별칭·발주처마스터·창고마스터) · 01_금오정밀_수주납품대장.xlsx · 03_금오정밀_창고재고.xlsx(기준일 ${DATA.asof}) · 원본 파일은 수정하지 않음. 교육용 가상 데이터.`;
+route();
 </script>
 </body>
 </html>
