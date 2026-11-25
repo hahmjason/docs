@@ -3,642 +3,640 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>금오정밀 기준정보 조회</title>
+<title>금오정밀 영업 지원</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-  :root{color-scheme:light;--bg:#f6f7f9;--card:#fff;--ink:#1b1f24;--muted:#5d6672;--line:#e3e6ea;--accent:#1f5fae;--accent-bg:#eef3fb;
-        --bad:#b4232c;--bad-bg:#fdecee;--good:#1d6b48;--good-bg:#e8f5ee;--warn:#8a5a00;--warn-bg:#fff4d6}
+  :root{color-scheme:light;
+    --bg:#f3f5f9;--card:#fff;--ink:#141a23;--ink2:#3b4552;--muted:#6b7583;--line:#e4e8ee;--line2:#eef1f5;
+    --navy:#0f2140;--navy2:#17305a;--accent:#1f5fae;--accent2:#2f7be0;--accent-bg:#eaf2fd;
+    --good:#0a8a2a;--good-bg:#e6f6ea;--bad:#c62f30;--bad-bg:#fdecec;--warn:#9a6200;--warn-bg:#fff3d6;
+    --s-good:#0aac23;--s-bad:#dc3c3d;--bar:#257de0;--ex:#b8c1cd;
+    --r:14px;--shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.06)}
+  [hidden]{display:none !important}
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.5 "Noto Sans KR",system-ui,sans-serif}
-  .wrap{max-width:1140px;margin:0 auto;padding:20px 20px 40px}
-  .top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-  .top h1{font-size:19px;margin:0}
-  .top p{margin:0;color:var(--muted);font-size:12px}
-  nav{display:flex;gap:4px;background:#e9ecf0;padding:4px;border-radius:10px}
-  nav a{padding:7px 16px;border-radius:7px;color:var(--ink);text-decoration:none;font-weight:500;font-size:13.5px}
-  nav a[aria-current="page"]{background:#fff;color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.08)}
-  .countbar{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:12px}
-  .countbar .big{font-size:22px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
-  .countbar .of{color:var(--muted)}
-  .countbar .chips{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
-  .chip{font-size:12px;padding:2px 9px;border-radius:999px;background:#f1f3f5;color:var(--muted)}
-  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:10px}
-  label.f{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}
-  select,input[type=search],input[type=text]{font:inherit;font-size:14.5px;padding:7px 10px;border:1px solid #c9ced5;border-radius:8px;
-    background:#fff !important;color:#1b1f24 !important;-webkit-text-fill-color:#1b1f24 !important;caret-color:var(--accent);color-scheme:light}
-  input::placeholder{color:#8a929c;-webkit-text-fill-color:#8a929c;opacity:1}
-  select:focus,input:focus{outline:2px solid #bcd3f0;border-color:var(--accent)}
-  input[type=search]{width:280px;max-width:70vw}
-  .echo{font-size:13px;margin:-2px 0 10px}
-  .echo b{font-family:ui-monospace,Consolas,monospace;background:var(--accent-bg);border:1px solid #d3e0f3;border-radius:4px;padding:1px 6px}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);font:14px/1.55 "Noto Sans KR",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  button,input,select{font:inherit}
+  a{color:var(--accent)}
+  /* ── 레이아웃 ── */
+  .app{display:grid;grid-template-columns:232px 1fr;min-height:100vh;background:linear-gradient(to right,var(--navy) 232px,transparent 232px)}
+  .side{background:var(--navy);color:#cfd8e6;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;padding:18px 14px}
+  .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 18px;border-bottom:1px solid rgba(255,255,255,.08);margin-bottom:14px}
+  .brand .wm b{display:block;white-space:nowrap;color:#fff;font-size:16px;font-weight:900;letter-spacing:-.2px;line-height:1.15}
+  .brand .wm span{font-size:10.5px;letter-spacing:2.2px;color:#8fa3c2;font-weight:500}
+  .nav{display:flex;flex-direction:column;gap:2px}
+  .nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:10px;color:#c3cede;text-decoration:none;font-weight:500;font-size:14px}
+  .nav a svg{width:18px;height:18px;flex:none;opacity:.85}
+  .nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+  .nav a[aria-current="page"]{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(31,95,174,.35)}
+  .nav .new{margin-left:auto;font-size:10px;font-weight:700;background:#ffcf4a;color:#3a2a00;border-radius:999px;padding:1px 7px}
+  .side .foot{margin-top:auto;font-size:11.5px;color:#8fa3c2;line-height:1.6;padding:10px 8px 0;border-top:1px solid rgba(255,255,255,.08)}
+  .main{min-width:0;padding:0 28px 40px}
+  .topbar{position:sticky;top:0;z-index:20;background:rgba(243,245,249,.92);backdrop-filter:blur(8px);display:flex;align-items:center;gap:14px;padding:14px 0 12px;margin-bottom:6px}
+  .gs{position:relative;flex:1;max-width:560px}
+  .gs input{width:100%;padding:11px 14px 11px 40px;border:1px solid var(--line);border-radius:12px;background:#fff !important;color:var(--ink) !important;-webkit-text-fill-color:var(--ink) !important;box-shadow:var(--shadow);font-size:14.5px}
+  .gs input::placeholder{color:#97a0ad;-webkit-text-fill-color:#97a0ad}
+  .gs input:focus{outline:3px solid #cfe0f7;border-color:var(--accent)}
+  .gs svg.mag{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:#8a94a3}
+  .gs kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);font:11px ui-monospace,monospace;color:#8a94a3;border:1px solid var(--line);border-radius:5px;padding:1px 6px;background:#fafbfc}
+  .gsr{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 32px rgba(16,24,40,.14);padding:6px;max-height:420px;overflow:auto}
+  .gsr .grp{font-size:11px;color:var(--muted);padding:8px 10px 4px;letter-spacing:.5px}
+  .gsr button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:8px;cursor:pointer;color:var(--ink)}
+  .gsr button:hover,.gsr button.on{background:var(--accent-bg)}
+  .gsr .th{width:36px;height:28px;flex:none}
+  .gsr .t{font-weight:600} .gsr .d{font-size:12px;color:var(--muted)}
+  .gsr .r{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap}
+  .asof{font-size:12px;color:var(--muted);white-space:nowrap}
+  /* ── 페이지 머리 ── */
+  .ph{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px;margin:6px 0 16px}
+  .ph h1{margin:0;font-size:24px;font-weight:900;letter-spacing:-.4px}
+  .ph p{margin:3px 0 0;color:var(--muted);font-size:13px}
+  .cnt{display:flex;align-items:baseline;gap:6px;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px 14px;box-shadow:var(--shadow)}
+  .cnt .l{font-size:12.5px;color:var(--muted)} .cnt .n{font-size:22px;font-weight:900;color:var(--accent);font-variant-numeric:tabular-nums}
+  .cnt .of{font-size:12.5px;color:var(--muted)}
+  /* ── 공통 부품 ── */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+  .pad{padding:16px 18px}
+  .bar-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+  .seg{display:inline-flex;background:#e9edf3;border-radius:10px;padding:3px;gap:2px}
+  .seg button{border:0;background:none;padding:6px 12px;border-radius:8px;cursor:pointer;color:var(--ink2);font-size:13px;font-weight:500;white-space:nowrap}
+  .seg button .n{color:var(--muted);margin-left:4px;font-size:12px}
+  .seg button[aria-pressed="true"]{background:#fff;color:var(--accent);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+  select.sel,input.inp{padding:8px 11px;border:1px solid #cdd4de;border-radius:10px;background:#fff !important;color:var(--ink) !important;-webkit-text-fill-color:var(--ink) !important;font-size:14px}
+  input.inp::placeholder{color:#97a0ad;-webkit-text-fill-color:#97a0ad}
+  select.sel:focus,input.inp:focus{outline:3px solid #cfe0f7;border-color:var(--accent)}
+  input.inp.w{width:280px;max-width:70vw}
+  .echo{font-size:13px;margin:-4px 0 10px}
+  .echo b{font-family:ui-monospace,Consolas,monospace;background:var(--accent-bg);border-radius:5px;padding:1px 7px}
   .echo .warn{color:var(--bad)}
-  button.s{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:6px;padding:2px 9px;font:inherit;font-size:12px;cursor:pointer}
-  button.p{border:0;background:var(--accent);color:#fff;border-radius:7px;padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer}
-  .notice{padding:8px 12px;background:var(--accent-bg);border:1px solid #d3e0f3;border-radius:8px;font-size:12.5px;color:#2c3e57;margin-bottom:10px}
-  .card{background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-  table{width:100%;border-collapse:collapse}
-  th,td{padding:9px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
-  th{background:#fafbfc;font-size:12px;font-weight:500;color:var(--muted);white-space:nowrap}
-  tbody tr.row{cursor:pointer} tbody tr.row:hover{background:#f8fafd}
-  tbody tr.open{background:#f3f7fd}
-  .mono{font-family:ui-monospace,Consolas,monospace;font-weight:600;white-space:nowrap}
-  .muted{color:var(--muted);font-size:12.5px}
+  .btn{border:1px solid var(--line);background:#fff;color:var(--ink);border-radius:9px;padding:6px 12px;cursor:pointer;font-size:13px;font-weight:500}
+  .btn:hover{border-color:#c5cdd8}
+  .btn.p{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.lg{padding:11px 18px;font-size:15px;font-weight:700;border-radius:11px}
+  .btn:disabled{opacity:.5;cursor:default}
+  .chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;padding:2px 9px;border-radius:999px;background:#f0f2f5;color:var(--ink2);white-space:nowrap}
+  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+  .b-good{color:var(--good);background:var(--good-bg)} .b-bad{color:var(--bad);background:var(--bad-bg)}
+  .b-blue{color:var(--accent);background:var(--accent-bg)} .b-warn{color:var(--warn);background:var(--warn-bg)} .b-gray{color:#4a5462;background:#eef1f5}
+  .mono{font-family:ui-monospace,Consolas,monospace;font-weight:700;white-space:nowrap}
+  .muted{color:var(--muted)} .small{font-size:12.5px}
   .num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
-  td.num{font-weight:600}
-  .badge{display:inline-block;padding:2px 9px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
-  .b-bad{color:var(--bad);background:var(--bad-bg)} .b-good{color:var(--good);background:var(--good-bg)}
-  .b-blue{color:var(--accent);background:var(--accent-bg)} .b-warn{color:var(--warn);background:var(--warn-bg)}
-  .via{margin-top:3px;font-family:"Noto Sans KR",sans-serif;font-weight:500;font-size:11.5px;color:var(--warn);background:var(--warn-bg);border-radius:4px;padding:2px 6px;display:block;width:fit-content;max-width:200px;white-space:normal;line-height:1.4}
-  .atp{font-weight:700} .atp.neg{color:var(--bad)} .atp.zero{color:var(--warn)}
-  tr.detail td{background:#fbfcfe;padding:14px 16px}
-  .dgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-  .dbox h4{margin:0 0 6px;font-size:12.5px;color:var(--muted);font-weight:500}
-  .dbox table td,.dbox table th{padding:4px 6px;font-size:12.5px}
-  .formula{font-size:13px;line-height:1.9}
-  .formula b{font-variant-numeric:tabular-nums}
-  .empty{padding:36px;text-align:center;color:var(--muted)}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
-  .panel h3{margin:0 0 4px;font-size:15px}
-  .panel .sub{margin:0 0 10px;color:var(--muted);font-size:12px}
-  .verdict{margin-top:10px;padding:10px 12px;border-radius:8px;font-size:13.5px}
+  table.t{width:100%;border-collapse:separate;border-spacing:0}
+  table.t th{font-size:12px;font-weight:500;color:var(--muted);text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);background:#fafbfd;white-space:nowrap;position:sticky;top:0}
+  table.t th.num{text-align:right}
+  table.t td{padding:12px 14px;border-bottom:1px solid var(--line2);vertical-align:middle}
+  table.t tbody tr:last-child td{border-bottom:0}
+  table.t tr.click{cursor:pointer} table.t tr.click:hover td{background:#f7faff}
+  .tw{overflow:auto;border-radius:var(--r)}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  .item{display:flex;align-items:center;gap:12px;min-width:0}
+  .item .th{width:52px;height:40px;flex:none;border-radius:9px;background:linear-gradient(160deg,#f6f8fb,#e9eef5);display:grid;place-items:center;overflow:hidden}
+  .item .th svg{width:46px;height:34px}
+  .item .nm{font-weight:600;line-height:1.3;white-space:nowrap} .item .cd{font-size:12px;color:var(--muted);font-family:ui-monospace,Consolas,monospace}
+  .via{display:block;width:fit-content;margin-top:3px;font-size:11.5px;color:var(--warn);background:var(--warn-bg);border-radius:5px;padding:1px 7px}
+  .notice{display:flex;gap:10px;align-items:flex-start;padding:11px 14px;background:var(--accent-bg);border-radius:12px;font-size:13px;color:#24406b;margin-bottom:12px}
+  .notice svg{flex:none;width:18px;height:18px;margin-top:1px}
+  /* KPI */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px}
+  .kpi{padding:16px 18px}
+  .kpi .l{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px}
+  .kpi .v{font-size:34px;font-weight:900;line-height:1.1;margin-top:6px;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+  .kpi .s{font-size:12px;color:var(--muted);margin-top:3px}
+  .ico{display:inline-grid;place-items:center;width:20px;height:20px;border-radius:50%;color:#fff;font-size:11px;font-weight:900}
+  .ico.good{background:var(--s-good)} .ico.bad{background:var(--s-bad)} .ico.all{background:#5d6672} .ico.blue{background:var(--accent)}
+  .sec-t{display:flex;align-items:baseline;gap:10px;margin:22px 0 10px}
+  .sec-t h2{margin:0;font-size:16px;font-weight:700} .sec-t span{font-size:12.5px;color:var(--muted)}
+  /* 차트 */
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .chart{padding:16px 18px;min-width:0} .chart.wide{grid-column:1/-1}
+  .chart h3{margin:0;font-size:14.5px} .chart .sub{margin:2px 0 10px;font-size:12px;color:var(--muted)}
+  .chart svg{display:block;width:100%;height:auto;overflow:visible}
+  .chart svg text{font-family:inherit;fill:#6b7583;font-size:12px} .chart svg text.val{fill:var(--ink);font-weight:700}
+  .chart svg .grid{stroke:#edf0f4} .chart svg .hit{fill:transparent}
+  .chart svg g.m:hover .bar{opacity:.8}
+  details.tv{margin-top:8px;font-size:12.5px} details.tv summary{cursor:pointer;color:var(--accent)}
+  details.tv table td,details.tv table th{padding:4px 10px}
+  .stack{display:flex;gap:2px;height:30px;border-radius:8px;overflow:hidden}
+  .stack span{display:block;height:100%}
+  .leg{display:flex;gap:18px;flex-wrap:wrap;margin-top:10px;font-size:13px}
+  .leg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+  /* 납기회신 */
+  .atpv{font-size:20px;font-weight:900;font-variant-numeric:tabular-nums}
+  .atpv.neg{color:var(--bad)} .atpv.zero{color:var(--warn)} .atpv.pos{color:var(--ink)}
+  .mix{display:flex;height:10px;border-radius:5px;overflow:hidden;gap:2px;width:130px;background:#f0f2f5}
+  .mix span{display:block;height:100%}
+  .mix .a{background:var(--s-good)} .mix .x{background:repeating-linear-gradient(135deg,#c3cbd6 0 4px,#dde2e9 4px 8px)}
+  .xs{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+  .over{font-size:12px;color:var(--bad);font-weight:600}
+  .formula{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:14px}
+  .formula .box{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;min-width:96px}
+  .formula .box b{display:block;font-size:22px;font-weight:900;font-variant-numeric:tabular-nums}
+  .formula .box span{font-size:11.5px;color:var(--muted)}
+  .formula .op{font-size:20px;color:var(--muted);font-weight:700}
+  .formula .box.res{background:var(--accent);border-color:var(--accent);color:#fff} .formula .box.res span{color:#d9e7fb}
+  .formula .box.ex{background:#f6f7f9;border-style:dashed}
+  /* 발주처·검증 */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+  .verdict{margin-top:10px;padding:11px 13px;border-radius:10px;font-size:13.5px}
   .verdict.ok{background:var(--good-bg);color:var(--good)} .verdict.ng{background:var(--bad-bg);color:var(--bad)}
   .verdict .cand{margin-top:6px;color:var(--ink);font-size:12.5px}
-  .verdict .cand button{margin:2px 4px 0 0}
-  .bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#eee;margin:8px 0}
-  .bar span{display:block}
-  .rows{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);word-break:break-all}
-  footer{margin-top:16px;color:var(--muted);font-size:12px}
-  .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#1b1f24;color:#fff;padding:8px 14px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none}
-  .toast.on{opacity:1}
-  textarea.copy{width:100%;height:96px;font:12.5px/1.5 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:6px;padding:6px;color:#1b1f24;background:#fff}
-  @media (max-width:760px){
-    .grid2{grid-template-columns:1fr}
-    thead{display:none} table.main,table.main tbody,table.main tr,table.main td{display:block;width:100%}
-    table.main tr{padding:8px 12px;border-bottom:1px solid var(--line)} table.main td{border:0;padding:2px 0}
-    table.main td.num{text-align:left}
-  }
-  [hidden]{display:none !important}
-  /* ⓪ 대시보드 */
-  .dsrc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:12.5px;color:var(--muted)}
-  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
-  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
-  .kpi .l{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
-  .kpi .v{font-size:34px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;margin-top:4px}
-  .kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
-  .ico{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;color:#fff;font-size:11px;font-weight:700}
-  .ico.good{background:#0aac23} .ico.bad{background:#dc3c3d} .ico.all{background:#5d6672}
-  .comp{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
-  .comp h3,.chart h3{margin:0 0 2px;font-size:14.5px} .comp .sub,.chart .sub{margin:0 0 10px;font-size:12px;color:var(--muted)}
-  .stack{display:flex;gap:2px;height:28px;border-radius:6px;overflow:hidden}
-  .stack span{display:block;height:100%}
-  .stackleg{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:13px}
-  .stackleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
-  .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .chart{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
-  .chart.wide{grid-column:1 / -1}
-  .chart svg{display:block;width:100%;height:auto;overflow:visible}
-  .chart svg text{font-family:inherit;fill:#5d6672;font-size:12px}
-  .chart svg text.val{fill:#1b1f24;font-weight:600}
-  .chart svg .grid{stroke:#eceef1;stroke-width:1}
-  .chart svg .hit{fill:transparent;cursor:default}
-  .chart svg .hit:hover + .bar,.chart svg g.m:hover .bar{opacity:.8}
-  .chart details{margin-top:8px;font-size:12.5px} .chart details summary{cursor:pointer;color:var(--accent)}
-  .chart details table td,.chart details table th{padding:4px 8px;font-size:12.5px}
-  .tip{position:fixed;z-index:10;pointer-events:none;background:#1b1f24;color:#fff;font-size:12.5px;line-height:1.5;padding:7px 10px;border-radius:7px;box-shadow:0 4px 14px rgba(0,0,0,.18);opacity:0;transition:opacity .1s;white-space:nowrap}
-  .tip.on{opacity:1} .tip b{font-variant-numeric:tabular-nums}
-  @media (max-width:760px){.kpis{grid-template-columns:1fr 1fr}.charts{grid-template-columns:1fr}}
-  /* ③ 수주 검증 */
-  .drop{border:2px dashed #b9c4d3;border-radius:12px;background:#fff;padding:28px 16px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s}
-  .drop.small{padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:center}
-  .drop.small>div:first-child,.drop.small .muted{display:none} .drop.small .big{font-size:13.5px;margin:0}
+  .verdict .cand button{margin:3px 4px 0 0}
+  .qbar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:#eee;margin:10px 0}
+  .rowsno{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted);word-break:break-all}
+  /* 수주 검증 */
+  .drop{border:2px dashed #b9c4d3;border-radius:var(--r);background:#fff;padding:30px 16px;text-align:center;cursor:pointer;transition:.15s}
   .drop.over{background:var(--accent-bg);border-color:var(--accent)}
-  .drop .big{font-size:16px;font-weight:700;margin:6px 0}
-  .drop .muted{font-size:12.5px}
-  .bigbtn{border:0;background:var(--accent);color:#fff;border-radius:9px;padding:10px 18px;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
-  .bigbtn:disabled{background:#9fb3cc;cursor:default}
-  .bigbtn.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent)}
-  .msg{margin-top:12px;padding:12px 14px;border-radius:8px;font-size:13.5px}
-  .msg.err{background:var(--bad-bg);color:var(--bad)} .msg.info{background:var(--accent-bg);color:#2c3e57}
-  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
-  .kcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
-  .kcard .l{font-size:12.5px;color:var(--muted)} .kcard .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
-  .kcard.ok .v{color:var(--good)} .kcard.ng .v{color:var(--bad)}
-  .kcard .exp{font-size:12px;margin-top:2px}
-  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:14px}
-  .rule{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:var(--ink)}
-  .rule[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px #bcd3f0}
-  .rule .n{font-size:20px;font-weight:700;color:var(--bad);font-variant-numeric:tabular-nums}
+  .drop .big{font-size:16px;font-weight:700;margin:6px 0 2px}
+  .drop.small{padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:center}
+  .drop.small .ic,.drop.small .muted{display:none} .drop.small .big{font-size:13.5px;margin:0}
+  .msg{margin-top:12px;padding:12px 14px;border-radius:10px;font-size:13.5px}
+  .msg.err{background:var(--bad-bg);color:var(--bad)} .msg.info{background:var(--accent-bg);color:#24406b}
+  .rules{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:12px 0}
+  .rule{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;text-align:left;color:var(--ink)}
+  .rule[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 3px #cfe0f7}
+  .rule .n{font-size:22px;font-weight:900;color:var(--bad);font-variant-numeric:tabular-nums}
   .rule .t{font-size:12.5px;color:var(--muted)}
-  .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
   tr.full td{background:#fbfcfe;font-size:12.5px}
   .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px 14px}
   .kv span b{color:var(--muted);font-weight:500;margin-right:4px}
-  @media (max-width:760px){.cards{grid-template-columns:1fr}}
+  /* 서랍(상세) */
+  .scrim{position:fixed;inset:0;background:rgba(15,33,64,.28);z-index:40}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:min(460px,100vw);background:#fff;z-index:41;box-shadow:-12px 0 40px rgba(16,24,40,.18);display:flex;flex-direction:column;animation:slide .18s ease-out}
+  @keyframes slide{from{transform:translateX(30px);opacity:.4}to{transform:none;opacity:1}}
+  .drawer .hd{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--line)}
+  .drawer .bd{padding:18px;overflow:auto}
+  .hero{border-radius:14px;background:linear-gradient(160deg,#f5f8fc,#e3eaf4);display:grid;place-items:center;height:170px;margin-bottom:14px;position:relative}
+  .hero svg{width:250px;height:150px}
+  .hero .cap{position:absolute;right:10px;bottom:8px;font-size:10.5px;color:#8a94a3}
+  .facts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+  .fact{background:#f7f9fc;border-radius:10px;padding:9px 12px}
+  .fact .l{font-size:11.5px;color:var(--muted)} .fact .v{font-weight:700;font-size:15px}
+  .dsec{margin-top:16px} .dsec h4{margin:0 0 6px;font-size:12.5px;color:var(--muted);font-weight:500}
+  .dsec table{width:100%;border-collapse:collapse;font-size:13px} .dsec td{padding:6px 4px;border-bottom:1px solid var(--line2)}
+  textarea.copy{width:100%;height:90px;margin-top:8px;font:12.5px/1.5 ui-monospace,Consolas,monospace;border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--ink);background:#fff}
+  .tip{position:fixed;z-index:60;pointer-events:none;background:#141a23;color:#fff;font-size:12.5px;line-height:1.5;padding:7px 10px;border-radius:8px;box-shadow:0 6px 18px rgba(0,0,0,.2);opacity:0;transition:opacity .1s;white-space:nowrap}
+  .tip.on{opacity:1}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#141a23;color:#fff;padding:9px 16px;border-radius:10px;font-size:13px;opacity:0;transition:.2s;pointer-events:none;z-index:70}
+  .toast.on{opacity:1}
+  footer.src{margin-top:22px;color:var(--muted);font-size:11.5px;line-height:1.6}
+  @media (max-width:1100px){.kpis{grid-template-columns:1fr 1fr}.rules{grid-template-columns:repeat(3,1fr)}}
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr;background:none}
+    .asof{display:none}
+    .side{position:sticky;top:0;height:auto;flex-direction:row;align-items:center;gap:10px;padding:10px 12px;z-index:30;overflow-x:auto}
+    .brand{border:0;padding:0;margin:0}.brand .wm span{display:none}
+    .nav{flex-direction:row}.nav a{padding:8px 10px;white-space:nowrap}.nav .new,.side .foot{display:none}
+    .main{padding:0 14px 30px}.topbar{top:58px}
+    .charts,.grid2{grid-template-columns:1fr}
+  }
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="top">
-    <div><h1>금오정밀 기준정보 조회</h1><p>영업팀 · 견적/납기 회신 전 확인용</p></div>
-    <nav aria-label="메뉴">
-      <a href="#dashboard" data-view="dashboard">대시보드</a>
-      <a href="#items" data-view="items">품목 조회</a>
-      <a href="#customers" data-view="customers">발주처 조회</a>
-      <a href="#orders" data-view="orders">수주 검증</a>
+<div class="app">
+  <aside class="side">
+    <div class="brand">
+      <svg width="38" height="38" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="11" fill="#2f7be0"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#fff" stroke-width="2.6"/><circle cx="20" cy="20" r="4.2" fill="#fff"/><path d="M20 4.5v6M20 29.5v6M4.5 20h6M29.5 20h6" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/><path d="M28.6 11.4l3.2-3.2" stroke="#ffcf4a" stroke-width="2.6" stroke-linecap="round"/></svg>
+      <div class="wm"><b>금오정밀</b><span>SALES DESK</span></div>
+    </div>
+    <nav class="nav" aria-label="메뉴">
+      <a href="#dashboard" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>대시보드</a>
+      <a href="#atp" data-view="atp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/></svg>납기회신 수량<span class="new">NEW</span></a>
+      <a href="#items" data-view="items"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/></svg>품목 조회</a>
+      <a href="#customers" data-view="customers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V8l6-4 6 4v13"/><path d="M15 21V11h6v10"/><path d="M7 12h4M7 16h4"/></svg>발주처 조회</a>
+      <a href="#orders" data-view="orders"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3H6a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M14 3v6h6"/><path d="M8.5 15l2.3 2.3L15.5 12"/></svg>수주 검증</a>
     </nav>
-  </div>
+    <div class="foot" id="sideFoot"></div>
+  </aside>
 
-  <div class="countbar" aria-live="polite">
-    <span>조회</span><span class="big" id="cNow">0</span><span>건</span>
-    <span class="of" id="cAll"></span>
-    <span class="chips" id="cChips"></span>
-  </div>
-
-  <!-- ⓪ 대시보드 -->
-  <section id="v-dashboard" hidden>
-    <div class="dsrc"><span id="dSrc"></span><span id="dSrcBtn"></span></div>
-    <div class="kpis" id="dKpi"></div>
-    <div class="comp" id="dComp"></div>
-    <div class="charts">
-      <div class="chart" id="cRule"></div>
-      <div class="chart" id="cCust"></div>
-      <div class="chart wide" id="cMonth"></div>
-    </div>
-  </section>
-
-  <!-- ① 품목 조회 -->
-  <section id="v-items" hidden>
-    <div class="controls">
-      <label class="f">대분류 <select id="iL1" aria-label="대분류 선택"></select></label>
-      <input id="iQ" type="search" placeholder="품번 검색 (예: H2201, GR-HNS-01)" aria-label="품번 검색" autocomplete="off">
-    </div>
-    <div class="echo" id="iEcho" hidden></div>
-    <div class="notice">단가는 <b>표준단가</b>로, 견적가가 아닙니다(부가세·수량 할인 정보 없음). <b>납기회신 가능</b> = 출하 가능 재고(G1-AVL) + 입고예정 − 미출고 확정 수주, 재고 기준일 <span id="asof1"></span>. 행을 누르면 계산 근거가 열립니다.</div>
-    <div class="card">
-      <table class="main">
-        <thead><tr><th>품번</th><th>품명</th><th>분류 (대 › 중 › 소)</th><th>단위</th><th class="num">표준단가(원)</th><th>출하검사</th><th class="num">납기회신 가능</th></tr></thead>
-        <tbody id="iRows"></tbody>
-      </table>
-      <div class="empty" id="iEmpty" hidden>조건에 맞는 품목이 없습니다.</div>
-    </div>
-  </section>
-
-  <!-- ② 발주처 조회 -->
-  <section id="v-customers" hidden>
-    <div class="controls">
-      <label class="f">구분 <select id="cType" aria-label="구분 선택"></select></label>
-      <input id="cQ" type="search" placeholder="코드·이름 검색 (예: C03, 누리)" aria-label="발주처 검색" autocomplete="off">
-    </div>
-    <div class="echo" id="cEcho" hidden></div>
-    <div class="card">
-      <table class="main">
-        <thead><tr><th>발주처코드</th><th>발주처명</th><th>구분</th><th class="num">수주대장 행수</th><th class="num">미출고 수주</th></tr></thead>
-        <tbody id="cRows"></tbody>
-      </table>
-      <div class="empty" id="cEmpty" hidden>조건에 맞는 발주처가 없습니다.</div>
-    </div>
-
-    <div class="grid2">
-      <div class="panel">
-        <h3>발주처 검증</h3>
-        <p class="sub">수주·견적에 적힌 발주처를 이 기준정보와 대조합니다. 정확히 일치해야 '등록'으로 판정합니다.</p>
-        <input id="vIn" type="text" placeholder="발주처명 또는 코드 입력 (예: 가람 체계, c04)" aria-label="검증할 발주처" autocomplete="off" style="width:100%">
-        <div id="vOut"></div>
+  <main class="main">
+    <div class="topbar">
+      <div class="gs">
+        <svg class="mag" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+        <input id="gq" type="search" placeholder="품번·도면번호·발주처 바로 찾기 (예: H2201, GR-HNS-01, 누리)" aria-label="통합 검색" autocomplete="off">
+        <kbd>/</kbd>
+        <div class="gsr" id="gsr" hidden></div>
       </div>
-      <div class="panel">
-        <h3>수주납품대장 발주처 점검</h3>
-        <p class="sub" id="lgSub"></p>
-        <div id="lgOut"></div>
+      <span class="asof" id="asofTop"></span>
+    </div>
+
+    <div class="ph">
+      <div><h1 id="pTitle"></h1><p id="pDesc"></p></div>
+      <div class="cnt" id="cnt"><span class="l">조회</span><span class="n" id="cNow">0</span><span class="l">건</span><span class="of" id="cAll"></span></div>
+    </div>
+
+    <!-- ⓪ 대시보드 -->
+    <section id="v-dashboard" hidden>
+      <div class="kpis" id="dKpi"></div>
+      <div class="card pad" id="dComp"></div>
+      <div class="sec-t"><h2>납기회신 주의 품목</h2><span>미출고 수주가 걸린 품목 · 출하 불가 재고는 빼고 계산</span><a href="#atp" class="small" style="margin-left:auto">전체 보기 →</a></div>
+      <div class="card tw" id="dAtp"></div>
+      <div class="sec-t"><h2>수주 데이터 품질</h2><span id="dSrc"></span><span id="dSrcBtn" style="margin-left:auto"></span></div>
+      <div class="charts">
+        <div class="card chart" id="cRule"></div>
+        <div class="card chart" id="cCust"></div>
+        <div class="card chart wide" id="cMonth"></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ③ 수주 검증 -->
-  <section id="v-orders" hidden>
-    <div class="notice">수주납품대장 엑셀을 올리면 아래 3가지 규칙으로 행마다 검사합니다. <b>파일은 이 PC의 브라우저 안에서만 읽고, 어디에도 보내지 않으며, 원본은 바뀌지 않습니다.</b><br>
-      ① 발주처 또는 로트번호가 비어 있음 · ② 수량이 0 이하 · ③ 위쪽 어느 행과 9개 항목이 모두 같음(중복, 뒤쪽 행만 오류)</div>
-    <div class="drop" id="drop" tabindex="0" role="button" aria-label="엑셀 파일 올리기">
-      <div style="font-size:28px">📄</div>
-      <div class="big">여기에 엑셀 파일을 끌어다 놓거나, 눌러서 고르세요</div>
-      <div class="muted">.xlsx 파일 · 시트 이름 '수주납품' · 1행 머리글(수주일, 발주처, 품번, 품명, 로트번호, 수량, 단위, 단가, 담당자)</div>
-      <input type="file" id="file" accept=".xlsx,.xls" hidden>
-    </div>
-    <div id="oMsg"></div>
-    <div id="oResult" hidden></div>
-  </section>
+    <!-- ① 납기회신 가능 수량 (6-C) -->
+    <section id="v-atp" hidden>
+      <div class="card pad" style="margin-bottom:12px">
+        <div class="small muted" style="margin-bottom:8px">계산식 · <span id="aExName"></span></div>
+        <div class="formula" id="aFormula"></div>
+        <div class="small muted" style="margin-top:10px" id="aRule"></div>
+      </div>
+      <div class="bar-row">
+        <div class="seg" id="aScope" role="group" aria-label="범위"></div>
+        <input id="aQ" class="inp w" type="search" placeholder="품번 검색" aria-label="품번 검색" autocomplete="off">
+        <label class="small" style="display:flex;gap:6px;align-items:center;cursor:pointer;margin-left:auto"><input type="checkbox" id="aPhys"> 물리 재고 기준과 비교</label>
+      </div>
+      <div class="echo" id="aEcho" hidden></div>
+      <div class="card tw">
+        <table class="t">
+          <thead><tr><th>품번</th><th class="num">출하 가능</th><th class="num">입고예정</th><th class="num">미출고</th><th class="num">납기회신 가능</th><th>제외 재고 · 사유</th><th>재고 구성</th><th class="num phys" hidden>물리 재고 기준</th></tr></thead>
+          <tbody id="aRows"></tbody>
+        </table>
+        <div class="empty" id="aEmpty" hidden>조건에 맞는 품목이 없습니다.</div>
+      </div>
+    </section>
 
-  <footer id="src"></footer>
+    <!-- ② 품목 조회 -->
+    <section id="v-items" hidden>
+      <div class="bar-row">
+        <select id="iL1" class="sel" aria-label="대분류 선택"></select>
+        <input id="iQ" class="inp w" type="search" placeholder="품번 검색 (예: H2201, GR-HNS-01)" aria-label="품번 검색" autocomplete="off">
+      </div>
+      <div class="echo" id="iEcho" hidden></div>
+      <div class="notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg><div>단가는 <b>표준단가</b>로, 견적가가 아닙니다(부가세·수량 할인 정보 없음). 행을 누르면 그림·재고·회신 메모가 열립니다.</div></div>
+      <div class="card tw">
+        <table class="t">
+          <thead><tr><th>품목</th><th>분류 (대 › 중 › 소)</th><th>단위</th><th class="num">표준단가(원)</th><th>출하검사</th><th class="num">납기회신 가능</th></tr></thead>
+          <tbody id="iRows"></tbody>
+        </table>
+        <div class="empty" id="iEmpty" hidden>조건에 맞는 품목이 없습니다.</div>
+      </div>
+    </section>
+
+    <!-- ③ 발주처 조회 -->
+    <section id="v-customers" hidden>
+      <div class="bar-row">
+        <div class="seg" id="cType" role="group" aria-label="구분"></div>
+        <input id="cQ" class="inp w" type="search" placeholder="코드·이름 검색 (예: C03, 누리)" aria-label="발주처 검색" autocomplete="off">
+      </div>
+      <div class="echo" id="cEcho" hidden></div>
+      <div class="card tw">
+        <table class="t">
+          <thead><tr><th>발주처</th><th>구분</th><th class="num">수주대장 행수</th><th class="num">미출고 수주</th></tr></thead>
+          <tbody id="cRows"></tbody>
+        </table>
+        <div class="empty" id="cEmpty" hidden>조건에 맞는 발주처가 없습니다.</div>
+      </div>
+      <div class="grid2">
+        <div class="card pad">
+          <h3 style="margin:0;font-size:15px">발주처 검증</h3>
+          <p class="small muted" style="margin:2px 0 10px">수주·견적에 적힌 발주처를 기준정보와 대조합니다. 정확히 일치해야 '등록'입니다.</p>
+          <input id="vIn" class="inp" type="text" placeholder="발주처명 또는 코드 (예: 가람 체계, c04)" aria-label="검증할 발주처" autocomplete="off" style="width:100%">
+          <div id="vOut"></div>
+        </div>
+        <div class="card pad">
+          <h3 style="margin:0;font-size:15px">수주납품대장 발주처 점검</h3>
+          <p class="small muted" style="margin:2px 0 6px" id="lgSub"></p>
+          <div id="lgOut"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ④ 수주 검증 -->
+    <section id="v-orders" hidden>
+      <div class="notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 018 0v3"/></svg><div>파일은 <b>이 PC의 브라우저 안에서만</b> 읽고 어디에도 보내지 않으며, 원본은 바뀌지 않습니다.<br>규칙 ① 발주처·로트번호 빈 값 · ② 수량 0 이하 · ③ 위쪽 어느 행과 9개 항목이 모두 같음(뒤 행만 오류)</div></div>
+      <div class="drop" id="drop" tabindex="0" role="button" aria-label="엑셀 파일 올리기">
+        <div class="ic"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#2f7be0" stroke-width="1.8"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg></div>
+        <div class="big">엑셀 파일을 끌어다 놓거나, 눌러서 고르세요</div>
+        <div class="muted small">.xlsx · 시트 '수주납품' · 1행 머리글(수주일, 발주처, 품번, 품명, 로트번호, 수량, 단위, 단가, 담당자)</div>
+        <input type="file" id="file" accept=".xlsx,.xls" hidden>
+      </div>
+      <div id="oMsg"></div>
+      <div id="oResult" hidden></div>
+    </section>
+
+    <footer class="src" id="src"></footer>
+  </main>
 </div>
-<div class="toast" id="toast"></div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" hidden aria-label="품목 상세"></aside>
 <div class="tip" id="tip" role="tooltip"></div>
+<div class="toast" id="toast"></div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const DATA = {"items": [{"code": "KJ-H2201", "name": "케이블 하네스(통신)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "통신용", "unit": "EA", "price": 185000, "lot": "Y", "insp": "전수"}, {"code": "KJ-H2305", "name": "케이블 하네스(전원)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "전원용", "unit": "EA", "price": 142000, "lot": "Y", "insp": "전수"}, {"code": "KJ-C1208", "name": "커넥터 조립체 12핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "12핀", "unit": "EA", "price": 28000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-C2410", "name": "커넥터 조립체 24핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "24핀", "unit": "EA", "price": 42000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-S4102", "name": "신호 변환 보드", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "신호 처리", "unit": "EA", "price": 480000, "lot": "Y", "insp": "전수"}, {"code": "KJ-P3301", "name": "전원 분배 모듈", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "전원 분배", "unit": "EA", "price": 620000, "lot": "Y", "insp": "전수"}, {"code": "KJ-F8204", "name": "필터 어셈블리", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "EMI 필터", "unit": "EA", "price": 73000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1107", "name": "방열 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "방열", "unit": "EA", "price": 18000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1120", "name": "장착 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "장착", "unit": "EA", "price": 15500, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-E5010", "name": "차폐 케이스", "l1": "기구 부품", "l2": "하우징", "l3": "전자파 차폐", "unit": "EA", "price": 96000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-K6003", "name": "고정 클램프 세트", "l1": "소모성 부품", "l2": "체결류", "l3": "클램프", "unit": "SET", "price": 9800, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-O7001", "name": "O-링 세트", "l1": "소모성 부품", "l2": "실링류", "l3": "O-링", "unit": "SET", "price": 6500, "lot": "Y", "insp": "샘플링"}], "dash": {"name": "01_금오정밀_수주납품대장.xlsx", "total": 1984, "ok": 1921, "bad": 63, "violations": 63, "byRule": {"cust": 15, "lot": 16, "qty": 11, "dup": 21}, "months": [{"m": "2025-09", "total": 161, "bad": 4}, {"m": "2025-10", "total": 159, "bad": 5}, {"m": "2025-11", "total": 152, "bad": 5}, {"m": "2025-12", "total": 156, "bad": 3}, {"m": "2026-01", "total": 158, "bad": 7}, {"m": "2026-02", "total": 159, "bad": 7}, {"m": "2026-03", "total": 180, "bad": 8}, {"m": "2026-04", "total": 171, "bad": 6}, {"m": "2026-05", "total": 169, "bad": 4}, {"m": "2026-06", "total": 169, "bad": 5}, {"m": "2026-07", "total": 172, "bad": 5}, {"m": "2026-08", "total": 178, "bad": 4}], "cust": [{"name": "가람체계", "total": 234, "bad": 6}, {"name": "누리테크", "total": 238, "bad": 6}, {"name": "다온항공", "total": 240, "bad": 8}, {"name": "새솔정밀", "total": 243, "bad": 2}, {"name": "한울시스템즈", "total": 243, "bad": 8}, {"name": "미르방산", "total": 250, "bad": 5}, {"name": "바른기계", "total": 268, "bad": 7}, {"name": "온빛전자", "total": 253, "bad": 6}, {"name": "(빈 칸)", "total": 15, "bad": 15}]}, "aliases": [{"alias": "KJH2201", "key": "KJ-H2201", "reason": "하이픈 누락 표기"}, {"alias": "KJ-H-2201", "key": "KJ-H2201", "reason": "하이픈 중복 표기(구 시스템 이관분)"}, {"alias": "KJ H2201", "key": "KJ-H2201", "reason": "하이픈 대신 공백 입력"}, {"alias": "kj-h2201", "key": "KJ-H2201", "reason": "영문 소문자 입력"}, {"alias": "KJH2305", "key": "KJ-H2305", "reason": "하이픈 누락 표기"}, {"alias": "KJC2410", "key": "KJ-C2410", "reason": "하이픈 누락 표기"}, {"alias": "GR-HNS-01", "key": "KJ-H2201", "reason": "발주처 품번(가람체계 도면 번호)"}, {"alias": "HW-SB4102", "key": "KJ-S4102", "reason": "발주처 품번(한울시스템즈 도면 번호)"}, {"alias": "KJ-B1107A", "key": "KJ-B1107", "reason": "구 개정판 품번(개정 A, 2025-06 폐지)"}], "customers": [{"code": "C01", "name": "가람체계", "type": "체계업체"}, {"code": "C02", "name": "한울시스템즈", "type": "체계업체"}, {"code": "C03", "name": "미르방산", "type": "체계업체"}, {"code": "C04", "name": "누리테크", "type": "1차 협력사"}, {"code": "C05", "name": "다온항공", "type": "1차 협력사"}, {"code": "C06", "name": "바른기계", "type": "1차 협력사"}, {"code": "C07", "name": "새솔정밀", "type": "1차 협력사"}, {"code": "C08", "name": "온빛전자", "type": "1차 협력사"}], "wh": {"G1-AVL": {"name": "출하 가능", "ship": "Y", "rule": "출하검사 합격 · 소유권 금오정밀 · 수주에 할당 가능한 재고"}, "G1-QI": {"name": "출하검사 대기", "ship": "N", "rule": "생산 완료 후 품질팀 출하검사 전 — 합격 시 G1-AVL 로 이동"}, "G1-NCR": {"name": "부적합 격리", "ship": "N", "rule": "검사 불합격·반품 — 재작업 또는 폐기 판정 전까지 출하 금지"}, "G1-CSG": {"name": "고객 위탁 보관", "ship": "N", "rule": "납품 완료(소유권 고객)했으나 고객 요청으로 보관 중 — 금오정밀 재고 아님"}, "G1-SPR": {"name": "수리부속 비축", "ship": "N", "rule": "정비 지원 계약에 따라 비축 의무가 있는 수량 — 일반 수주 할당 금지"}, "M1-OWN": {"name": "사급 자재", "ship": "-", "rule": "금오정밀이 직접 구매한 자재"}, "M1-GFM": {"name": "지급 자재(관급·고객 지급)", "ship": "-", "rule": "발주처가 지급한 자재 — 해당 수주에만 사용, 사용량 보고 대상"}}, "asof": "2026-08-31", "inv": {"KJ-H2201": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 42}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 12}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 3}, {"wh": "G1-CSG", "lot": "L2608-034", "qty": 10}, {"wh": "G1-SPR", "lot": "L2608-042", "qty": 8}], "KJ-S4102": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 18}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 6}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 1}, {"wh": "G1-SPR", "lot": "L2608-034", "qty": 4}], "KJ-C2410": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 120}, {"wh": "G1-QI", "lot": "L2608-017", "qty": 40}, {"wh": "G1-NCR", "lot": "L2608-025", "qty": 6}], "KJ-P3301": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 9}, {"wh": "G1-QI", "lot": "L2608-020", "qty": 4}, {"wh": "G1-SPR", "lot": "L2608-028", "qty": 2}], "KJ-H2305": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 35}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 10}, {"wh": "G1-CSG", "lot": "L2608-026", "qty": 6}], "KJ-C1208": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 150}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 4}], "KJ-F8204": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 60}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 15}], "KJ-B1107": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 210}, {"wh": "G1-NCR", "lot": "L2608-020", "qty": 9}], "KJ-B1120": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 180}], "KJ-E5010": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 48}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 8}], "KJ-K6003": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 300}], "KJ-O7001": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 420}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 20}]}, "incoming": {"KJ-H2201": [{"date": "2026-09-04", "qty": 20, "note": "생산 완료 예정(출하검사 후 G1-AVL 입고)"}], "KJ-S4102": [{"date": "2026-09-07", "qty": 10, "note": "생산 완료 예정"}], "KJ-C2410": [{"date": "2026-09-03", "qty": 60, "note": "생산 완료 예정"}], "KJ-P3301": [{"date": "2026-09-10", "qty": 6, "note": "생산 완료 예정"}], "KJ-H2305": [{"date": "2026-09-05", "qty": 15, "note": "생산 완료 예정"}]}, "open": {"KJ-H2201": [{"so": "SO-2608-118", "cust": "가람체계", "qty": 30, "due": "2026-09-08"}, {"so": "SO-2608-121", "cust": "미르방산", "qty": 16, "due": "2026-09-12"}], "KJ-S4102": [{"so": "SO-2608-125", "cust": "한울시스템즈", "qty": 20, "due": "2026-09-09"}], "KJ-C2410": [{"so": "SO-2608-130", "cust": "누리테크", "qty": 90, "due": "2026-09-05"}], "KJ-P3301": [{"so": "SO-2608-133", "cust": "다온항공", "qty": 12, "due": "2026-09-11"}], "KJ-H2305": [{"so": "SO-2608-137", "cust": "온빛전자", "qty": 25, "due": "2026-09-10"}]}, "ledger": {"rows": 1984, "matched": 1969, "per": {"가람체계": 234, "누리테크": 238, "다온항공": 240, "새솔정밀": 243, "한울시스템즈": 243, "미르방산": 250, "바른기계": 268, "온빛전자": 253}, "blank": [190, 390, 566, 646, 659, 684, 853, 865, 1136, 1301, 1321, 1566, 1598, 1819, 1910], "unknown": {}, "period": ["2025-09-01", "2026-08-28"]}};
 const fmt = n => Number(n).toLocaleString('ko-KR');
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const $ = id => document.getElementById(id);
 const norm = s => String(s).toUpperCase().replace(/[^0-9A-Z]/g, '');
 const hangul = s => /[ㄱ-ㅎㅏ-ㅣ가-힣]/.test(s);
-function toast(m){ const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 1600); }
-function setCount(now, all, chips){
-  $('cNow').textContent = now; $('cAll').textContent = `/ 전체 ${all}건`;
-  $('cChips').innerHTML = chips.map(c => `<span class="chip">${esc(c)}</span>`).join('');
-}
+const pct = (a, b) => b ? (a / b * 100).toFixed(1) : '0.0';
+function toast(m){ const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 1700); }
+function setCount(now, all){ $('cNow').textContent = fmt(now); $('cAll').textContent = `/ 전체 ${fmt(all)}건`; }
 function echo(el, raw, n, warnHangul, clear){
   raw = raw.trim(); el.hidden = !raw; if (!raw) return;
-  el.innerHTML = `검색어 <b>${esc(raw)}</b> · ${n}건` +
-    (warnHangul && hangul(raw) ? ` <span class="warn">— 한글이 입력됐습니다. 한/영 키로 영문 전환 후 입력하세요.</span>` : '') +
-    ` <button type="button" class="s">지우기</button>`;
+  el.innerHTML = `검색어 <b>${esc(raw)}</b> · ${n}건` + (warnHangul && hangul(raw) ? ` <span class="warn">— 한글이 입력됐습니다. 한/영 키로 전환하세요.</span>` : '') + ` <button type="button" class="btn" style="padding:1px 8px;font-size:12px">지우기</button>`;
   el.querySelector('button').onclick = clear;
 }
-async function copyText(text, fallbackBox){
+async function copyText(text, box){
   try { await navigator.clipboard.writeText(text); toast('복사했습니다'); }
-  catch { fallbackBox.hidden = false; fallbackBox.value = text; fallbackBox.select(); toast('자동 복사가 막혀 있어 아래 글을 직접 복사하세요'); }
+  catch { box.hidden = false; box.value = text; box.select(); toast('자동 복사가 막혀 있어 아래 글을 직접 복사하세요'); }
 }
 
-/* ---------- 품목: 납기회신 가능 수량(ATP) ---------- */
+/* ── 품목 그림 (중분류별 일러스트, 실제 사진 아님) ── */
+const ART = {
+  '케이블 하네스': (c) => `<svg viewBox="0 0 120 90"><path d="M14 58 C38 20, 70 86, 104 36" fill="none" stroke="#2b3645" stroke-width="7" stroke-linecap="round"/><path d="M14 58 C38 20, 70 86, 104 36" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round" stroke-dasharray="1 9"/><path d="M18 66 C44 34, 74 94, 102 46" fill="none" stroke="#56657a" stroke-width="5" stroke-linecap="round"/><rect x="2" y="50" width="20" height="22" rx="4" fill="#d9dee6" stroke="#2b3645" stroke-width="2"/><rect x="96" y="26" width="20" height="24" rx="4" fill="#d9dee6" stroke="#2b3645" stroke-width="2"/><rect x="40" y="46" width="12" height="8" rx="2" fill="${c}"/></svg>`,
+  '커넥터 조립체': (c, n) => { const pins = n >= 24 ? 12 : 6, w = 84; let p = ''; for (let i = 0; i < pins; i++){ const x = 22 + (w - 8) / (pins - 1) * i; p += `<rect x="${x - 1.6}" y="26" width="3.2" height="14" rx="1" fill="#c9a24a"/><rect x="${x - 1.6}" y="50" width="3.2" height="14" rx="1" fill="#c9a24a"/>`; }
+    return `<svg viewBox="0 0 120 90"><rect x="14" y="20" width="${w + 8}" height="50" rx="8" fill="#2b3645"/><rect x="20" y="26" width="${w - 4}" height="38" rx="5" fill="#3b4859"/>${p}<rect x="48" y="12" width="24" height="10" rx="3" fill="${c}"/><text x="60" y="84" text-anchor="middle" font-size="9" fill="#6b7583" font-family="sans-serif">${n}P</text></svg>`; },
+  '전자 모듈': (c) => `<svg viewBox="0 0 120 90"><rect x="10" y="10" width="100" height="70" rx="8" fill="#1f6b4a"/><rect x="10" y="10" width="100" height="70" rx="8" fill="none" stroke="#14513a" stroke-width="2"/><g stroke="#7fd1a7" stroke-width="1.5" fill="none" opacity=".8"><path d="M20 24h30v20h20"/><path d="M20 66h40V54h40"/><path d="M90 20v20"/></g><rect x="46" y="30" width="28" height="28" rx="3" fill="#1c232d"/><g fill="#c9d1db">${Array.from({length:6},(_, i)=>`<rect x="${49+i*4}" y="26" width="2" height="4"/><rect x="${49+i*4}" y="58" width="2" height="4"/>`).join('')}</g><rect x="18" y="40" width="14" height="10" rx="2" fill="${c}"/><circle cx="92" cy="62" r="6" fill="#d9dee6"/><circle cx="18" cy="18" r="3" fill="#d9dee6"/><circle cx="102" cy="18" r="3" fill="#d9dee6"/></svg>`,
+  '브래킷': (c) => `<svg viewBox="0 0 120 90"><path d="M20 16h18v44h62v16H20z" fill="#aab4c1" stroke="#56657a" stroke-width="2" stroke-linejoin="round"/><path d="M20 16h18v44h62" fill="none" stroke="#e3e8ef" stroke-width="2"/><circle cx="29" cy="28" r="4" fill="#56657a"/><circle cx="29" cy="46" r="4" fill="#56657a"/><circle cx="60" cy="68" r="4" fill="#56657a"/><circle cx="84" cy="68" r="4" fill="#56657a"/><rect x="44" y="64" width="6" height="8" fill="${c}" opacity=".9"/></svg>`,
+  '하우징': (c) => `<svg viewBox="0 0 120 90"><path d="M20 30l40-16 44 16v38l-44 16-40-16z" fill="#8b96a5"/><path d="M20 30l40 16 44-16" fill="none" stroke="#5c6878" stroke-width="2"/><path d="M60 46v38" stroke="#5c6878" stroke-width="2"/><path d="M20 30l40-16 44 16-44 16z" fill="#b6c0cc"/><g fill="#5c6878">${Array.from({length:4},(_, i)=>`<rect x="${68+i*8}" y="${52-i*3}" width="4" height="18" rx="1"/>`).join('')}</g><rect x="28" y="52" width="20" height="5" rx="2" fill="${c}"/></svg>`,
+  '체결류': (c) => `<svg viewBox="0 0 120 90"><path d="M30 64a26 26 0 1 1 52 0" fill="none" stroke="#8b96a5" stroke-width="9" stroke-linecap="round"/><path d="M30 64a26 26 0 1 1 52 0" fill="none" stroke="#c9d1db" stroke-width="3" stroke-linecap="round"/><rect x="18" y="60" width="24" height="10" rx="3" fill="#56657a"/><rect x="70" y="60" width="24" height="10" rx="3" fill="#56657a"/><circle cx="30" cy="65" r="2.5" fill="#e3e8ef"/><circle cx="82" cy="65" r="2.5" fill="#e3e8ef"/><rect x="88" y="20" width="22" height="9" rx="3" fill="${c}"/><rect x="88" y="34" width="22" height="9" rx="3" fill="${c}" opacity=".6"/></svg>`,
+  '실링류': (c) => `<svg viewBox="0 0 120 90"><ellipse cx="46" cy="46" rx="28" ry="26" fill="none" stroke="#2b3645" stroke-width="9"/><ellipse cx="46" cy="44" rx="28" ry="26" fill="none" stroke="#4a586b" stroke-width="3" opacity=".6"/><ellipse cx="88" cy="56" rx="17" ry="16" fill="none" stroke="#2b3645" stroke-width="7"/><ellipse cx="98" cy="24" rx="10" ry="9" fill="none" stroke="${c}" stroke-width="5"/></svg>`,
+};
+function art(it){ const f = ART[it.l2]; const c = it.l1 === '전장 조립체' ? '#2f7be0' : it.l1 === '기구 부품' ? '#f08a2c' : '#0aac23'; return f ? f(c, parseInt(it.l3) || 12) : ''; }
+
+/* ── 납기회신 가능 수량 (6-C) ── */
 const sum = a => a.reduce((s, x) => s + x.qty, 0);
+const SHORT = { '출하검사 대기': '검사 대기', '부적합 격리': '부적합', '고객 위탁 보관': '고객 위탁', '수리부속 비축': '수리부속' };
 function atpOf(code){
   const inv = DATA.inv[code] || [];
-  const avl = sum(inv.filter(x => DATA.wh[x.wh]?.ship === 'Y'));
-  const inc = sum(DATA.incoming[code] || []);
-  const open = sum(DATA.open[code] || []);
-  return { avl, inc, open, atp: avl + inc - open, inv };
+  const ok = inv.filter(x => DATA.wh[x.wh]?.ship === 'Y'), ex = inv.filter(x => DATA.wh[x.wh]?.ship !== 'Y');
+  const avl = sum(ok), inc = sum(DATA.incoming[code] || []), open = sum(DATA.open[code] || []), exq = sum(ex);
+  const reasons = ex.map(x => ({ wh: x.wh, name: DATA.wh[x.wh].name, short: SHORT[DATA.wh[x.wh].name] || DATA.wh[x.wh].name, qty: x.qty, rule: DATA.wh[x.wh].rule }));
+  return { avl, inc, open, ex: exq, reasons, atp: avl + inc - open, phys: avl + exq + inc - open, inv };
 }
 const ATP = Object.fromEntries(DATA.items.map(i => [i.code, atpOf(i.code)]));
+const atpCls = v => v < 0 ? 'neg' : v === 0 ? 'zero' : 'pos';
+const itemCell = (it, via) => `<div class="item"><div class="th">${art(it)}</div><div><div class="nm">${esc(it.name)}</div><div class="cd">${esc(it.code)}</div>${via ? `<span class="via">${esc(via)}</span>` : ''}</div></div>`;
+const reasonChips = A => A.reasons.length ? `<div class="xs">${A.reasons.map(r => `<span class="chip" data-tip="${esc(`${r.wh} ${r.name}: ${fmt(r.qty)} — ${r.rule}`)}">${esc(r.short)} ${fmt(r.qty)}</span>`).join('')}</div>` : '';
+const mixBar = A => { const t = A.avl + A.ex; return t ? `<div class="mix" data-tip="${esc(`출하 가능 ${fmt(A.avl)} · 제외 ${fmt(A.ex)} (물리 재고 ${fmt(t)})`)}"><span class="a" style="width:${A.avl / t * 100}%"></span>${A.ex ? `<span class="x" style="width:${A.ex / t * 100}%"></span>` : ''}</div>` : '<span class="muted small">재고 없음</span>'; };
 
+const AS = { scope: 'open', q: '', phys: false };
+function renderAtp(){
+  const ex = DATA.items.find(i => i.code === 'KJ-H2201') || DATA.items[0], A = ATP[ex.code];
+  $('aExName').textContent = `${ex.code} ${ex.name} (재고 기준일 ${DATA.asof})`;
+  $('aFormula').innerHTML = `<div class="box"><b>${fmt(A.avl)}</b><span>출하 가능 재고</span></div><span class="op">+</span><div class="box"><b>${fmt(A.inc)}</b><span>입고예정</span></div><span class="op">−</span><div class="box"><b>${fmt(A.open)}</b><span>미출고 수주</span></div><span class="op">=</span><div class="box res"><b>${fmt(A.atp)}</b><span>납기회신 가능</span></div><span class="op" style="font-size:14px;margin-left:6px">제외</span><div class="box ex"><b>${fmt(A.ex)}</b><span>${A.reasons.map(r => r.short).join('·')}</span></div>`;
+  $('aRule').innerHTML = `출하 가능 = 창고마스터 '출하 가능'=Y 인 가상창고(G1-AVL)만. '출하 가능'=N 재고는 <b>제외하고 사유를 표시</b>합니다. 물리 재고 전체로 계산하면 ${esc(ex.code)}는 <b class="over">${fmt(A.phys)}</b> → 출하 불가 재고까지 약속하는 <b class="over">과대 약속</b>이 됩니다.`;
+  const withOpen = DATA.items.filter(i => ATP[i.code].open || ATP[i.code].inc).length;
+  $('aScope').innerHTML = [['open', '입고·미출고 있는 품목', withOpen], ['all', '전체', DATA.items.length]].map(([k, t, n]) => `<button type="button" data-k="${k}" aria-pressed="${AS.scope === k}">${t}<span class="n">${n}</span></button>`).join('');
+  const q = norm(AS.q);
+  const list = DATA.items.filter(i => (AS.scope === 'all' || ATP[i.code].open || ATP[i.code].inc) && (!q || norm(i.code).includes(q)))
+    .sort((a, b) => AS.scope === 'open' ? ATP[a.code].atp - ATP[b.code].atp : 0);
+  document.querySelectorAll('#v-atp .phys').forEach(e => e.hidden = !AS.phys);
+  $('aRows').innerHTML = list.map(it => { const A = ATP[it.code];
+    return `<tr class="click" data-code="${esc(it.code)}" tabindex="0">
+      <td>${itemCell(it)}</td>
+      <td class="num">${fmt(A.avl)}</td><td class="num">${A.inc ? '+' + fmt(A.inc) : '<span class="muted">0</span>'}</td><td class="num">${A.open ? '−' + fmt(A.open) : '<span class="muted">0</span>'}</td>
+      <td class="num"><span class="atpv ${atpCls(A.atp)}">${fmt(A.atp)}</span> <span class="small muted">${esc(it.unit)}</span></td>
+      <td>${A.ex ? `<b>${fmt(A.ex)}</b> <span class="small muted">제외</span>${reasonChips(A)}` : '<span class="muted small">없음</span>'}</td>
+      <td>${mixBar(A)}</td>
+      <td class="num phys" ${AS.phys ? '' : 'hidden'}>${fmt(A.phys)}${A.phys !== A.atp ? `<div class="over">+${fmt(A.phys - A.atp)} 과대 약속</div>` : ''}</td></tr>`; }).join('');
+  $('aEmpty').hidden = list.length > 0;
+  setCount(list.length, DATA.items.length);
+  echo($('aEcho'), AS.q, list.length, true, () => { $('aQ').value = ''; AS.q = ''; renderAtp(); });
+  bindTips($('v-atp'));
+}
+$('aScope').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ AS.scope = b.dataset.k; renderAtp(); } });
+$('aQ').oninput = e => { AS.q = e.target.value; renderAtp(); };
+$('aPhys').onchange = e => { AS.phys = e.target.checked; renderAtp(); };
+$('aRows').addEventListener('click', e => { const tr = e.target.closest('tr[data-code]'); if (tr) openDrawer(tr.dataset.code); });
+
+/* ── 품목 조회 ── */
 const L1 = [...new Set(DATA.items.map(i => i.l1))];
-const IS = { l1: '전체', q: '', open: null };
-$('iL1').innerHTML = ['전체', ...L1].map(o => {
-  const n = o === '전체' ? DATA.items.length : DATA.items.filter(i => i.l1 === o).length;
-  return `<option value="${esc(o)}">${esc(o)} (${n})</option>`;
-}).join('');
+const IS = { l1: '전체', q: '' };
+$('iL1').innerHTML = ['전체', ...L1].map(o => `<option value="${esc(o)}">${esc(o)} (${o === '전체' ? DATA.items.length : DATA.items.filter(i => i.l1 === o).length})</option>`).join('');
 const ALIAS = DATA.aliases.map(a => ({ ...a, n: norm(a.alias) }));
-function itemMatch(it){
-  const q = norm(IS.q);
+function itemMatch(it, raw){
+  const q = norm(raw);
   if (!q) return { ok: true };
   if (norm(it.code).includes(q)) return { ok: true };
   const a = ALIAS.find(a => a.key === it.code && a.n.includes(q));
   return a ? { ok: true, via: `별칭 일치: ${a.alias} — ${a.reason}` } : { ok: false };
 }
-function detailHTML(it){
-  const A = ATP[it.code];
-  const whRows = A.inv.map(x => { const w = DATA.wh[x.wh];
-    return `<tr><td class="mono">${esc(x.wh)}</td><td>${esc(w.name)}</td><td class="num">${fmt(x.qty)}</td><td>${w.ship === 'Y' ? '<span class="badge b-good">할당 가능</span>' : '<span class="badge b-bad">할당 불가</span>'}</td></tr>`; }).join('');
-  const inc = (DATA.incoming[it.code] || []).map(x => `<tr><td>${esc(x.date)}</td><td class="num">+${fmt(x.qty)}</td><td class="muted">${esc(x.note)}</td></tr>`).join('') || '<tr><td colspan="3" class="muted">없음</td></tr>';
-  const op = (DATA.open[it.code] || []).map(x => `<tr><td class="mono">${esc(x.so)}</td><td>${esc(x.cust)}</td><td class="num">−${fmt(x.qty)}</td><td>${esc(x.due)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">없음</td></tr>';
-  return `<div class="dgrid">
-    <div class="dbox"><h4>납기회신 가능 수량 계산 (기준일 ${esc(DATA.asof)})</h4>
-      <div class="formula">출하 가능 재고 <b>${fmt(A.avl)}</b> + 입고예정 <b>${fmt(A.inc)}</b> − 미출고 수주 <b>${fmt(A.open)}</b><br>= <span class="atp ${A.atp < 0 ? 'neg' : A.atp === 0 ? 'zero' : ''}">${fmt(A.atp)} ${esc(it.unit)}</span>${A.atp < 0 ? ' <span class="badge b-bad">부족</span>' : ''}</div>
-      <div style="margin-top:8px"><button type="button" class="p" data-copy="${esc(it.code)}">회신 메모 복사</button></div>
-      <textarea class="copy" hidden aria-label="복사할 회신 메모"></textarea></div>
-    <div class="dbox"><h4>가상창고별 재고 (WH-G1)</h4><table><tbody>${whRows || '<tr><td class="muted">재고 없음</td></tr>'}</tbody></table></div>
-    <div class="dbox"><h4>입고예정</h4><table><tbody>${inc}</tbody></table>
-      <h4 style="margin-top:10px">미출고 확정 수주</h4><table><tbody>${op}</tbody></table></div>
-  </div>`;
-}
-function memo(it){
-  const A = ATP[it.code];
-  return `[금오정밀 품목 확인] ${it.code} ${it.name}\n표준단가 ${fmt(it.price)}원/${it.unit} (견적가 아님) · 출하검사 ${it.insp}\n납기회신 가능 ${fmt(A.atp)} ${it.unit} = 출하가능 ${fmt(A.avl)} + 입고예정 ${fmt(A.inc)} − 미출고 ${fmt(A.open)} (재고 기준일 ${DATA.asof})`;
-}
 function renderItems(){
   const list = [];
-  for (const it of DATA.items){
-    if (IS.l1 !== '전체' && it.l1 !== IS.l1) continue;
-    const m = itemMatch(it); if (m.ok) list.push({ it, via: m.via });
-  }
-  $('iRows').innerHTML = list.map(({ it, via }) => {
-    const A = ATP[it.code], open = IS.open === it.code;
-    return `<tr class="row${open ? ' open' : ''}" data-code="${esc(it.code)}" tabindex="0" aria-expanded="${open}">
-      <td class="mono">${esc(it.code)}${via ? `<div class="via">${esc(via)}</div>` : ''}</td>
-      <td>${esc(it.name)}</td>
-      <td class="muted"><span style="color:var(--ink)">${esc(it.l1)}</span> › ${esc(it.l2)} › ${esc(it.l3)}</td>
-      <td>${esc(it.unit)}</td>
-      <td class="num">${fmt(it.price)}</td>
-      <td><span class="badge ${it.insp === '전수' ? 'b-bad' : 'b-good'}">${esc(it.insp)}</span></td>
-      <td class="num"><span class="atp ${A.atp < 0 ? 'neg' : A.atp === 0 ? 'zero' : ''}">${fmt(A.atp)}</span></td>
-    </tr>${open ? `<tr class="detail"><td colspan="7">${detailHTML(it)}</td></tr>` : ''}`;
-  }).join('');
+  for (const it of DATA.items){ if (IS.l1 !== '전체' && it.l1 !== IS.l1) continue; const m = itemMatch(it, IS.q); if (m.ok) list.push({ it, via: m.via }); }
+  $('iRows').innerHTML = list.map(({ it, via }) => { const A = ATP[it.code];
+    return `<tr class="click" data-code="${esc(it.code)}" tabindex="0"><td>${itemCell(it, via)}</td>
+      <td class="small"><span>${esc(it.l1)}</span> <span class="muted">› ${esc(it.l2)} › ${esc(it.l3)}</span></td><td>${esc(it.unit)}</td>
+      <td class="num"><b>${fmt(it.price)}</b></td><td><span class="badge ${it.insp === '전수' ? 'b-bad' : 'b-good'}">${esc(it.insp)}</span></td>
+      <td class="num"><span class="atpv ${atpCls(A.atp)}" style="font-size:16px">${fmt(A.atp)}</span></td></tr>`; }).join('');
   $('iEmpty').hidden = list.length > 0;
-  const by = L1.map(l => `${l} ${list.filter(x => x.it.l1 === l).length}`);
-  setCount(list.length, DATA.items.length, by);
-  echo($('iEcho'), IS.q, list.length, true, () => { $('iQ').value = ''; IS.q = ''; renderItems(); $('iQ').focus(); });
+  setCount(list.length, DATA.items.length);
+  echo($('iEcho'), IS.q, list.length, true, () => { $('iQ').value = ''; IS.q = ''; renderItems(); });
 }
 $('iL1').onchange = e => { IS.l1 = e.target.value; renderItems(); };
 $('iQ').oninput = e => { IS.q = e.target.value; renderItems(); };
-$('iQ').onkeydown = e => { if (e.key === 'Escape'){ e.target.value = ''; IS.q = ''; renderItems(); } };
-$('iRows').addEventListener('click', e => {
-  const cp = e.target.closest('[data-copy]');
-  if (cp){ const it = DATA.items.find(i => i.code === cp.dataset.copy); copyText(memo(it), cp.closest('.dbox').querySelector('textarea')); return; }
-  if (e.target.closest('tr.detail')) return;
-  const tr = e.target.closest('tr.row'); if (!tr) return;
-  IS.open = IS.open === tr.dataset.code ? null : tr.dataset.code; renderItems();
-});
-$('iRows').addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('tr.row')) e.target.click(); });
+$('iRows').addEventListener('click', e => { const tr = e.target.closest('tr[data-code]'); if (tr) openDrawer(tr.dataset.code); });
+for (const id of ['iRows', 'aRows']) $(id).addEventListener('keydown', e => { if (e.key === 'Enter' && e.target.matches('tr[data-code]')) openDrawer(e.target.dataset.code); });
 
-/* ---------- 발주처 ---------- */
+/* ── 품목 상세 서랍 ── */
+function memo(it){ const A = ATP[it.code];
+  return `[금오정밀 품목 확인] ${it.code} ${it.name}\n표준단가 ${fmt(it.price)}원/${it.unit} (견적가 아님) · 출하검사 ${it.insp}\n납기회신 가능 ${fmt(A.atp)} ${it.unit} = 출하가능 ${fmt(A.avl)} + 입고예정 ${fmt(A.inc)} − 미출고 ${fmt(A.open)}${A.ex ? ` (출하 불가 ${fmt(A.ex)} 제외)` : ''} · 재고 기준일 ${DATA.asof}`; }
+function openDrawer(code){
+  const it = DATA.items.find(i => i.code === code); if (!it) return; const A = ATP[code];
+  const inc = (DATA.incoming[code] || []).map(x => `<tr><td>${esc(x.date)}</td><td class="num">+${fmt(x.qty)}</td><td class="muted small">${esc(x.note)}</td></tr>`).join('') || '<tr><td class="muted">없음</td></tr>';
+  const op = (DATA.open[code] || []).map(x => `<tr><td class="mono">${esc(x.so)}</td><td>${esc(x.cust)}</td><td class="num">−${fmt(x.qty)}</td><td>${esc(x.due)}</td></tr>`).join('') || '<tr><td class="muted">없음</td></tr>';
+  const whs = A.inv.map(x => { const w = DATA.wh[x.wh]; return `<tr><td class="mono">${esc(x.wh)}</td><td>${esc(w.name)}</td><td class="num">${fmt(x.qty)}</td><td>${w.ship === 'Y' ? '<span class="badge b-good">✓ 할당 가능</span>' : '<span class="badge b-gray">✕ 제외</span>'}</td></tr>`; }).join('') || '<tr><td class="muted">재고 없음</td></tr>';
+  $('drawer').innerHTML = `<div class="hd"><div><div class="mono" style="font-size:15px">${esc(it.code)}</div><div class="small muted">${esc(it.l1)} › ${esc(it.l2)} › ${esc(it.l3)}</div></div><button type="button" class="btn" id="dClose" aria-label="닫기">닫기 ✕</button></div>
+    <div class="bd">
+      <div class="hero">${art(it)}<span class="cap">일러스트 · 실제 제품 사진 아님</span></div>
+      <h2 style="margin:0;font-size:20px">${esc(it.name)}</h2>
+      <div class="facts">
+        <div class="fact"><div class="l">표준단가 (견적가 아님)</div><div class="v">${fmt(it.price)}원 / ${esc(it.unit)}</div></div>
+        <div class="fact"><div class="l">출하검사</div><div class="v"><span class="badge ${it.insp === '전수' ? 'b-bad' : 'b-good'}">${esc(it.insp)}</span></div></div>
+      </div>
+      <div class="dsec"><h4>납기회신 가능 수량 (기준일 ${esc(DATA.asof)})</h4>
+        <div class="formula" style="font-size:13px"><div class="box" style="min-width:70px"><b style="font-size:18px">${fmt(A.avl)}</b><span>출하 가능</span></div><span class="op">+</span><div class="box" style="min-width:70px"><b style="font-size:18px">${fmt(A.inc)}</b><span>입고예정</span></div><span class="op">−</span><div class="box" style="min-width:70px"><b style="font-size:18px">${fmt(A.open)}</b><span>미출고</span></div><span class="op">=</span><div class="box res" style="min-width:70px"><b style="font-size:18px">${fmt(A.atp)}</b><span>${esc(it.unit)}</span></div></div>
+        ${A.ex ? `<div class="small" style="margin-top:8px">출하 불가 <b>${fmt(A.ex)}</b> 제외: ${A.reasons.map(r => `${esc(r.short)} ${fmt(r.qty)}`).join(' · ')} <span class="over">(포함하면 ${fmt(A.phys)} → 과대 약속)</span></div>` : ''}
+        <div style="margin-top:10px"><button type="button" class="btn p" id="dCopy">회신 메모 복사</button><textarea class="copy" hidden aria-label="회신 메모"></textarea></div></div>
+      <div class="dsec"><h4>가상창고별 재고 (WH-G1)</h4><table><tbody>${whs}</tbody></table></div>
+      <div class="dsec"><h4>입고예정</h4><table><tbody>${inc}</tbody></table></div>
+      <div class="dsec"><h4>미출고 확정 수주</h4><table><tbody>${op}</tbody></table></div>
+    </div>`;
+  $('drawer').hidden = false; $('scrim').hidden = false;
+  $('dClose').onclick = closeDrawer; $('dClose').focus();
+  $('dCopy').onclick = () => copyText(memo(it), $('drawer').querySelector('textarea'));
+}
+function closeDrawer(){ $('drawer').hidden = true; $('scrim').hidden = true; }
+$('scrim').onclick = closeDrawer;
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape'){ if (!$('drawer').hidden) closeDrawer(); else if (!$('gsr').hidden) $('gsr').hidden = true; }
+  if (e.key === '/' && !/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){ e.preventDefault(); $('gq').focus(); }
+});
+
+/* ── 통합 검색 ── */
+const cnorm = s => String(s).toLowerCase().replace(/\s|\(주\)|㈜|주식회사|[-_.]/g, '');
+let GS = [];
+function gsearch(raw){
+  const r = raw.trim(), box = $('gsr'); if (!r){ box.hidden = true; return; }
+  const items = DATA.items.map(it => ({ it, m: itemMatch(it, r) })).filter(x => x.m.ok && norm(r)).slice(0, 6);
+  const nameHits = DATA.items.filter(it => !items.some(x => x.it === it) && it.name.includes(r)).slice(0, 3).map(it => ({ it, m: { ok: true } }));
+  const q = cnorm(r), cs = DATA.customers.filter(c => cnorm(c.code).includes(q) || cnorm(c.name).includes(q)).slice(0, 4);
+  GS = [...items, ...nameHits].map(x => ({ k: 'item', code: x.it.code, html: `<div class="th">${art(x.it)}</div><div><div class="t">${esc(x.it.code)} <span style="font-weight:400">${esc(x.it.name)}</span></div><div class="d">${x.m.via ? esc(x.m.via) : `${esc(x.it.l1)} · ${fmt(x.it.price)}원 · ${esc(x.it.insp)}`}</div></div><span class="r">회신 가능 <b>${fmt(ATP[x.it.code].atp)}</b></span>` }))
+    .concat(cs.map(c => ({ k: 'cust', code: c.code, html: `<div class="th" style="display:grid;place-items:center"><span class="badge ${c.type === '체계업체' ? 'b-blue' : 'b-good'}" style="padding:2px 6px">${esc(c.code)}</span></div><div><div class="t">${esc(c.name)}</div><div class="d">${esc(c.type)}</div></div>` })));
+  box.innerHTML = GS.length ? GS.map((g, i) => (i === 0 && g.k === 'item' ? '<div class="grp">품목</div>' : '') + (g.k === 'cust' && (i === 0 || GS[i - 1].k !== 'cust') ? '<div class="grp">발주처</div>' : '') + `<button type="button" data-i="${i}" class="${i === 0 ? 'on' : ''}">${g.html}</button>`).join('') : '<div class="empty" style="padding:16px">찾는 품번·발주처가 없습니다.</div>';
+  box.hidden = false;
+}
+function gpick(i){ const g = GS[i]; if (!g) return; $('gsr').hidden = true; $('gq').value = '';
+  if (g.k === 'item') openDrawer(g.code); else { location.hash = '#customers'; CS.q = g.code; $('cQ').value = g.code; renderCustomers(); } }
+$('gq').oninput = e => gsearch(e.target.value);
+$('gq').onkeydown = e => { if (e.key === 'Enter'){ e.preventDefault(); gpick(0); } };
+$('gsr').addEventListener('click', e => { const b = e.target.closest('button[data-i]'); if (b) gpick(+b.dataset.i); });
+document.addEventListener('click', e => { if (!e.target.closest('.gs')) $('gsr').hidden = true; });
+
+/* ── 발주처 ── */
 const TYPES = [...new Set(DATA.customers.map(c => c.type))];
 const CS = { type: '전체', q: '' };
 const openByCust = {};
 for (const arr of Object.values(DATA.open)) for (const o of arr) openByCust[o.cust] = (openByCust[o.cust] || 0) + 1;
-$('cType').innerHTML = ['전체', ...TYPES].map(o => {
-  const n = o === '전체' ? DATA.customers.length : DATA.customers.filter(c => c.type === o).length;
-  return `<option value="${esc(o)}">${esc(o)} (${n})</option>`;
-}).join('');
-const cnorm = s => String(s).toLowerCase().replace(/\s|\(주\)|㈜|주식회사|[-_.]/g, '');
 function renderCustomers(){
+  $('cType').innerHTML = ['전체', ...TYPES].map(o => `<button type="button" data-k="${esc(o)}" aria-pressed="${CS.type === o}">${esc(o)}<span class="n">${o === '전체' ? DATA.customers.length : DATA.customers.filter(c => c.type === o).length}</span></button>`).join('');
   const q = cnorm(CS.q);
   const list = DATA.customers.filter(c => (CS.type === '전체' || c.type === CS.type) && (!q || cnorm(c.code).includes(q) || cnorm(c.name).includes(q)));
-  $('cRows').innerHTML = list.map(c => `<tr>
-    <td class="mono">${esc(c.code)}</td><td>${esc(c.name)}</td>
+  $('cRows').innerHTML = list.map(c => `<tr><td><div class="item"><div class="th" style="width:40px;height:40px;border-radius:50%;background:${c.type === '체계업체' ? 'var(--accent-bg)' : 'var(--good-bg)'};font-weight:900;color:${c.type === '체계업체' ? 'var(--accent)' : 'var(--good)'}">${esc(c.name[0])}</div><div><div class="nm">${esc(c.name)}</div><div class="cd">${esc(c.code)}</div></div></div></td>
     <td><span class="badge ${c.type === '체계업체' ? 'b-blue' : 'b-good'}">${esc(c.type)}</span></td>
-    <td class="num">${fmt(DATA.ledger.per[c.name] || 0)}</td>
+    <td class="num"><b>${fmt(DATA.ledger.per[c.name] || 0)}</b></td>
     <td class="num">${openByCust[c.name] ? fmt(openByCust[c.name]) + '건' : '<span class="muted">-</span>'}</td></tr>`).join('');
   $('cEmpty').hidden = list.length > 0;
-  setCount(list.length, DATA.customers.length, TYPES.map(t => `${t} ${list.filter(c => c.type === t).length}`));
-  echo($('cEcho'), CS.q, list.length, false, () => { $('cQ').value = ''; CS.q = ''; renderCustomers(); $('cQ').focus(); });
+  setCount(list.length, DATA.customers.length);
+  echo($('cEcho'), CS.q, list.length, false, () => { $('cQ').value = ''; CS.q = ''; renderCustomers(); });
 }
-$('cType').onchange = e => { CS.type = e.target.value; renderCustomers(); };
+$('cType').addEventListener('click', e => { const b = e.target.closest('button'); if (b){ CS.type = b.dataset.k; renderCustomers(); } });
 $('cQ').oninput = e => { CS.q = e.target.value; renderCustomers(); };
-
-// 발주처 검증: 정확 일치만 '등록', 그 외는 후보 제시
-function lev(a, b){ const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
-  for (let j = 1; j <= b.length; j++) d[0][j] = j;
-  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
-    d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
+function lev(a, b){ const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i-1][j] + 1, d[i][j-1] + 1, d[i-1][j-1] + (a[i-1] === b[j-1] ? 0 : 1));
   return d[a.length][b.length]; }
 function verify(raw){
   const v = raw.trim(); if (!v) return '';
   const exact = DATA.customers.find(c => c.name === v || c.code === v);
-  const show = c => `<b>${esc(c.code)} ${esc(c.name)}</b> · ${esc(c.type)}`;
-  if (exact) return `<div class="verdict ok">✓ 등록된 발주처: ${show(exact)}</div>`;
+  if (exact) return `<div class="verdict ok">✓ 등록된 발주처: <b>${esc(exact.code)} ${esc(exact.name)}</b> · ${esc(exact.type)}</div>`;
   const n = cnorm(v);
-  const cands = DATA.customers.map(c => ({ c, d: Math.min(lev(n, cnorm(c.name)), lev(n, cnorm(c.code))),
-      inc: n.length >= 2 && (cnorm(c.name).includes(n) || n.includes(cnorm(c.name))) }))
-    .filter(x => x.d === 0 || x.inc || x.d <= Math.max(1, Math.floor(cnorm(x.c.name).length / 3)))
-    .sort((a, b) => a.d - b.d).slice(0, 3);
-  return `<div class="verdict ng">✗ 미등록 — 기준정보와 정확히 일치하지 않습니다. 수주 입력 전 발주처마스터 표기로 바꿔야 합니다.
-    ${cands.length ? `<div class="cand">혹시 이 발주처인가요? ${cands.map(x => `<button type="button" class="s" data-pick="${esc(x.c.name)}">${esc(x.c.code)} ${esc(x.c.name)}</button>`).join('')}</div>` : '<div class="cand">비슷한 등록 발주처가 없습니다. 신규 발주처라면 기준정보 등록이 먼저입니다.</div>'}</div>`;
+  const cands = DATA.customers.map(c => ({ c, d: Math.min(lev(n, cnorm(c.name)), lev(n, cnorm(c.code))), inc: n.length >= 2 && (cnorm(c.name).includes(n) || n.includes(cnorm(c.name))) }))
+    .filter(x => x.d === 0 || x.inc || x.d <= Math.max(1, Math.floor(cnorm(x.c.name).length / 3))).sort((a, b) => a.d - b.d).slice(0, 3);
+  return `<div class="verdict ng">✕ 미등록 — 기준정보와 정확히 일치하지 않습니다. 발주처마스터 표기로 바꿔 입력하세요.
+    ${cands.length ? `<div class="cand">혹시 이 발주처인가요? ${cands.map(x => `<button type="button" class="btn" data-pick="${esc(x.c.name)}">${esc(x.c.code)} ${esc(x.c.name)}</button>`).join('')}</div>` : '<div class="cand">비슷한 등록 발주처가 없습니다. 신규라면 기준정보 등록이 먼저입니다.</div>'}</div>`;
 }
 $('vIn').oninput = e => { $('vOut').innerHTML = verify(e.target.value); };
 $('vOut').addEventListener('click', e => { const b = e.target.closest('[data-pick]'); if (!b) return; $('vIn').value = b.dataset.pick; $('vOut').innerHTML = verify(b.dataset.pick); });
-
-// 수주납품대장 점검 결과
 (function(){
-  const L = DATA.ledger, bad = L.blank.length + Object.values(L.unknown).reduce((s, x) => s + x, 0);
-  $('lgSub').textContent = `01_수주납품대장 ${fmt(L.rows)}행 (${L.period[0]} ~ ${L.period[1]})의 발주처 열을 발주처마스터와 대조한 결과`;
-  const pct = x => (x / L.rows * 100).toFixed(1);
-  const unk = Object.entries(L.unknown);
-  $('lgOut').innerHTML = `
-    <div class="bar"><span style="width:${pct(L.matched)}%;background:var(--good)"></span><span style="width:${pct(L.blank.length)}%;background:var(--warn)"></span><span style="width:${pct(bad - L.blank.length)}%;background:var(--bad)"></span></div>
-    <div>✓ 일치 <b>${fmt(L.matched)}</b>행 · <span style="color:var(--warn)">공란 <b>${fmt(L.blank.length)}</b>행</span> · <span style="color:var(--bad)">미등록 표기 <b>${fmt(bad - L.blank.length)}</b>행</span></div>
-    ${L.blank.length ? `<div style="margin-top:8px;font-size:12.5px">발주처가 비어 있는 엑셀 행 번호 (집계에서 빠지므로 확인 필요):</div><div class="rows">${L.blank.join(', ')}</div>` : ''}
-    ${unk.length ? `<div style="margin-top:8px;font-size:12.5px">미등록 표기: ${unk.map(([k, v]) => `${esc(k)} ${v}행`).join(', ')}</div>` : '<div class="muted" style="margin-top:6px">미등록 이름 표기는 없습니다. 입력된 발주처명은 모두 기준정보와 같습니다.</div>'}`;
+  const L = DATA.ledger, unk = Object.entries(L.unknown), bad = L.blank.length + unk.reduce((s, [, v]) => s + v, 0), p = x => (x / L.rows * 100).toFixed(2);
+  $('lgSub').textContent = `01_수주납품대장 ${fmt(L.rows)}행 (${L.period[0]} ~ ${L.period[1]})의 발주처 열 대조`;
+  $('lgOut').innerHTML = `<div class="qbar"><span style="width:${p(L.matched)}%;background:var(--s-good)"></span><span style="width:${p(L.blank.length)}%;background:#fbb315"></span><span style="width:${p(bad - L.blank.length)}%;background:var(--s-bad)"></span></div>
+    <div>✓ 일치 <b>${fmt(L.matched)}</b> · <span style="color:var(--warn)">공란 <b>${fmt(L.blank.length)}</b></span> · <span style="color:var(--bad)">미등록 <b>${fmt(bad - L.blank.length)}</b></span>행</div>
+    ${L.blank.length ? `<div class="small" style="margin-top:8px">발주처 공란 엑셀 행 번호:</div><div class="rowsno">${L.blank.join(', ')}</div>` : ''}
+    ${unk.length ? `<div class="small" style="margin-top:8px">미등록 표기: ${unk.map(([k, v]) => `${esc(k)} ${v}행`).join(', ')}</div>` : '<div class="small muted" style="margin-top:6px">미등록 이름 표기는 없습니다.</div>'}`;
 })();
 
-/* ---------- ⓪ 대시보드 ---------- */
-const C = { good: '#0aac23', bad: '#dc3c3d', bar: '#257de0' };
-const pct = (a, b) => b ? (a / b * 100).toFixed(1) : '0.0';
-// 업로드한 파일이 있으면 그 결과, 없으면 01_수주납품대장 기본 집계(build.py)
-function dashAgg(){
-  if (!OS.res) return DATA.dash;
-  const R = OS.res, months = new Map(), cust = new Map();
-  const iso = v => { if (typeof v === 'number'){ const d = new Date(Math.round((v - 25569) * 864e5)); return d.toISOString().slice(0, 7); }
-    const p = String(v ?? '').trim().split(/[-/.]/); return p.length >= 2 && /^\d{4}$/.test(p[0]) ? `${p[0]}-${String(+p[1]).padStart(2, '0')}` : '(날짜 없음)'; };
-  for (const row of OS.rows){
-    const bad = R.badRows.has(row.r) ? 1 : 0, m = iso(row.vals[0]), c = isBlank(row.vals[1]) ? '(빈 칸)' : String(row.vals[1]);
-    const a = months.get(m) || { m, total: 0, bad: 0 }; a.total++; a.bad += bad; months.set(m, a);
-    const b = cust.get(c) || { name: c, total: 0, bad: 0 }; b.total++; b.bad += bad; cust.set(c, b);
-  }
-  return { name: OS.name, uploaded: true, total: R.total, ok: R.okRows.length, bad: R.badRows.size, violations: R.issues.length, byRule: R.byRule,
-           months: [...months.values()].sort((a, b) => a.m.localeCompare(b.m)), cust: [...cust.values()] };
-}
-// 툴팁 (막대에 마우스를 올리면)
-const tip = $('tip');
-function bindTips(root){
-  root.querySelectorAll('[data-tip]').forEach(el => {
-    el.onmouseenter = () => { tip.innerHTML = el.dataset.tip; tip.classList.add('on'); };
-    el.onmousemove = e => { const w = tip.offsetWidth; tip.style.left = Math.min(e.clientX + 12, innerWidth - w - 8) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; };
-    el.onmouseleave = () => tip.classList.remove('on');
-  });
-}
-// 끝만 둥근 막대 (기준선 쪽은 각지게)
-function barPath(x, y, w, h, dir){
-  const r = Math.min(4, dir === 'h' ? w / 2 : h / 2, dir === 'h' ? h / 2 : w / 2);
-  if (dir === 'h') return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
-  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
-}
-// 눈금: 1·2·5 간격으로 4칸 안팎, 최대값보다 한 칸 여유
-function niceScale(v){ const raw = Math.max(v, 1) / 4, p = 10 ** Math.floor(Math.log10(raw)), n = raw / p;
-  const step = Math.max(1, (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p), max = Math.ceil(v / step) * step + (v % step === 0 ? step : 0);
-  return { max, ticks: Array.from({ length: Math.round(max / step) + 1 }, (_, i) => i * step) }; }
-function hbar(rows, { W = 520, label = 120 } = {}){
-  const rowH = 30, H = rows.length * rowH + 22, { max, ticks } = niceScale(Math.max(1, ...rows.map(r => r.v))), x0 = label, plotW = W - label - 44;
-  return `<svg viewBox="0 0 ${W} ${H}" role="img">
-    ${ticks.map(t => `<line class="grid" x1="${x0 + t / max * plotW}" x2="${x0 + t / max * plotW}" y1="0" y2="${H - 22}"/><text x="${x0 + t / max * plotW}" y="${H - 6}" text-anchor="middle">${fmt(t)}</text>`).join('')}
-    ${rows.map((r, i) => { const y = i * rowH + 6, w = r.v / max * plotW;
-      return `<g class="m" data-tip="${esc(r.tip)}"><rect class="hit" x="0" y="${y - 4}" width="${W}" height="${rowH}"/>
-        <text x="${x0 - 8}" y="${y + 13}" text-anchor="end">${esc(r.label)}</text>
-        ${r.v ? `<path class="bar" d="${barPath(x0, y, Math.max(w, 2), 18, 'h')}" fill="${r.color || C.bar}"/>` : ''}
-        <text class="val" x="${x0 + w + 6}" y="${y + 13}">${fmt(r.v)}</text></g>`; }).join('')}
-  </svg>`;
-}
-function vbar(cols, { W = 1060, H = 220 } = {}){
-  const left = 34, bottom = 24, top = 18, plotW = W - left - 6, plotH = H - bottom - top, { max, ticks } = niceScale(Math.max(1, ...cols.map(c => c.v)));
-  const step = plotW / cols.length, bw = Math.min(42, step * .6);
-  return `<svg viewBox="0 0 ${W} ${H}" role="img">
-    ${ticks.map(t => { const y = top + plotH - t / max * plotH; return `<line class="grid" x1="${left}" x2="${W - 6}" y1="${y}" y2="${y}"/><text x="${left - 6}" y="${y + 4}" text-anchor="end">${fmt(t)}</text>`; }).join('')}
-    ${cols.map((c, i) => { const cx = left + step * i + step / 2, h = c.v / max * plotH, y = top + plotH - h;
-      return `<g class="m" data-tip="${esc(c.tip)}"><rect class="hit" x="${cx - step / 2}" y="${top}" width="${step}" height="${plotH + bottom}"/>
-        ${c.v ? `<path class="bar" d="${barPath(cx - bw / 2, y, bw, Math.max(h, 2), 'v')}" fill="${C.bar}"/>` : ''}
-        <text class="val" x="${cx}" y="${y - 5}" text-anchor="middle">${fmt(c.v)}</text>
-        <text x="${cx}" y="${H - 6}" text-anchor="middle">${esc(c.label)}</text></g>`; }).join('')}
-  </svg>`;
-}
-const tableView = (head, rows) => `<details><summary>표로 보기</summary><table><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((v, i) => `<td${i ? ' class="num"' : ''}>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></details>`;
-
-function renderDash(){
-  const D = dashAgg(), rate = pct(D.bad, D.total);
-  $('dSrc').innerHTML = `데이터: <b>${esc(D.name)}</b> ${D.uploaded ? '(수주 검증에서 올린 파일)' : '(기본 데이터)'} · 규칙 ① 발주처·로트번호 빈 값 ② 수량 0 이하 ③ 완전 중복`;
-  $('dSrcBtn').innerHTML = D.uploaded ? '<button type="button" class="s" id="dReset">기본 데이터로 보기</button>' : '<a href="#orders" class="s" style="text-decoration:none;padding:3px 9px;border:1px solid var(--line);border-radius:6px;color:var(--ink)">다른 파일 검증하기 →</a>';
-  if (D.uploaded) $('dReset').onclick = () => { OS.res = null; OS.rows = []; OS.name = ''; $('oResult').hidden = true; renderDash(); };
-  $('dKpi').innerHTML = `
-    <div class="kpi"><div class="l"><span class="ico all">Σ</span>전체 행</div><div class="v">${fmt(D.total)}</div><div class="s">엑셀 데이터 행 (머리글 제외)</div></div>
-    <div class="kpi"><div class="l"><span class="ico good">✓</span>정상 행</div><div class="v" style="color:#006c10">${fmt(D.ok)}</div><div class="s">저장 대상 · ${pct(D.ok, D.total)}%</div></div>
-    <div class="kpi"><div class="l"><span class="ico bad">✕</span>오류 행</div><div class="v" style="color:#b4232c">${fmt(D.bad)}</div><div class="s">위반 ${fmt(D.violations)}건${D.violations !== D.bad ? ' (한 행 여러 위반 포함)' : ''}</div></div>
-    <div class="kpi"><div class="l"><span class="ico bad">%</span>오류율</div><div class="v">${rate}<span style="font-size:18px">%</span></div><div class="s">오류 행 ÷ 전체 행</div></div>`;
-  $('dComp').innerHTML = `<h3>정상 · 오류 구성</h3><p class="sub">전체 ${fmt(D.total)}행 중</p>
-    <div class="stack" role="img" aria-label="정상 ${D.ok}행, 오류 ${D.bad}행">
-      <span style="width:${D.ok / D.total * 100}%;background:${C.good}" data-tip="정상 <b>${fmt(D.ok)}</b>행 · ${pct(D.ok, D.total)}%"></span>
-      <span style="width:${Math.max(D.bad / D.total * 100, D.bad ? .6 : 0)}%;background:${C.bad}" data-tip="오류 <b>${fmt(D.bad)}</b>행 · ${rate}%"></span>
-    </div>
-    <div class="stackleg"><span><i style="background:${C.good}"></i>✓ 정상 <b>${fmt(D.ok)}</b>행 (${pct(D.ok, D.total)}%)</span><span><i style="background:${C.bad}"></i>✕ 오류 <b>${fmt(D.bad)}</b>행 (${rate}%)</span></div>`;
-  const rules = O_RULES.map(r => ({ label: `${r.no} ${r.name}`, v: D.byRule[r.id], tip: `${r.no} ${r.name}: <b>${fmt(D.byRule[r.id])}</b>건 · 전체 위반의 ${pct(D.byRule[r.id], D.violations)}%` }));
-  $('cRule').innerHTML = `<h3>규칙별 오류 건수</h3><p class="sub">위반 ${fmt(D.violations)}건의 원인</p>${hbar(rules, { label: 130 })}${tableView(['규칙', '건수'], rules.map(r => [r.label, fmt(r.v)]))}`;
-  const cs = D.cust.filter(c => c.bad).sort((a, b) => b.bad - a.bad || a.name.localeCompare(b.name));
-  $('cCust').innerHTML = `<h3>발주처별 오류 행</h3><p class="sub">'(빈 칸)'은 발주처가 비어 있는 행 · 막대에 올리면 그 발주처 전체 행수와 오류율</p>${hbar(cs.map(c => ({ label: c.name, v: c.bad, tip: `${esc(c.name)}: 오류 <b>${fmt(c.bad)}</b>행 / 전체 ${fmt(c.total)}행 · 오류율 ${pct(c.bad, c.total)}%` })), { label: 100 })}${tableView(['발주처', '오류 행', '전체 행', '오류율'], cs.map(c => [c.name, fmt(c.bad), fmt(c.total), pct(c.bad, c.total) + '%']))}`;
-  const ms = D.months;
-  $('cMonth').innerHTML = `<h3>월별 오류 행</h3><p class="sub">수주일 기준 (날짜 표기가 섞여 있어도 같은 달로 묶음) · 막대에 올리면 그 달 전체·정상·오류</p>${vbar(ms.map(m => ({ label: m.m.length === 7 ? `${m.m.slice(2, 4)}.${m.m.slice(5)}` : m.m, v: m.bad, tip: `${esc(m.m)}: 전체 <b>${fmt(m.total)}</b> · 정상 <b>${fmt(m.total - m.bad)}</b> · 오류 <b>${fmt(m.bad)}</b>행 (${pct(m.bad, m.total)}%)` })))}${tableView(['월', '전체 행', '정상 행', '오류 행', '오류율'], ms.map(m => [m.m, fmt(m.total), fmt(m.total - m.bad), fmt(m.bad), pct(m.bad, m.total) + '%']))}`;
-  bindTips($('v-dashboard'));
-}
-
-/* ---------- ③ 수주 검증 ---------- */
+/* ── 수주 검증 ── */
 const O_SHEET = '수주납품';
 const O_HEAD = ['수주일', '발주처', '품번', '품명', '로트번호', '수량', '단위', '단가', '담당자'];
-const OS = { name: '', head: null, rows: [], res: null, rule: 'all', q: '', open: null };
-
+const O_RULES = [{ id: 'cust', no: '①', name: '발주처 빈 값' }, { id: 'lot', no: '①', name: '로트번호 빈 값' }, { id: 'qty', no: '②', name: '수량 0 이하' }, { id: 'dup', no: '③', name: '중복 행' }];
+const OS = { name: '', rows: [], res: null, rule: 'all', q: '', open: null, skipped: 0 };
+const isBlank = v => v == null || String(v).trim() === '';
+const showVal = v => v == null ? '(빈 칸)' : String(v).trim() === '' ? `(공백 ${String(v).length}칸)` : String(v);
 function oMsg(kind, html){ $('oMsg').innerHTML = html ? `<div class="msg ${kind}">${html}</div>` : ''; }
-
-// 1단계: 파일 읽기 + 시트·머리글 확인
 async function readOrderFile(file){
-  oMsg('', ''); $('oResult').hidden = true; OS.res = null; renderOrders();
+  oMsg('', ''); OS.res = null; renderOrders();
   if (!/\.xlsx?$/i.test(file.name)) return oMsg('err', `<b>${esc(file.name)}</b>은(는) 엑셀 파일이 아닙니다. .xlsx 파일을 올려 주세요.`);
   if (typeof XLSX === 'undefined') return oMsg('err', '엑셀을 읽는 도구를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요.');
   oMsg('info', `<b>${esc(file.name)}</b> 읽는 중…`);
-  let wb;
-  try { wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false }); }
+  let wb; try { wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false }); }
   catch { return oMsg('err', '파일을 열 수 없습니다. 암호가 걸려 있거나 손상된 파일인지 확인해 주세요.'); }
   const ws = wb.Sheets[O_SHEET];
   if (!ws) return oMsg('err', `'${O_SHEET}' 시트가 없습니다. 이 파일의 시트: ${wb.SheetNames.map(n => `'${esc(n)}'`).join(', ')}`);
   const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
   const grid = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: true });
   const head = (grid[0] || []).slice(0, 9).map(v => v == null ? '' : String(v).trim());
-  const missing = O_HEAD.filter((h, i) => head[i] !== h);
-  if (range.s.r !== 0 || missing.length)
+  if (range.s.r !== 0 || O_HEAD.some((h, i) => head[i] !== h))
     return oMsg('err', `1행 머리글이 약속과 다릅니다. A~I열이 차례로 <b>${O_HEAD.join(' · ')}</b> 이어야 합니다.<br>지금 파일: ${head.map(h => esc(h || '(빈 칸)')).join(' · ')}`);
   const rows = []; let skipped = 0;
-  for (let i = 1; i < grid.length; i++){
-    const vals = O_HEAD.map((_, c) => grid[i][c] ?? null);
-    if (vals.every(v => v == null || String(v).trim() === '')) { skipped++; continue; } // 완전히 빈 줄은 데이터가 아님
-    rows.push({ r: range.s.r + i + 1, vals });                                          // 머리글 포함 엑셀 행 번호
-  }
+  for (let i = 1; i < grid.length; i++){ const vals = O_HEAD.map((_, c) => grid[i][c] ?? null);
+    if (vals.every(v => v == null || String(v).trim() === '')){ skipped++; continue; } rows.push({ r: range.s.r + i + 1, vals }); }
   if (!rows.length) return oMsg('err', '머리글 아래에 데이터 행이 없습니다.');
-  Object.assign(OS, { name: file.name, head: O_HEAD, rows, skipped, rule: 'all', q: '', open: null });
+  Object.assign(OS, { name: file.name, rows, skipped, rule: 'all', q: '', open: null });
   OS.res = validateOrders(rows);
   oMsg('info', `검증을 마쳤습니다. 한눈에 보려면 <a href="#dashboard">대시보드</a>를 여세요.`);
   renderOrders();
 }
-// 규칙 정의 (화면의 규칙별 건수·필터가 이 순서를 따름)
-const O_RULES = [
-  { id: 'cust', no: '①', name: '발주처 빈 값' },
-  { id: 'lot',  no: '①', name: '로트번호 빈 값' },
-  { id: 'qty',  no: '②', name: '수량 0 이하' },
-  { id: 'dup',  no: '③', name: '중복 행' },
-];
-const isBlank = v => v == null || String(v).trim() === '';
-const showVal = v => v == null ? '(빈 칸)' : String(v).trim() === '' ? `(공백 ${String(v).length}칸)` : String(v);
-
-// 2단계: ① 빈 값 · ② 수량 / 3단계: ③ 중복
 function validateOrders(rows){
   const issues = [], seen = new Map();
   for (const row of rows){
     const [, cust, , , lot, qty] = row.vals;
     if (isBlank(cust)) issues.push({ r: row.r, rule: 'cust', field: '발주처', value: showVal(cust), reason: '발주처가 비어 있음' });
-    if (isBlank(lot))  issues.push({ r: row.r, rule: 'lot', field: '로트번호', value: showVal(lot), reason: '로트번호가 비어 있음' });
-    // 숫자로 적힌 글자('12')는 숫자로 인정, 숫자로 읽을 수 없으면 ②로 분류
+    if (isBlank(lot)) issues.push({ r: row.r, rule: 'lot', field: '로트번호', value: showVal(lot), reason: '로트번호가 비어 있음' });
     const n = typeof qty === 'number' ? qty : (isBlank(qty) ? NaN : Number(String(qty).replace(/,/g, '').trim()));
     if (!Number.isFinite(n)) issues.push({ r: row.r, rule: 'qty', field: '수량', value: showVal(qty), reason: '수량이 숫자가 아님' });
-    else if (n <= 0)         issues.push({ r: row.r, rule: 'qty', field: '수량', value: String(qty), reason: n === 0 ? '수량이 0' : '수량이 0보다 작음(음수)' });
-    // 9개 항목을 원본 값 그대로 비교 (표기 정리 없음). 처음 나온 행이 기준, 뒤 행만 오류
+    else if (n <= 0) issues.push({ r: row.r, rule: 'qty', field: '수량', value: String(qty), reason: n === 0 ? '수량이 0' : '수량이 0보다 작음(음수)' });
     const key = JSON.stringify(row.vals);
     if (seen.has(key)) issues.push({ r: row.r, rule: 'dup', field: '9개 항목 전체', value: `${showVal(row.vals[0])} · ${showVal(row.vals[1])} · ${showVal(row.vals[2])} · ${showVal(row.vals[5])}…`, reason: `${seen.get(key)}행과 9개 항목이 모두 같음`, ref: seen.get(key) });
     else seen.set(key, row.r);
   }
   const badRows = new Set(issues.map(x => x.r));
-  const byRule = Object.fromEntries(O_RULES.map(r => [r.id, issues.filter(x => x.rule === r.id).length]));
-  return { total: rows.length, issues, badRows, byRule, okRows: rows.filter(r => !badRows.has(r.r)) };
+  return { total: rows.length, issues, badRows, byRule: Object.fromEntries(O_RULES.map(r => [r.id, issues.filter(x => x.rule === r.id).length])), okRows: rows.filter(r => !badRows.has(r.r)) };
 }
-
-// 4단계: 결과 화면
 const O_LIMIT = 500;
 function renderOrders(){
   const R = OS.res, box = $('oResult');
   $('drop').classList.toggle('small', !!R);
-  $('drop').querySelector('.big').textContent = R ? '다른 파일 검증하기 (끌어다 놓거나 누르기)' : '여기에 엑셀 파일을 끌어다 놓거나, 눌러서 고르세요';
-  if (!R){ box.hidden = true; setCount(0, 0, ['파일을 올리면 검증합니다']); return; }
-  const q = OS.q.replace(/[^0-9]/g, '');
+  $('drop').querySelector('.big').textContent = R ? '다른 파일 검증하기 (끌어다 놓거나 누르기)' : '엑셀 파일을 끌어다 놓거나, 눌러서 고르세요';
+  if (!R){ box.hidden = true; setCount(0, 0); return; }
+  const q = OS.q.replace(/[^0-9]/g, ''), rn = id => { const r = O_RULES.find(r => r.id === id); return `${r.no} ${r.name}`; };
   const list = R.issues.filter(x => (OS.rule === 'all' || x.rule === OS.rule) && (!q || String(x.r).includes(q)));
-  setCount(list.length, R.issues.length, [`오류 행 ${fmt(R.badRows.size)}`, `정상 행 ${fmt(R.okRows.length)}`]);
-  const ruleName = id => { const r = O_RULES.find(r => r.id === id); return `${r.no} ${r.name}`; };
+  setCount(list.length, R.issues.length);
   const byRow = new Map(OS.rows.map(r => [r.r, r.vals]));
   const kv = vals => `<div class="kv">${O_HEAD.map((h, i) => `<span><b>${esc(h)}</b>${esc(showVal(vals[i]))}</span>`).join('')}</div>`;
   box.hidden = false;
   box.innerHTML = `
-    <div class="msg info" style="margin-top:12px">파일 <b>${esc(OS.name)}</b> · 시트 '${O_SHEET}' · 데이터 ${fmt(R.total)}행(엑셀 ${OS.rows[0].r}~${OS.rows.at(-1).r}행)${OS.skipped ? ` · 완전히 빈 줄 ${OS.skipped}개는 데이터가 아니어서 건너뜀` : ''}</div>
-    <div class="cards">
-      <div class="kcard"><div class="l">전체 행</div><div class="v">${fmt(R.total)}</div></div>
-      <div class="kcard ok"><div class="l">정상 행 (저장 대상)</div><div class="v">${fmt(R.okRows.length)}</div></div>
-      <div class="kcard ng"><div class="l">오류 행</div><div class="v">${fmt(R.badRows.size)}</div><div class="exp muted">위반 ${fmt(R.issues.length)}건${R.issues.length !== R.badRows.size ? ' (한 행에 여러 위반 포함)' : ''}</div></div>
+    <div class="small muted" style="margin:12px 0 8px">파일 <b style="color:var(--ink)">${esc(OS.name)}</b> · 시트 '${O_SHEET}' · 데이터 ${fmt(R.total)}행(엑셀 ${OS.rows[0].r}~${OS.rows.at(-1).r}행)${OS.skipped ? ` · 완전히 빈 줄 ${OS.skipped}개 건너뜀` : ''}</div>
+    <div class="kpis">
+      <div class="card kpi kcard"><div class="l"><span class="ico all">Σ</span>전체 행</div><div class="v">${fmt(R.total)}</div></div>
+      <div class="card kpi kcard"><div class="l"><span class="ico good">✓</span>정상 행 (저장 대상)</div><div class="v" style="color:var(--good)">${fmt(R.okRows.length)}</div></div>
+      <div class="card kpi kcard"><div class="l"><span class="ico bad">✕</span>오류 행</div><div class="v" style="color:var(--bad)">${fmt(R.badRows.size)}</div><div class="s">위반 ${fmt(R.issues.length)}건${R.issues.length !== R.badRows.size ? ' (한 행 여러 위반 포함)' : ''}</div></div>
+      <div class="card kpi"><div class="l"><span class="ico blue">↓</span>저장</div><div style="display:flex;flex-direction:column;gap:6px;margin-top:8px"><button type="button" class="btn p" id="saveOk" ${R.okRows.length ? '' : 'disabled'}>정상 행 ${fmt(R.okRows.length)}건 엑셀로</button><button type="button" class="btn" id="saveErr" ${R.issues.length ? '' : 'disabled'}>오류 목록 엑셀로</button></div><div class="s" id="saveMsg"></div></div>
     </div>
-    <div class="actions">
-      <button type="button" class="bigbtn" id="saveOk" ${R.okRows.length ? '' : 'disabled'}>✔ 정상 행 ${fmt(R.okRows.length)}건 엑셀로 저장</button>
-      <button type="button" class="bigbtn ghost" id="saveErr" ${R.issues.length ? '' : 'disabled'}>오류 목록 엑셀로 저장</button>
-      <span class="muted" id="saveMsg"></span>
-    </div>
-    <h3 style="font-size:15px;margin:6px 0 8px">규칙별 건수 <span class="muted" style="font-weight:400">— 누르면 오류 목록이 그 규칙만 보입니다</span></h3>
     <div class="rules">
       <button type="button" class="rule" data-rule="all" aria-pressed="${OS.rule === 'all'}"><div class="n" style="color:var(--ink)">${fmt(R.issues.length)}</div><div class="t">전체 위반</div></button>
       ${O_RULES.map(r => `<button type="button" class="rule" data-rule="${r.id}" aria-pressed="${OS.rule === r.id}"><div class="n">${fmt(R.byRule[r.id])}</div><div class="t">${r.no} ${esc(r.name)}</div></button>`).join('')}
     </div>
-    <div class="controls">
-      <input id="oQ" type="search" placeholder="엑셀 행 번호로 찾기 (예: 190)" aria-label="행 번호 검색" value="${esc(OS.q)}" inputmode="numeric" autocomplete="off">
-      <span class="muted">행을 누르면 그 행의 9개 항목 전체가 보입니다.</span>
-    </div>
-    <div class="card">
-      <table class="main">
-        <thead><tr><th class="num">엑셀 행</th><th>규칙</th><th>항목</th><th>값</th><th>사유</th></tr></thead>
-        <tbody id="oRows">${list.slice(0, O_LIMIT).map(x => {
-          const open = OS.open === x.r + x.rule;
-          return `<tr class="row${open ? ' open' : ''}" data-k="${x.r + x.rule}" tabindex="0">
-            <td class="num mono">${x.r}</td><td><span class="badge b-bad">${esc(ruleName(x.rule))}</span></td>
-            <td>${esc(x.field)}</td><td class="mono" style="font-weight:500">${esc(x.value)}</td><td>${esc(x.reason)}</td></tr>` +
-            (open ? `<tr class="full"><td colspan="5"><div class="muted" style="margin-bottom:4px">엑셀 ${x.r}행</div>${kv(byRow.get(x.r))}${x.ref ? `<div class="muted" style="margin:8px 0 4px">같은 내용의 앞쪽 행: 엑셀 ${x.ref}행 (이 행은 저장되고, ${x.r}행만 오류)</div>${kv(byRow.get(x.ref))}` : ''}</td></tr>` : '');
-        }).join('')}</tbody>
-      </table>
+    <div class="bar-row"><input id="oQ" class="inp w" type="search" placeholder="엑셀 행 번호로 찾기 (예: 190)" aria-label="행 번호 검색" value="${esc(OS.q)}" inputmode="numeric" autocomplete="off"><span class="small muted">행을 누르면 9개 항목 전체가 보입니다.</span></div>
+    <div class="card tw"><table class="t"><thead><tr><th class="num">엑셀 행</th><th>규칙</th><th>항목</th><th>값</th><th>사유</th></tr></thead>
+      <tbody id="oRows">${list.slice(0, O_LIMIT).map(x => { const open = OS.open === x.r + x.rule;
+        return `<tr class="click row" data-k="${x.r + x.rule}" tabindex="0"><td class="num mono">${x.r}</td><td><span class="badge b-bad">${esc(rn(x.rule))}</span></td><td>${esc(x.field)}</td><td class="mono" style="font-weight:500">${esc(x.value)}</td><td>${esc(x.reason)}</td></tr>` +
+          (open ? `<tr class="full"><td colspan="5"><div class="muted" style="margin-bottom:4px">엑셀 ${x.r}행</div>${kv(byRow.get(x.r))}${x.ref ? `<div class="muted" style="margin:8px 0 4px">같은 내용의 앞쪽 행: 엑셀 ${x.ref}행 (그 행은 저장, ${x.r}행만 오류)</div>${kv(byRow.get(x.ref))}` : ''}</td></tr>` : ''); }).join('')}</tbody></table>
       <div class="empty" ${list.length ? 'hidden' : ''}>${R.issues.length ? '조건에 맞는 오류가 없습니다.' : '오류가 없습니다. 모든 행이 정상입니다.'}</div>
-      ${list.length > O_LIMIT ? `<div class="empty">처음 ${O_LIMIT}건만 표시합니다. 전체는 '오류 목록 엑셀로 저장'으로 받으세요.</div>` : ''}
-    </div>`;
+      ${list.length > O_LIMIT ? `<div class="empty">처음 ${O_LIMIT}건만 표시합니다. 전체는 '오류 목록 엑셀로'로 받으세요.</div>` : ''}</div>`;
   box.querySelectorAll('.rule').forEach(b => b.onclick = () => { OS.rule = b.dataset.rule; OS.open = null; renderOrders(); });
   const qi = $('oQ'); qi.oninput = () => { OS.q = qi.value; const pos = qi.selectionStart; renderOrders(); const n = $('oQ'); n.focus(); n.setSelectionRange(pos, pos); };
   $('oRows').onclick = e => { const tr = e.target.closest('tr.row'); if (!tr) return; OS.open = OS.open === tr.dataset.k ? null : tr.dataset.k; renderOrders(); };
   $('oRows').onkeydown = e => { if (e.key === 'Enter' && e.target.matches('tr.row')) e.target.click(); };
   $('saveOk').onclick = saveOkRows; $('saveErr').onclick = saveIssues;
 }
-
-// 5단계: 저장 (원본은 그대로, 새 파일로 내려받기)
 const baseName = () => OS.name.replace(/\.xlsx?$/i, '');
-function sheetFile(sheetName, aoa, widths){
-  const ws = XLSX.utils.aoa_to_sheet(aoa); if (widths) ws['!cols'] = widths.map(w => ({ wch: w }));
-  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, sheetName);
-  return new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]);
-}
+function sheetFile(name, aoa, widths){ const ws = XLSX.utils.aoa_to_sheet(aoa); if (widths) ws['!cols'] = widths.map(w => ({ wch: w }));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, name); return new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]); }
 async function saveBlob(filename, blob){
   const say = (t, bad) => { const m = $('saveMsg'); m.textContent = t; m.style.color = bad ? 'var(--bad)' : 'var(--good)'; };
-  // claude.ai 안에서는 downloads 기능, 그 밖(GitHub Pages·PC에서 연 파일)에서는 일반 내려받기
   if (window.claude && typeof window.claude.use === 'function'){
     const dl = await window.claude.use('downloads');
-    if (dl){
-      try { await dl.save({ filename, data: blob }); return say(`저장했습니다: ${filename}`); }
-      catch (e){ return say(e && e.code === 'declined' ? '저장을 취소했습니다.' : '이 화면에서는 저장할 수 없습니다. GitHub Pages 주소나 PC에서 연 파일로 다시 시도해 주세요.', true); }
-    }
+    if (dl){ try { await dl.save({ filename, data: blob }); return say(`저장했습니다: ${filename}`); }
+      catch (e){ return say(e && e.code === 'declined' ? '저장을 취소했습니다.' : '이 화면에서는 저장할 수 없습니다. GitHub Pages나 PC에서 연 파일로 시도해 주세요.', true); } }
   }
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
   say(`내려받기를 시작했습니다: ${filename}`);
 }
-function saveOkRows(){
-  const R = OS.res;
-  const aoa = [O_HEAD, ...R.okRows.map(r => r.vals)];    // 원본 값 그대로, 정상 행만
-  saveBlob(`${baseName()}_정상행_${R.okRows.length}건.xlsx`, sheetFile(O_SHEET, aoa, [12, 12, 11, 20, 12, 7, 6, 10, 8]));
-}
-function saveIssues(){
-  const R = OS.res, rn = id => { const r = O_RULES.find(r => r.id === id); return `${r.no} ${r.name}`; };
-  const aoa = [['엑셀 행 번호', '규칙', '항목', '값', '사유'], ...R.issues.map(x => [x.r, rn(x.rule), x.field, x.value, x.reason])];
-  saveBlob(`${baseName()}_오류목록_${R.issues.length}건.xlsx`, sheetFile('오류목록', aoa, [11, 16, 14, 40, 30]));
-}
-
+function saveOkRows(){ const R = OS.res; saveBlob(`${baseName()}_정상행_${R.okRows.length}건.xlsx`, sheetFile(O_SHEET, [O_HEAD, ...R.okRows.map(r => r.vals)], [12, 12, 11, 20, 12, 7, 6, 10, 8])); }
+function saveIssues(){ const R = OS.res, rn = id => { const r = O_RULES.find(r => r.id === id); return `${r.no} ${r.name}`; };
+  saveBlob(`${baseName()}_오류목록_${R.issues.length}건.xlsx`, sheetFile('오류목록', [['엑셀 행 번호', '규칙', '항목', '값', '사유'], ...R.issues.map(x => [x.r, rn(x.rule), x.field, x.value, x.reason])], [11, 16, 14, 40, 30])); }
 const drop = $('drop'), fileIn = $('file');
 drop.onclick = () => fileIn.click();
 drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileIn.click(); } };
@@ -647,18 +645,84 @@ fileIn.onchange = () => { if (fileIn.files[0]) readOrderFile(fileIn.files[0]); f
 ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
 drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) readOrderFile(f); });
 
-/* ---------- 메뉴(해시) ---------- */
+/* ── 대시보드 ── */
+const C = { good: '#0aac23', bad: '#dc3c3d', bar: '#257de0' };
+function dashAgg(){
+  if (!OS.res) return DATA.dash;
+  const R = OS.res, months = new Map(), cust = new Map();
+  const iso = v => { if (typeof v === 'number'){ const d = new Date(Math.round((v - 25569) * 864e5)); return d.toISOString().slice(0, 7); }
+    const p = String(v ?? '').trim().split(/[-/.]/); return p.length >= 2 && /^\d{4}$/.test(p[0]) ? `${p[0]}-${String(+p[1]).padStart(2, '0')}` : '(날짜 없음)'; };
+  for (const row of OS.rows){ const bad = R.badRows.has(row.r) ? 1 : 0, m = iso(row.vals[0]), c = isBlank(row.vals[1]) ? '(빈 칸)' : String(row.vals[1]);
+    const a = months.get(m) || { m, total: 0, bad: 0 }; a.total++; a.bad += bad; months.set(m, a);
+    const b = cust.get(c) || { name: c, total: 0, bad: 0 }; b.total++; b.bad += bad; cust.set(c, b); }
+  return { name: OS.name, uploaded: true, total: R.total, ok: R.okRows.length, bad: R.badRows.size, violations: R.issues.length, byRule: R.byRule,
+           months: [...months.values()].sort((a, b) => a.m.localeCompare(b.m)), cust: [...cust.values()] };
+}
+const tip = $('tip');
+function bindTips(root){ root.querySelectorAll('[data-tip]').forEach(el => {
+  el.onmouseenter = () => { tip.innerHTML = el.dataset.tip; tip.classList.add('on'); };
+  el.onmousemove = e => { const w = tip.offsetWidth; tip.style.left = Math.min(e.clientX + 12, innerWidth - w - 8) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; };
+  el.onmouseleave = () => tip.classList.remove('on'); }); }
+function barPath(x, y, w, h, dir){ const r = Math.min(4, dir === 'h' ? w / 2 : h / 2, dir === 'h' ? h / 2 : w / 2);
+  if (dir === 'h') return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`; }
+function niceScale(v){ const raw = Math.max(v, 1) / 4, p = 10 ** Math.floor(Math.log10(raw)), n = raw / p;
+  const step = Math.max(1, (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p), max = Math.ceil(v / step) * step + (v % step === 0 ? step : 0);
+  return { max, ticks: Array.from({ length: Math.round(max / step) + 1 }, (_, i) => i * step) }; }
+function hbar(rows, { W = 520, label = 120 } = {}){
+  const rowH = 30, H = rows.length * rowH + 22, { max, ticks } = niceScale(Math.max(1, ...rows.map(r => r.v))), x0 = label, plotW = W - label - 44;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${ticks.map(t => `<line class="grid" x1="${x0 + t / max * plotW}" x2="${x0 + t / max * plotW}" y1="0" y2="${H - 22}"/><text x="${x0 + t / max * plotW}" y="${H - 6}" text-anchor="middle">${fmt(t)}</text>`).join('')}
+    ${rows.map((r, i) => { const y = i * rowH + 6, w = r.v / max * plotW; return `<g class="m" data-tip="${esc(r.tip)}"><rect class="hit" x="0" y="${y - 4}" width="${W}" height="${rowH}"/><text x="${x0 - 8}" y="${y + 13}" text-anchor="end">${esc(r.label)}</text>${r.v ? `<path class="bar" d="${barPath(x0, y, Math.max(w, 2), 18, 'h')}" fill="${C.bar}"/>` : ''}<text class="val" x="${x0 + w + 6}" y="${y + 13}">${fmt(r.v)}</text></g>`; }).join('')}</svg>`; }
+function vbar(cols, { W = 1060, H = 220 } = {}){
+  const left = 34, bottom = 24, top = 18, plotW = W - left - 6, plotH = H - bottom - top, { max, ticks } = niceScale(Math.max(1, ...cols.map(c => c.v))), step = plotW / cols.length, bw = Math.min(42, step * .6);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">${ticks.map(t => { const y = top + plotH - t / max * plotH; return `<line class="grid" x1="${left}" x2="${W - 6}" y1="${y}" y2="${y}"/><text x="${left - 6}" y="${y + 4}" text-anchor="end">${fmt(t)}</text>`; }).join('')}
+    ${cols.map((c, i) => { const cx = left + step * i + step / 2, h = c.v / max * plotH, y = top + plotH - h; return `<g class="m" data-tip="${esc(c.tip)}"><rect class="hit" x="${cx - step / 2}" y="${top}" width="${step}" height="${plotH + bottom}"/>${c.v ? `<path class="bar" d="${barPath(cx - bw / 2, y, bw, Math.max(h, 2), 'v')}" fill="${C.bar}"/>` : ''}<text class="val" x="${cx}" y="${y - 5}" text-anchor="middle">${fmt(c.v)}</text><text x="${cx}" y="${H - 6}" text-anchor="middle">${esc(c.label)}</text></g>`; }).join('')}</svg>`; }
+const tableView = (head, rows) => `<details class="tv"><summary>표로 보기</summary><table><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((v, i) => `<td${i ? ' class="num"' : ''}>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></details>`;
+function renderDash(){
+  const D = dashAgg(), rate = pct(D.bad, D.total);
+  $('dSrc').innerHTML = `데이터: <b>${esc(D.name)}</b> ${D.uploaded ? '(수주 검증에서 올린 파일)' : '(기본 데이터)'}`;
+  $('dSrcBtn').innerHTML = D.uploaded ? '<button type="button" class="btn" id="dReset">기본 데이터로 보기</button>' : '<a href="#orders" class="small">다른 파일 검증하기 →</a>';
+  if (D.uploaded) $('dReset').onclick = () => { OS.res = null; OS.rows = []; OS.name = ''; $('oResult').hidden = true; renderDash(); };
+  $('dKpi').innerHTML = `
+    <div class="card kpi"><div class="l"><span class="ico all">Σ</span>수주 전체 행</div><div class="v">${fmt(D.total)}</div><div class="s">${esc(D.name)}</div></div>
+    <div class="card kpi"><div class="l"><span class="ico good">✓</span>정상 행</div><div class="v" style="color:var(--good)">${fmt(D.ok)}</div><div class="s">저장 대상 · ${pct(D.ok, D.total)}%</div></div>
+    <div class="card kpi"><div class="l"><span class="ico bad">✕</span>오류 행</div><div class="v" style="color:var(--bad)">${fmt(D.bad)}</div><div class="s">위반 ${fmt(D.violations)}건 · 오류율 ${rate}%</div></div>
+    <div class="card kpi"><div class="l"><span class="ico blue">⇄</span>출하 불가로 제외한 재고</div><div class="v">${fmt(Object.values(ATP).reduce((s, a) => s + a.ex, 0))}</div><div class="s">검사 대기·부적합·고객 위탁·수리부속 · 기준일 ${esc(DATA.asof)}</div></div>`;
+  $('dComp').innerHTML = `<div style="display:flex;justify-content:space-between;align-items:baseline"><h3 style="margin:0;font-size:14.5px">정상 · 오류 구성</h3><span class="small muted">전체 ${fmt(D.total)}행</span></div>
+    <div class="stack" style="margin-top:10px" role="img" aria-label="정상 ${D.ok}행, 오류 ${D.bad}행"><span style="width:${D.ok / D.total * 100}%;background:${C.good}" data-tip="정상 <b>${fmt(D.ok)}</b>행 · ${pct(D.ok, D.total)}%"></span><span style="width:${Math.max(D.bad / D.total * 100, D.bad ? .6 : 0)}%;background:${C.bad}" data-tip="오류 <b>${fmt(D.bad)}</b>행 · ${rate}%"></span></div>
+    <div class="leg"><span><i style="background:${C.good}"></i>✓ 정상 <b>${fmt(D.ok)}</b>행 (${pct(D.ok, D.total)}%)</span><span><i style="background:${C.bad}"></i>✕ 오류 <b>${fmt(D.bad)}</b>행 (${rate}%)</span></div>`;
+  const risk = DATA.items.filter(i => ATP[i.code].open).sort((a, b) => ATP[a.code].atp - ATP[b.code].atp);
+  $('dAtp').innerHTML = `<table class="t"><thead><tr><th>품번</th><th class="num">납기회신 가능</th><th>제외 재고 · 사유</th><th class="num">물리 재고로 잘못 계산하면</th></tr></thead><tbody>${risk.map(it => { const A = ATP[it.code];
+    return `<tr class="click" data-code="${esc(it.code)}"><td>${itemCell(it)}</td><td class="num"><span class="atpv ${atpCls(A.atp)}">${fmt(A.atp)}</span> <span class="small muted">${esc(it.unit)}</span></td><td>${A.ex ? `<b>${fmt(A.ex)}</b>${reasonChips(A)}` : '<span class="muted small">없음</span>'}</td><td class="num">${fmt(A.phys)}${A.phys !== A.atp ? `<div class="over">+${fmt(A.phys - A.atp)} 과대 약속</div>` : ''}</td></tr>`; }).join('')}</tbody></table>`;
+  $('dAtp').querySelector('tbody').onclick = e => { const tr = e.target.closest('tr[data-code]'); if (tr) openDrawer(tr.dataset.code); };
+  const rules = O_RULES.map(r => ({ label: `${r.no} ${r.name}`, v: D.byRule[r.id], tip: `${r.no} ${r.name}: <b>${fmt(D.byRule[r.id])}</b>건 · 전체 위반의 ${pct(D.byRule[r.id], D.violations)}%` }));
+  $('cRule').innerHTML = `<h3>규칙별 오류 건수</h3><p class="sub">위반 ${fmt(D.violations)}건의 원인</p>${hbar(rules, { label: 130 })}${tableView(['규칙', '건수'], rules.map(r => [r.label, fmt(r.v)]))}`;
+  const cs = D.cust.filter(c => c.bad).sort((a, b) => b.bad - a.bad || a.name.localeCompare(b.name));
+  $('cCust').innerHTML = `<h3>발주처별 오류 행</h3><p class="sub">'(빈 칸)' = 발주처 공란 · 막대에 올리면 전체 행수·오류율</p>${hbar(cs.map(c => ({ label: c.name, v: c.bad, tip: `${esc(c.name)}: 오류 <b>${fmt(c.bad)}</b>행 / 전체 ${fmt(c.total)}행 · ${pct(c.bad, c.total)}%` })), { label: 100 })}${tableView(['발주처', '오류 행', '전체 행', '오류율'], cs.map(c => [c.name, fmt(c.bad), fmt(c.total), pct(c.bad, c.total) + '%']))}`;
+  const ms = D.months;
+  $('cMonth').innerHTML = `<h3>월별 오류 행</h3><p class="sub">수주일 기준 (표기가 섞여 있어도 같은 달로 묶음)</p>${vbar(ms.map(m => ({ label: m.m.length === 7 ? `${m.m.slice(2, 4)}.${m.m.slice(5)}` : m.m, v: m.bad, tip: `${esc(m.m)}: 전체 <b>${fmt(m.total)}</b> · 정상 <b>${fmt(m.total - m.bad)}</b> · 오류 <b>${fmt(m.bad)}</b>행 (${pct(m.bad, m.total)}%)` })))}${tableView(['월', '전체 행', '정상 행', '오류 행', '오류율'], ms.map(m => [m.m, fmt(m.total), fmt(m.total - m.bad), fmt(m.bad), pct(m.bad, m.total) + '%']))}`;
+  bindTips($('v-dashboard'));
+}
+
+/* ── 메뉴(해시) ── */
+const VIEWS = {
+  dashboard: ['대시보드', '수주 데이터 품질과 납기회신 주의 품목을 한눈에', renderDash, false],
+  atp: ['납기회신 가능 수량', '품번별 회신 가능 수량 = 출하 가능 + 입고예정 − 미출고 · 출하 불가 재고는 사유와 함께 제외', renderAtp, true],
+  items: ['품목 조회', '품목 12종의 표준단가·출하검사·회신 가능 수량', renderItems, true],
+  customers: ['발주처 조회', '발주처 기준정보 · 수주 발주처 검증의 기준', renderCustomers, true],
+  orders: ['수주 검증', '수주납품대장 엑셀을 올려 규칙 검증 → 정상 행만 저장', renderOrders, true],
+};
 function route(){
-  const V = { '#items': 'items', '#customers': 'customers', '#orders': 'orders' };
-  const v = V[location.hash] || 'dashboard';
-  for (const s of ['dashboard', 'items', 'customers', 'orders']) $('v-' + s).hidden = s !== v;
-  document.querySelector('.countbar').hidden = v === 'dashboard';
-  document.querySelectorAll('nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === v ? 'page' : 'false'));
-  ({ dashboard: renderDash, items: renderItems, customers: renderCustomers, orders: renderOrders })[v]();
+  const v = VIEWS[location.hash.slice(1)] ? location.hash.slice(1) : 'dashboard';
+  for (const k of Object.keys(VIEWS)) $('v-' + k).hidden = k !== v;
+  document.querySelectorAll('.nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === v ? 'page' : 'false'));
+  const [t, d, fn, cnt] = VIEWS[v]; $('pTitle').textContent = t; $('pDesc').textContent = d; $('cnt').hidden = !cnt;
+  closeDrawer(); fn(); window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', route);
-$('asof1').textContent = DATA.asof;
-$('src').textContent = `출처: 02_금오정밀_기준정보.xlsx(품목마스터·품번별칭·발주처마스터·창고마스터) · 01_금오정밀_수주납품대장.xlsx · 03_금오정밀_창고재고.xlsx(기준일 ${DATA.asof}) · 수주 검증은 올린 파일을 브라우저에서만 읽음 · 원본 파일은 수정하지 않음. 교육용 가상 데이터.`;
+$('asofTop').textContent = `재고 기준일 ${DATA.asof}`;
+$('sideFoot').innerHTML = `기준정보 품목 ${DATA.items.length} · 발주처 ${DATA.customers.length}<br>재고 기준일 ${esc(DATA.asof)}<br>교육용 가상 데이터`;
+$('src').textContent = `출처: 02_금오정밀_기준정보.xlsx(품목마스터·품번별칭·발주처마스터·창고마스터) · 01_금오정밀_수주납품대장.xlsx · 03_금오정밀_창고재고.xlsx(재고현황·입고예정·미출고수주, 기준일 ${DATA.asof}) · 원본 파일은 수정하지 않음 · 수주 검증은 올린 파일을 브라우저에서만 읽음 · 품목 그림은 일러스트(실제 사진 아님).`;
 route();
 </script>
 </body>
