@@ -79,6 +79,36 @@
     table.main tr{padding:8px 12px;border-bottom:1px solid var(--line)} table.main td{border:0;padding:2px 0}
     table.main td.num{text-align:left}
   }
+  [hidden]{display:none !important}
+  /* ⓪ 대시보드 */
+  .dsrc{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:12.5px;color:var(--muted)}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}
+  .kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .kpi .l{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
+  .kpi .v{font-size:34px;font-weight:700;line-height:1.15;font-variant-numeric:tabular-nums;margin-top:4px}
+  .kpi .s{font-size:12px;color:var(--muted);margin-top:2px}
+  .ico{display:inline-grid;place-items:center;width:18px;height:18px;border-radius:50%;color:#fff;font-size:11px;font-weight:700}
+  .ico.good{background:#0aac23} .ico.bad{background:#dc3c3d} .ico.all{background:#5d6672}
+  .comp{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+  .comp h3,.chart h3{margin:0 0 2px;font-size:14.5px} .comp .sub,.chart .sub{margin:0 0 10px;font-size:12px;color:var(--muted)}
+  .stack{display:flex;gap:2px;height:28px;border-radius:6px;overflow:hidden}
+  .stack span{display:block;height:100%}
+  .stackleg{display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;font-size:13px}
+  .stackleg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .chart{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;min-width:0}
+  .chart.wide{grid-column:1 / -1}
+  .chart svg{display:block;width:100%;height:auto;overflow:visible}
+  .chart svg text{font-family:inherit;fill:#5d6672;font-size:12px}
+  .chart svg text.val{fill:#1b1f24;font-weight:600}
+  .chart svg .grid{stroke:#eceef1;stroke-width:1}
+  .chart svg .hit{fill:transparent;cursor:default}
+  .chart svg .hit:hover + .bar,.chart svg g.m:hover .bar{opacity:.8}
+  .chart details{margin-top:8px;font-size:12.5px} .chart details summary{cursor:pointer;color:var(--accent)}
+  .chart details table td,.chart details table th{padding:4px 8px;font-size:12.5px}
+  .tip{position:fixed;z-index:10;pointer-events:none;background:#1b1f24;color:#fff;font-size:12.5px;line-height:1.5;padding:7px 10px;border-radius:7px;box-shadow:0 4px 14px rgba(0,0,0,.18);opacity:0;transition:opacity .1s;white-space:nowrap}
+  .tip.on{opacity:1} .tip b{font-variant-numeric:tabular-nums}
+  @media (max-width:760px){.kpis{grid-template-columns:1fr 1fr}.charts{grid-template-columns:1fr}}
   /* ③ 수주 검증 */
   .drop{border:2px dashed #b9c4d3;border-radius:12px;background:#fff;padding:28px 16px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s}
   .drop.small{padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:center}
@@ -113,6 +143,7 @@
   <div class="top">
     <div><h1>금오정밀 기준정보 조회</h1><p>영업팀 · 견적/납기 회신 전 확인용</p></div>
     <nav aria-label="메뉴">
+      <a href="#dashboard" data-view="dashboard">대시보드</a>
       <a href="#items" data-view="items">품목 조회</a>
       <a href="#customers" data-view="customers">발주처 조회</a>
       <a href="#orders" data-view="orders">수주 검증</a>
@@ -124,6 +155,18 @@
     <span class="of" id="cAll"></span>
     <span class="chips" id="cChips"></span>
   </div>
+
+  <!-- ⓪ 대시보드 -->
+  <section id="v-dashboard" hidden>
+    <div class="dsrc"><span id="dSrc"></span><span id="dSrcBtn"></span></div>
+    <div class="kpis" id="dKpi"></div>
+    <div class="comp" id="dComp"></div>
+    <div class="charts">
+      <div class="chart" id="cRule"></div>
+      <div class="chart" id="cCust"></div>
+      <div class="chart wide" id="cMonth"></div>
+    </div>
+  </section>
 
   <!-- ① 품목 조회 -->
   <section id="v-items" hidden>
@@ -189,9 +232,10 @@
   <footer id="src"></footer>
 </div>
 <div class="toast" id="toast"></div>
+<div class="tip" id="tip" role="tooltip"></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
-const DATA = {"items": [{"code": "KJ-H2201", "name": "케이블 하네스(통신)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "통신용", "unit": "EA", "price": 185000, "lot": "Y", "insp": "전수"}, {"code": "KJ-H2305", "name": "케이블 하네스(전원)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "전원용", "unit": "EA", "price": 142000, "lot": "Y", "insp": "전수"}, {"code": "KJ-C1208", "name": "커넥터 조립체 12핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "12핀", "unit": "EA", "price": 28000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-C2410", "name": "커넥터 조립체 24핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "24핀", "unit": "EA", "price": 42000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-S4102", "name": "신호 변환 보드", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "신호 처리", "unit": "EA", "price": 480000, "lot": "Y", "insp": "전수"}, {"code": "KJ-P3301", "name": "전원 분배 모듈", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "전원 분배", "unit": "EA", "price": 620000, "lot": "Y", "insp": "전수"}, {"code": "KJ-F8204", "name": "필터 어셈블리", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "EMI 필터", "unit": "EA", "price": 73000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1107", "name": "방열 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "방열", "unit": "EA", "price": 18000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1120", "name": "장착 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "장착", "unit": "EA", "price": 15500, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-E5010", "name": "차폐 케이스", "l1": "기구 부품", "l2": "하우징", "l3": "전자파 차폐", "unit": "EA", "price": 96000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-K6003", "name": "고정 클램프 세트", "l1": "소모성 부품", "l2": "체결류", "l3": "클램프", "unit": "SET", "price": 9800, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-O7001", "name": "O-링 세트", "l1": "소모성 부품", "l2": "실링류", "l3": "O-링", "unit": "SET", "price": 6500, "lot": "Y", "insp": "샘플링"}], "aliases": [{"alias": "KJH2201", "key": "KJ-H2201", "reason": "하이픈 누락 표기"}, {"alias": "KJ-H-2201", "key": "KJ-H2201", "reason": "하이픈 중복 표기(구 시스템 이관분)"}, {"alias": "KJ H2201", "key": "KJ-H2201", "reason": "하이픈 대신 공백 입력"}, {"alias": "kj-h2201", "key": "KJ-H2201", "reason": "영문 소문자 입력"}, {"alias": "KJH2305", "key": "KJ-H2305", "reason": "하이픈 누락 표기"}, {"alias": "KJC2410", "key": "KJ-C2410", "reason": "하이픈 누락 표기"}, {"alias": "GR-HNS-01", "key": "KJ-H2201", "reason": "발주처 품번(가람체계 도면 번호)"}, {"alias": "HW-SB4102", "key": "KJ-S4102", "reason": "발주처 품번(한울시스템즈 도면 번호)"}, {"alias": "KJ-B1107A", "key": "KJ-B1107", "reason": "구 개정판 품번(개정 A, 2025-06 폐지)"}], "customers": [{"code": "C01", "name": "가람체계", "type": "체계업체"}, {"code": "C02", "name": "한울시스템즈", "type": "체계업체"}, {"code": "C03", "name": "미르방산", "type": "체계업체"}, {"code": "C04", "name": "누리테크", "type": "1차 협력사"}, {"code": "C05", "name": "다온항공", "type": "1차 협력사"}, {"code": "C06", "name": "바른기계", "type": "1차 협력사"}, {"code": "C07", "name": "새솔정밀", "type": "1차 협력사"}, {"code": "C08", "name": "온빛전자", "type": "1차 협력사"}], "wh": {"G1-AVL": {"name": "출하 가능", "ship": "Y", "rule": "출하검사 합격 · 소유권 금오정밀 · 수주에 할당 가능한 재고"}, "G1-QI": {"name": "출하검사 대기", "ship": "N", "rule": "생산 완료 후 품질팀 출하검사 전 — 합격 시 G1-AVL 로 이동"}, "G1-NCR": {"name": "부적합 격리", "ship": "N", "rule": "검사 불합격·반품 — 재작업 또는 폐기 판정 전까지 출하 금지"}, "G1-CSG": {"name": "고객 위탁 보관", "ship": "N", "rule": "납품 완료(소유권 고객)했으나 고객 요청으로 보관 중 — 금오정밀 재고 아님"}, "G1-SPR": {"name": "수리부속 비축", "ship": "N", "rule": "정비 지원 계약에 따라 비축 의무가 있는 수량 — 일반 수주 할당 금지"}, "M1-OWN": {"name": "사급 자재", "ship": "-", "rule": "금오정밀이 직접 구매한 자재"}, "M1-GFM": {"name": "지급 자재(관급·고객 지급)", "ship": "-", "rule": "발주처가 지급한 자재 — 해당 수주에만 사용, 사용량 보고 대상"}}, "asof": "2026-08-31", "inv": {"KJ-H2201": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 42}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 12}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 3}, {"wh": "G1-CSG", "lot": "L2608-034", "qty": 10}, {"wh": "G1-SPR", "lot": "L2608-042", "qty": 8}], "KJ-S4102": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 18}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 6}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 1}, {"wh": "G1-SPR", "lot": "L2608-034", "qty": 4}], "KJ-C2410": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 120}, {"wh": "G1-QI", "lot": "L2608-017", "qty": 40}, {"wh": "G1-NCR", "lot": "L2608-025", "qty": 6}], "KJ-P3301": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 9}, {"wh": "G1-QI", "lot": "L2608-020", "qty": 4}, {"wh": "G1-SPR", "lot": "L2608-028", "qty": 2}], "KJ-H2305": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 35}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 10}, {"wh": "G1-CSG", "lot": "L2608-026", "qty": 6}], "KJ-C1208": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 150}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 4}], "KJ-F8204": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 60}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 15}], "KJ-B1107": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 210}, {"wh": "G1-NCR", "lot": "L2608-020", "qty": 9}], "KJ-B1120": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 180}], "KJ-E5010": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 48}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 8}], "KJ-K6003": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 300}], "KJ-O7001": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 420}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 20}]}, "incoming": {"KJ-H2201": [{"date": "2026-09-04", "qty": 20, "note": "생산 완료 예정(출하검사 후 G1-AVL 입고)"}], "KJ-S4102": [{"date": "2026-09-07", "qty": 10, "note": "생산 완료 예정"}], "KJ-C2410": [{"date": "2026-09-03", "qty": 60, "note": "생산 완료 예정"}], "KJ-P3301": [{"date": "2026-09-10", "qty": 6, "note": "생산 완료 예정"}], "KJ-H2305": [{"date": "2026-09-05", "qty": 15, "note": "생산 완료 예정"}]}, "open": {"KJ-H2201": [{"so": "SO-2608-118", "cust": "가람체계", "qty": 30, "due": "2026-09-08"}, {"so": "SO-2608-121", "cust": "미르방산", "qty": 16, "due": "2026-09-12"}], "KJ-S4102": [{"so": "SO-2608-125", "cust": "한울시스템즈", "qty": 20, "due": "2026-09-09"}], "KJ-C2410": [{"so": "SO-2608-130", "cust": "누리테크", "qty": 90, "due": "2026-09-05"}], "KJ-P3301": [{"so": "SO-2608-133", "cust": "다온항공", "qty": 12, "due": "2026-09-11"}], "KJ-H2305": [{"so": "SO-2608-137", "cust": "온빛전자", "qty": 25, "due": "2026-09-10"}]}, "ledger": {"rows": 1984, "matched": 1969, "per": {"가람체계": 234, "누리테크": 238, "다온항공": 240, "새솔정밀": 243, "한울시스템즈": 243, "미르방산": 250, "바른기계": 268, "온빛전자": 253}, "blank": [190, 390, 566, 646, 659, 684, 853, 865, 1136, 1301, 1321, 1566, 1598, 1819, 1910], "unknown": {}, "period": ["2025-09-01", "2026-08-28"]}};
+const DATA = {"items": [{"code": "KJ-H2201", "name": "케이블 하네스(통신)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "통신용", "unit": "EA", "price": 185000, "lot": "Y", "insp": "전수"}, {"code": "KJ-H2305", "name": "케이블 하네스(전원)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "전원용", "unit": "EA", "price": 142000, "lot": "Y", "insp": "전수"}, {"code": "KJ-C1208", "name": "커넥터 조립체 12핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "12핀", "unit": "EA", "price": 28000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-C2410", "name": "커넥터 조립체 24핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "24핀", "unit": "EA", "price": 42000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-S4102", "name": "신호 변환 보드", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "신호 처리", "unit": "EA", "price": 480000, "lot": "Y", "insp": "전수"}, {"code": "KJ-P3301", "name": "전원 분배 모듈", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "전원 분배", "unit": "EA", "price": 620000, "lot": "Y", "insp": "전수"}, {"code": "KJ-F8204", "name": "필터 어셈블리", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "EMI 필터", "unit": "EA", "price": 73000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1107", "name": "방열 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "방열", "unit": "EA", "price": 18000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1120", "name": "장착 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "장착", "unit": "EA", "price": 15500, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-E5010", "name": "차폐 케이스", "l1": "기구 부품", "l2": "하우징", "l3": "전자파 차폐", "unit": "EA", "price": 96000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-K6003", "name": "고정 클램프 세트", "l1": "소모성 부품", "l2": "체결류", "l3": "클램프", "unit": "SET", "price": 9800, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-O7001", "name": "O-링 세트", "l1": "소모성 부품", "l2": "실링류", "l3": "O-링", "unit": "SET", "price": 6500, "lot": "Y", "insp": "샘플링"}], "dash": {"name": "01_금오정밀_수주납품대장.xlsx", "total": 1984, "ok": 1921, "bad": 63, "violations": 63, "byRule": {"cust": 15, "lot": 16, "qty": 11, "dup": 21}, "months": [{"m": "2025-09", "total": 161, "bad": 4}, {"m": "2025-10", "total": 159, "bad": 5}, {"m": "2025-11", "total": 152, "bad": 5}, {"m": "2025-12", "total": 156, "bad": 3}, {"m": "2026-01", "total": 158, "bad": 7}, {"m": "2026-02", "total": 159, "bad": 7}, {"m": "2026-03", "total": 180, "bad": 8}, {"m": "2026-04", "total": 171, "bad": 6}, {"m": "2026-05", "total": 169, "bad": 4}, {"m": "2026-06", "total": 169, "bad": 5}, {"m": "2026-07", "total": 172, "bad": 5}, {"m": "2026-08", "total": 178, "bad": 4}], "cust": [{"name": "가람체계", "total": 234, "bad": 6}, {"name": "누리테크", "total": 238, "bad": 6}, {"name": "다온항공", "total": 240, "bad": 8}, {"name": "새솔정밀", "total": 243, "bad": 2}, {"name": "한울시스템즈", "total": 243, "bad": 8}, {"name": "미르방산", "total": 250, "bad": 5}, {"name": "바른기계", "total": 268, "bad": 7}, {"name": "온빛전자", "total": 253, "bad": 6}, {"name": "(빈 칸)", "total": 15, "bad": 15}]}, "aliases": [{"alias": "KJH2201", "key": "KJ-H2201", "reason": "하이픈 누락 표기"}, {"alias": "KJ-H-2201", "key": "KJ-H2201", "reason": "하이픈 중복 표기(구 시스템 이관분)"}, {"alias": "KJ H2201", "key": "KJ-H2201", "reason": "하이픈 대신 공백 입력"}, {"alias": "kj-h2201", "key": "KJ-H2201", "reason": "영문 소문자 입력"}, {"alias": "KJH2305", "key": "KJ-H2305", "reason": "하이픈 누락 표기"}, {"alias": "KJC2410", "key": "KJ-C2410", "reason": "하이픈 누락 표기"}, {"alias": "GR-HNS-01", "key": "KJ-H2201", "reason": "발주처 품번(가람체계 도면 번호)"}, {"alias": "HW-SB4102", "key": "KJ-S4102", "reason": "발주처 품번(한울시스템즈 도면 번호)"}, {"alias": "KJ-B1107A", "key": "KJ-B1107", "reason": "구 개정판 품번(개정 A, 2025-06 폐지)"}], "customers": [{"code": "C01", "name": "가람체계", "type": "체계업체"}, {"code": "C02", "name": "한울시스템즈", "type": "체계업체"}, {"code": "C03", "name": "미르방산", "type": "체계업체"}, {"code": "C04", "name": "누리테크", "type": "1차 협력사"}, {"code": "C05", "name": "다온항공", "type": "1차 협력사"}, {"code": "C06", "name": "바른기계", "type": "1차 협력사"}, {"code": "C07", "name": "새솔정밀", "type": "1차 협력사"}, {"code": "C08", "name": "온빛전자", "type": "1차 협력사"}], "wh": {"G1-AVL": {"name": "출하 가능", "ship": "Y", "rule": "출하검사 합격 · 소유권 금오정밀 · 수주에 할당 가능한 재고"}, "G1-QI": {"name": "출하검사 대기", "ship": "N", "rule": "생산 완료 후 품질팀 출하검사 전 — 합격 시 G1-AVL 로 이동"}, "G1-NCR": {"name": "부적합 격리", "ship": "N", "rule": "검사 불합격·반품 — 재작업 또는 폐기 판정 전까지 출하 금지"}, "G1-CSG": {"name": "고객 위탁 보관", "ship": "N", "rule": "납품 완료(소유권 고객)했으나 고객 요청으로 보관 중 — 금오정밀 재고 아님"}, "G1-SPR": {"name": "수리부속 비축", "ship": "N", "rule": "정비 지원 계약에 따라 비축 의무가 있는 수량 — 일반 수주 할당 금지"}, "M1-OWN": {"name": "사급 자재", "ship": "-", "rule": "금오정밀이 직접 구매한 자재"}, "M1-GFM": {"name": "지급 자재(관급·고객 지급)", "ship": "-", "rule": "발주처가 지급한 자재 — 해당 수주에만 사용, 사용량 보고 대상"}}, "asof": "2026-08-31", "inv": {"KJ-H2201": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 42}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 12}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 3}, {"wh": "G1-CSG", "lot": "L2608-034", "qty": 10}, {"wh": "G1-SPR", "lot": "L2608-042", "qty": 8}], "KJ-S4102": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 18}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 6}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 1}, {"wh": "G1-SPR", "lot": "L2608-034", "qty": 4}], "KJ-C2410": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 120}, {"wh": "G1-QI", "lot": "L2608-017", "qty": 40}, {"wh": "G1-NCR", "lot": "L2608-025", "qty": 6}], "KJ-P3301": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 9}, {"wh": "G1-QI", "lot": "L2608-020", "qty": 4}, {"wh": "G1-SPR", "lot": "L2608-028", "qty": 2}], "KJ-H2305": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 35}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 10}, {"wh": "G1-CSG", "lot": "L2608-026", "qty": 6}], "KJ-C1208": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 150}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 4}], "KJ-F8204": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 60}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 15}], "KJ-B1107": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 210}, {"wh": "G1-NCR", "lot": "L2608-020", "qty": 9}], "KJ-B1120": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 180}], "KJ-E5010": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 48}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 8}], "KJ-K6003": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 300}], "KJ-O7001": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 420}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 20}]}, "incoming": {"KJ-H2201": [{"date": "2026-09-04", "qty": 20, "note": "생산 완료 예정(출하검사 후 G1-AVL 입고)"}], "KJ-S4102": [{"date": "2026-09-07", "qty": 10, "note": "생산 완료 예정"}], "KJ-C2410": [{"date": "2026-09-03", "qty": 60, "note": "생산 완료 예정"}], "KJ-P3301": [{"date": "2026-09-10", "qty": 6, "note": "생산 완료 예정"}], "KJ-H2305": [{"date": "2026-09-05", "qty": 15, "note": "생산 완료 예정"}]}, "open": {"KJ-H2201": [{"so": "SO-2608-118", "cust": "가람체계", "qty": 30, "due": "2026-09-08"}, {"so": "SO-2608-121", "cust": "미르방산", "qty": 16, "due": "2026-09-12"}], "KJ-S4102": [{"so": "SO-2608-125", "cust": "한울시스템즈", "qty": 20, "due": "2026-09-09"}], "KJ-C2410": [{"so": "SO-2608-130", "cust": "누리테크", "qty": 90, "due": "2026-09-05"}], "KJ-P3301": [{"so": "SO-2608-133", "cust": "다온항공", "qty": 12, "due": "2026-09-11"}], "KJ-H2305": [{"so": "SO-2608-137", "cust": "온빛전자", "qty": 25, "due": "2026-09-10"}]}, "ledger": {"rows": 1984, "matched": 1969, "per": {"가람체계": 234, "누리테크": 238, "다온항공": 240, "새솔정밀": 243, "한울시스템즈": 243, "미르방산": 250, "바른기계": 268, "온빛전자": 253}, "blank": [190, 390, 566, 646, 659, 684, 853, 865, 1136, 1301, 1321, 1566, 1598, 1819, 1910], "unknown": {}, "period": ["2025-09-01", "2026-08-28"]}};
 const fmt = n => Number(n).toLocaleString('ko-KR');
 const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const $ = id => document.getElementById(id);
@@ -354,6 +398,92 @@ $('vOut').addEventListener('click', e => { const b = e.target.closest('[data-pic
     ${unk.length ? `<div style="margin-top:8px;font-size:12.5px">미등록 표기: ${unk.map(([k, v]) => `${esc(k)} ${v}행`).join(', ')}</div>` : '<div class="muted" style="margin-top:6px">미등록 이름 표기는 없습니다. 입력된 발주처명은 모두 기준정보와 같습니다.</div>'}`;
 })();
 
+/* ---------- ⓪ 대시보드 ---------- */
+const C = { good: '#0aac23', bad: '#dc3c3d', bar: '#257de0' };
+const pct = (a, b) => b ? (a / b * 100).toFixed(1) : '0.0';
+// 업로드한 파일이 있으면 그 결과, 없으면 01_수주납품대장 기본 집계(build.py)
+function dashAgg(){
+  if (!OS.res) return DATA.dash;
+  const R = OS.res, months = new Map(), cust = new Map();
+  const iso = v => { if (typeof v === 'number'){ const d = new Date(Math.round((v - 25569) * 864e5)); return d.toISOString().slice(0, 7); }
+    const p = String(v ?? '').trim().split(/[-/.]/); return p.length >= 2 && /^\d{4}$/.test(p[0]) ? `${p[0]}-${String(+p[1]).padStart(2, '0')}` : '(날짜 없음)'; };
+  for (const row of OS.rows){
+    const bad = R.badRows.has(row.r) ? 1 : 0, m = iso(row.vals[0]), c = isBlank(row.vals[1]) ? '(빈 칸)' : String(row.vals[1]);
+    const a = months.get(m) || { m, total: 0, bad: 0 }; a.total++; a.bad += bad; months.set(m, a);
+    const b = cust.get(c) || { name: c, total: 0, bad: 0 }; b.total++; b.bad += bad; cust.set(c, b);
+  }
+  return { name: OS.name, uploaded: true, total: R.total, ok: R.okRows.length, bad: R.badRows.size, violations: R.issues.length, byRule: R.byRule,
+           months: [...months.values()].sort((a, b) => a.m.localeCompare(b.m)), cust: [...cust.values()] };
+}
+// 툴팁 (막대에 마우스를 올리면)
+const tip = $('tip');
+function bindTips(root){
+  root.querySelectorAll('[data-tip]').forEach(el => {
+    el.onmouseenter = () => { tip.innerHTML = el.dataset.tip; tip.classList.add('on'); };
+    el.onmousemove = e => { const w = tip.offsetWidth; tip.style.left = Math.min(e.clientX + 12, innerWidth - w - 8) + 'px'; tip.style.top = (e.clientY + 14) + 'px'; };
+    el.onmouseleave = () => tip.classList.remove('on');
+  });
+}
+// 끝만 둥근 막대 (기준선 쪽은 각지게)
+function barPath(x, y, w, h, dir){
+  const r = Math.min(4, dir === 'h' ? w / 2 : h / 2, dir === 'h' ? h / 2 : w / 2);
+  if (dir === 'h') return `M${x},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h - r}Q${x + w},${y + h} ${x + w - r},${y + h}H${x}Z`;
+  return `M${x},${y + h}V${y + r}Q${x},${y} ${x + r},${y}H${x + w - r}Q${x + w},${y} ${x + w},${y + r}V${y + h}Z`;
+}
+// 눈금: 1·2·5 간격으로 4칸 안팎, 최대값보다 한 칸 여유
+function niceScale(v){ const raw = Math.max(v, 1) / 4, p = 10 ** Math.floor(Math.log10(raw)), n = raw / p;
+  const step = Math.max(1, (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p), max = Math.ceil(v / step) * step + (v % step === 0 ? step : 0);
+  return { max, ticks: Array.from({ length: Math.round(max / step) + 1 }, (_, i) => i * step) }; }
+function hbar(rows, { W = 520, label = 120 } = {}){
+  const rowH = 30, H = rows.length * rowH + 22, { max, ticks } = niceScale(Math.max(1, ...rows.map(r => r.v))), x0 = label, plotW = W - label - 44;
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">
+    ${ticks.map(t => `<line class="grid" x1="${x0 + t / max * plotW}" x2="${x0 + t / max * plotW}" y1="0" y2="${H - 22}"/><text x="${x0 + t / max * plotW}" y="${H - 6}" text-anchor="middle">${fmt(t)}</text>`).join('')}
+    ${rows.map((r, i) => { const y = i * rowH + 6, w = r.v / max * plotW;
+      return `<g class="m" data-tip="${esc(r.tip)}"><rect class="hit" x="0" y="${y - 4}" width="${W}" height="${rowH}"/>
+        <text x="${x0 - 8}" y="${y + 13}" text-anchor="end">${esc(r.label)}</text>
+        ${r.v ? `<path class="bar" d="${barPath(x0, y, Math.max(w, 2), 18, 'h')}" fill="${r.color || C.bar}"/>` : ''}
+        <text class="val" x="${x0 + w + 6}" y="${y + 13}">${fmt(r.v)}</text></g>`; }).join('')}
+  </svg>`;
+}
+function vbar(cols, { W = 1060, H = 220 } = {}){
+  const left = 34, bottom = 24, top = 18, plotW = W - left - 6, plotH = H - bottom - top, { max, ticks } = niceScale(Math.max(1, ...cols.map(c => c.v)));
+  const step = plotW / cols.length, bw = Math.min(42, step * .6);
+  return `<svg viewBox="0 0 ${W} ${H}" role="img">
+    ${ticks.map(t => { const y = top + plotH - t / max * plotH; return `<line class="grid" x1="${left}" x2="${W - 6}" y1="${y}" y2="${y}"/><text x="${left - 6}" y="${y + 4}" text-anchor="end">${fmt(t)}</text>`; }).join('')}
+    ${cols.map((c, i) => { const cx = left + step * i + step / 2, h = c.v / max * plotH, y = top + plotH - h;
+      return `<g class="m" data-tip="${esc(c.tip)}"><rect class="hit" x="${cx - step / 2}" y="${top}" width="${step}" height="${plotH + bottom}"/>
+        ${c.v ? `<path class="bar" d="${barPath(cx - bw / 2, y, bw, Math.max(h, 2), 'v')}" fill="${C.bar}"/>` : ''}
+        <text class="val" x="${cx}" y="${y - 5}" text-anchor="middle">${fmt(c.v)}</text>
+        <text x="${cx}" y="${H - 6}" text-anchor="middle">${esc(c.label)}</text></g>`; }).join('')}
+  </svg>`;
+}
+const tableView = (head, rows) => `<details><summary>표로 보기</summary><table><thead><tr>${head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((v, i) => `<td${i ? ' class="num"' : ''}>${esc(v)}</td>`).join('')}</tr>`).join('')}</tbody></table></details>`;
+
+function renderDash(){
+  const D = dashAgg(), rate = pct(D.bad, D.total);
+  $('dSrc').innerHTML = `데이터: <b>${esc(D.name)}</b> ${D.uploaded ? '(수주 검증에서 올린 파일)' : '(기본 데이터)'} · 규칙 ① 발주처·로트번호 빈 값 ② 수량 0 이하 ③ 완전 중복`;
+  $('dSrcBtn').innerHTML = D.uploaded ? '<button type="button" class="s" id="dReset">기본 데이터로 보기</button>' : '<a href="#orders" class="s" style="text-decoration:none;padding:3px 9px;border:1px solid var(--line);border-radius:6px;color:var(--ink)">다른 파일 검증하기 →</a>';
+  if (D.uploaded) $('dReset').onclick = () => { OS.res = null; OS.rows = []; OS.name = ''; $('oResult').hidden = true; renderDash(); };
+  $('dKpi').innerHTML = `
+    <div class="kpi"><div class="l"><span class="ico all">Σ</span>전체 행</div><div class="v">${fmt(D.total)}</div><div class="s">엑셀 데이터 행 (머리글 제외)</div></div>
+    <div class="kpi"><div class="l"><span class="ico good">✓</span>정상 행</div><div class="v" style="color:#006c10">${fmt(D.ok)}</div><div class="s">저장 대상 · ${pct(D.ok, D.total)}%</div></div>
+    <div class="kpi"><div class="l"><span class="ico bad">✕</span>오류 행</div><div class="v" style="color:#b4232c">${fmt(D.bad)}</div><div class="s">위반 ${fmt(D.violations)}건${D.violations !== D.bad ? ' (한 행 여러 위반 포함)' : ''}</div></div>
+    <div class="kpi"><div class="l"><span class="ico bad">%</span>오류율</div><div class="v">${rate}<span style="font-size:18px">%</span></div><div class="s">오류 행 ÷ 전체 행</div></div>`;
+  $('dComp').innerHTML = `<h3>정상 · 오류 구성</h3><p class="sub">전체 ${fmt(D.total)}행 중</p>
+    <div class="stack" role="img" aria-label="정상 ${D.ok}행, 오류 ${D.bad}행">
+      <span style="width:${D.ok / D.total * 100}%;background:${C.good}" data-tip="정상 <b>${fmt(D.ok)}</b>행 · ${pct(D.ok, D.total)}%"></span>
+      <span style="width:${Math.max(D.bad / D.total * 100, D.bad ? .6 : 0)}%;background:${C.bad}" data-tip="오류 <b>${fmt(D.bad)}</b>행 · ${rate}%"></span>
+    </div>
+    <div class="stackleg"><span><i style="background:${C.good}"></i>✓ 정상 <b>${fmt(D.ok)}</b>행 (${pct(D.ok, D.total)}%)</span><span><i style="background:${C.bad}"></i>✕ 오류 <b>${fmt(D.bad)}</b>행 (${rate}%)</span></div>`;
+  const rules = O_RULES.map(r => ({ label: `${r.no} ${r.name}`, v: D.byRule[r.id], tip: `${r.no} ${r.name}: <b>${fmt(D.byRule[r.id])}</b>건 · 전체 위반의 ${pct(D.byRule[r.id], D.violations)}%` }));
+  $('cRule').innerHTML = `<h3>규칙별 오류 건수</h3><p class="sub">위반 ${fmt(D.violations)}건의 원인</p>${hbar(rules, { label: 130 })}${tableView(['규칙', '건수'], rules.map(r => [r.label, fmt(r.v)]))}`;
+  const cs = D.cust.filter(c => c.bad).sort((a, b) => b.bad - a.bad || a.name.localeCompare(b.name));
+  $('cCust').innerHTML = `<h3>발주처별 오류 행</h3><p class="sub">'(빈 칸)'은 발주처가 비어 있는 행 · 막대에 올리면 그 발주처 전체 행수와 오류율</p>${hbar(cs.map(c => ({ label: c.name, v: c.bad, tip: `${esc(c.name)}: 오류 <b>${fmt(c.bad)}</b>행 / 전체 ${fmt(c.total)}행 · 오류율 ${pct(c.bad, c.total)}%` })), { label: 100 })}${tableView(['발주처', '오류 행', '전체 행', '오류율'], cs.map(c => [c.name, fmt(c.bad), fmt(c.total), pct(c.bad, c.total) + '%']))}`;
+  const ms = D.months;
+  $('cMonth').innerHTML = `<h3>월별 오류 행</h3><p class="sub">수주일 기준 (날짜 표기가 섞여 있어도 같은 달로 묶음) · 막대에 올리면 그 달 전체·정상·오류</p>${vbar(ms.map(m => ({ label: m.m.length === 7 ? `${m.m.slice(2, 4)}.${m.m.slice(5)}` : m.m, v: m.bad, tip: `${esc(m.m)}: 전체 <b>${fmt(m.total)}</b> · 정상 <b>${fmt(m.total - m.bad)}</b> · 오류 <b>${fmt(m.bad)}</b>행 (${pct(m.bad, m.total)}%)` })))}${tableView(['월', '전체 행', '정상 행', '오류 행', '오류율'], ms.map(m => [m.m, fmt(m.total), fmt(m.total - m.bad), fmt(m.bad), pct(m.bad, m.total) + '%']))}`;
+  bindTips($('v-dashboard'));
+}
+
 /* ---------- ③ 수주 검증 ---------- */
 const O_SHEET = '수주납품';
 const O_HEAD = ['수주일', '발주처', '품번', '품명', '로트번호', '수량', '단위', '단가', '담당자'];
@@ -387,7 +517,7 @@ async function readOrderFile(file){
   if (!rows.length) return oMsg('err', '머리글 아래에 데이터 행이 없습니다.');
   Object.assign(OS, { name: file.name, head: O_HEAD, rows, skipped, rule: 'all', q: '', open: null });
   OS.res = validateOrders(rows);
-  oMsg('', '');
+  oMsg('info', `검증을 마쳤습니다. 한눈에 보려면 <a href="#dashboard">대시보드</a>를 여세요.`);
   renderOrders();
 }
 // 규칙 정의 (화면의 규칙별 건수·필터가 이 순서를 따름)
@@ -519,10 +649,12 @@ drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) r
 
 /* ---------- 메뉴(해시) ---------- */
 function route(){
-  const v = location.hash === '#customers' ? 'customers' : location.hash === '#orders' ? 'orders' : 'items';
-  for (const s of ['items', 'customers', 'orders']) $('v-' + s).hidden = s !== v;
+  const V = { '#items': 'items', '#customers': 'customers', '#orders': 'orders' };
+  const v = V[location.hash] || 'dashboard';
+  for (const s of ['dashboard', 'items', 'customers', 'orders']) $('v-' + s).hidden = s !== v;
+  document.querySelector('.countbar').hidden = v === 'dashboard';
   document.querySelectorAll('nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === v ? 'page' : 'false'));
-  v === 'items' ? renderItems() : v === 'customers' ? renderCustomers() : renderOrders();
+  ({ dashboard: renderDash, items: renderItems, customers: renderCustomers, orders: renderOrders })[v]();
 }
 window.addEventListener('hashchange', route);
 $('asof1').textContent = DATA.asof;

@@ -64,7 +64,29 @@ ledger_check = {'rows': len(rs), 'matched': sum(cnt.values()), 'per': dict(cnt),
                 'blank': blank, 'unknown': dict(unknown),
                 'period': [min(dates), max(dates)]}
 
-data = {'items': items, 'aliases': aliases, 'customers': customers, 'wh': wh, 'asof': asof,
+# 대시보드용 수주 검증 집계 (화면 '수주 검증'과 같은 규칙: ① 발주처·로트 빈 값 ② 수량 0 이하 ③ 9개 항목 완전 중복, 뒤 행만)
+def is_blank(v): return v is None or str(v).strip() == ''
+seen = set(); by = Counter(); months = defaultdict(lambda: [0, 0]); cust = defaultdict(lambda: [0, 0]); bad_rows = 0; viol = 0
+for r in rs:
+    hits = []
+    if is_blank(r[1]): hits.append('cust')
+    if is_blank(r[4]): hits.append('lot')
+    try: q = float(str(r[5]).replace(',', '')) if not isinstance(r[5], (int, float)) else r[5]
+    except ValueError: q = None
+    if q is None or q <= 0: hits.append('qty')
+    key = tuple(r[:9])
+    if key in seen: hits.append('dup')
+    seen.add(key)
+    for h_ in hits: by[h_] += 1
+    viol += len(hits); bad = 1 if hits else 0; bad_rows += bad
+    m = iso(r[0])[:7]; months[m][0] += 1; months[m][1] += bad
+    c = '(빈 칸)' if is_blank(r[1]) else str(r[1]); cust[c][0] += 1; cust[c][1] += bad
+dash = {'name': '01_금오정밀_수주납품대장.xlsx', 'total': len(rs), 'ok': len(rs) - bad_rows, 'bad': bad_rows, 'violations': viol,
+        'byRule': {k: by[k] for k in ['cust', 'lot', 'qty', 'dup']},
+        'months': [{'m': m, 'total': v[0], 'bad': v[1]} for m, v in sorted(months.items())],
+        'cust': [{'name': k, 'total': v[0], 'bad': v[1]} for k, v in cust.items()]}
+
+data = {'items': items, 'dash': dash, 'aliases': aliases, 'customers': customers, 'wh': wh, 'asof': asof,
         'inv': inv, 'incoming': incoming, 'open': open_so, 'ledger': ledger_check}
 js = json.dumps(data, ensure_ascii=False)
 html = open(page, encoding='utf-8').read()
