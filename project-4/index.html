@@ -79,6 +79,33 @@
     table.main tr{padding:8px 12px;border-bottom:1px solid var(--line)} table.main td{border:0;padding:2px 0}
     table.main td.num{text-align:left}
   }
+  /* ③ 수주 검증 */
+  .drop{border:2px dashed #b9c4d3;border-radius:12px;background:#fff;padding:28px 16px;text-align:center;cursor:pointer;transition:background .15s,border-color .15s}
+  .drop.small{padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:center}
+  .drop.small>div:first-child,.drop.small .muted{display:none} .drop.small .big{font-size:13.5px;margin:0}
+  .drop.over{background:var(--accent-bg);border-color:var(--accent)}
+  .drop .big{font-size:16px;font-weight:700;margin:6px 0}
+  .drop .muted{font-size:12.5px}
+  .bigbtn{border:0;background:var(--accent);color:#fff;border-radius:9px;padding:10px 18px;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
+  .bigbtn:disabled{background:#9fb3cc;cursor:default}
+  .bigbtn.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+  .msg{margin-top:12px;padding:12px 14px;border-radius:8px;font-size:13.5px}
+  .msg.err{background:var(--bad-bg);color:var(--bad)} .msg.info{background:var(--accent-bg);color:#2c3e57}
+  .cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:14px 0}
+  .kcard{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .kcard .l{font-size:12.5px;color:var(--muted)} .kcard .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums}
+  .kcard.ok .v{color:var(--good)} .kcard.ng .v{color:var(--bad)}
+  .kcard .exp{font-size:12px;margin-top:2px}
+  .rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:14px}
+  .rule{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 12px;cursor:pointer;text-align:left;font:inherit;color:var(--ink)}
+  .rule[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px #bcd3f0}
+  .rule .n{font-size:20px;font-weight:700;color:var(--bad);font-variant-numeric:tabular-nums}
+  .rule .t{font-size:12.5px;color:var(--muted)}
+  .actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+  tr.full td{background:#fbfcfe;font-size:12.5px}
+  .kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:4px 14px}
+  .kv span b{color:var(--muted);font-weight:500;margin-right:4px}
+  @media (max-width:760px){.cards{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -88,6 +115,7 @@
     <nav aria-label="메뉴">
       <a href="#items" data-view="items">품목 조회</a>
       <a href="#customers" data-view="customers">발주처 조회</a>
+      <a href="#orders" data-view="orders">수주 검증</a>
     </nav>
   </div>
 
@@ -144,9 +172,24 @@
     </div>
   </section>
 
+  <!-- ③ 수주 검증 -->
+  <section id="v-orders" hidden>
+    <div class="notice">수주납품대장 엑셀을 올리면 아래 3가지 규칙으로 행마다 검사합니다. <b>파일은 이 PC의 브라우저 안에서만 읽고, 어디에도 보내지 않으며, 원본은 바뀌지 않습니다.</b><br>
+      ① 발주처 또는 로트번호가 비어 있음 · ② 수량이 0 이하 · ③ 위쪽 어느 행과 9개 항목이 모두 같음(중복, 뒤쪽 행만 오류)</div>
+    <div class="drop" id="drop" tabindex="0" role="button" aria-label="엑셀 파일 올리기">
+      <div style="font-size:28px">📄</div>
+      <div class="big">여기에 엑셀 파일을 끌어다 놓거나, 눌러서 고르세요</div>
+      <div class="muted">.xlsx 파일 · 시트 이름 '수주납품' · 1행 머리글(수주일, 발주처, 품번, 품명, 로트번호, 수량, 단위, 단가, 담당자)</div>
+      <input type="file" id="file" accept=".xlsx,.xls" hidden>
+    </div>
+    <div id="oMsg"></div>
+    <div id="oResult" hidden></div>
+  </section>
+
   <footer id="src"></footer>
 </div>
 <div class="toast" id="toast"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const DATA = {"items": [{"code": "KJ-H2201", "name": "케이블 하네스(통신)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "통신용", "unit": "EA", "price": 185000, "lot": "Y", "insp": "전수"}, {"code": "KJ-H2305", "name": "케이블 하네스(전원)", "l1": "전장 조립체", "l2": "케이블 하네스", "l3": "전원용", "unit": "EA", "price": 142000, "lot": "Y", "insp": "전수"}, {"code": "KJ-C1208", "name": "커넥터 조립체 12핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "12핀", "unit": "EA", "price": 28000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-C2410", "name": "커넥터 조립체 24핀", "l1": "전장 조립체", "l2": "커넥터 조립체", "l3": "24핀", "unit": "EA", "price": 42000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-S4102", "name": "신호 변환 보드", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "신호 처리", "unit": "EA", "price": 480000, "lot": "Y", "insp": "전수"}, {"code": "KJ-P3301", "name": "전원 분배 모듈", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "전원 분배", "unit": "EA", "price": 620000, "lot": "Y", "insp": "전수"}, {"code": "KJ-F8204", "name": "필터 어셈블리", "l1": "전장 조립체", "l2": "전자 모듈", "l3": "EMI 필터", "unit": "EA", "price": 73000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1107", "name": "방열 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "방열", "unit": "EA", "price": 18000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-B1120", "name": "장착 브래킷", "l1": "기구 부품", "l2": "브래킷", "l3": "장착", "unit": "EA", "price": 15500, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-E5010", "name": "차폐 케이스", "l1": "기구 부품", "l2": "하우징", "l3": "전자파 차폐", "unit": "EA", "price": 96000, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-K6003", "name": "고정 클램프 세트", "l1": "소모성 부품", "l2": "체결류", "l3": "클램프", "unit": "SET", "price": 9800, "lot": "Y", "insp": "샘플링"}, {"code": "KJ-O7001", "name": "O-링 세트", "l1": "소모성 부품", "l2": "실링류", "l3": "O-링", "unit": "SET", "price": 6500, "lot": "Y", "insp": "샘플링"}], "aliases": [{"alias": "KJH2201", "key": "KJ-H2201", "reason": "하이픈 누락 표기"}, {"alias": "KJ-H-2201", "key": "KJ-H2201", "reason": "하이픈 중복 표기(구 시스템 이관분)"}, {"alias": "KJ H2201", "key": "KJ-H2201", "reason": "하이픈 대신 공백 입력"}, {"alias": "kj-h2201", "key": "KJ-H2201", "reason": "영문 소문자 입력"}, {"alias": "KJH2305", "key": "KJ-H2305", "reason": "하이픈 누락 표기"}, {"alias": "KJC2410", "key": "KJ-C2410", "reason": "하이픈 누락 표기"}, {"alias": "GR-HNS-01", "key": "KJ-H2201", "reason": "발주처 품번(가람체계 도면 번호)"}, {"alias": "HW-SB4102", "key": "KJ-S4102", "reason": "발주처 품번(한울시스템즈 도면 번호)"}, {"alias": "KJ-B1107A", "key": "KJ-B1107", "reason": "구 개정판 품번(개정 A, 2025-06 폐지)"}], "customers": [{"code": "C01", "name": "가람체계", "type": "체계업체"}, {"code": "C02", "name": "한울시스템즈", "type": "체계업체"}, {"code": "C03", "name": "미르방산", "type": "체계업체"}, {"code": "C04", "name": "누리테크", "type": "1차 협력사"}, {"code": "C05", "name": "다온항공", "type": "1차 협력사"}, {"code": "C06", "name": "바른기계", "type": "1차 협력사"}, {"code": "C07", "name": "새솔정밀", "type": "1차 협력사"}, {"code": "C08", "name": "온빛전자", "type": "1차 협력사"}], "wh": {"G1-AVL": {"name": "출하 가능", "ship": "Y", "rule": "출하검사 합격 · 소유권 금오정밀 · 수주에 할당 가능한 재고"}, "G1-QI": {"name": "출하검사 대기", "ship": "N", "rule": "생산 완료 후 품질팀 출하검사 전 — 합격 시 G1-AVL 로 이동"}, "G1-NCR": {"name": "부적합 격리", "ship": "N", "rule": "검사 불합격·반품 — 재작업 또는 폐기 판정 전까지 출하 금지"}, "G1-CSG": {"name": "고객 위탁 보관", "ship": "N", "rule": "납품 완료(소유권 고객)했으나 고객 요청으로 보관 중 — 금오정밀 재고 아님"}, "G1-SPR": {"name": "수리부속 비축", "ship": "N", "rule": "정비 지원 계약에 따라 비축 의무가 있는 수량 — 일반 수주 할당 금지"}, "M1-OWN": {"name": "사급 자재", "ship": "-", "rule": "금오정밀이 직접 구매한 자재"}, "M1-GFM": {"name": "지급 자재(관급·고객 지급)", "ship": "-", "rule": "발주처가 지급한 자재 — 해당 수주에만 사용, 사용량 보고 대상"}}, "asof": "2026-08-31", "inv": {"KJ-H2201": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 42}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 12}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 3}, {"wh": "G1-CSG", "lot": "L2608-034", "qty": 10}, {"wh": "G1-SPR", "lot": "L2608-042", "qty": 8}], "KJ-S4102": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 18}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 6}, {"wh": "G1-NCR", "lot": "L2608-026", "qty": 1}, {"wh": "G1-SPR", "lot": "L2608-034", "qty": 4}], "KJ-C2410": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 120}, {"wh": "G1-QI", "lot": "L2608-017", "qty": 40}, {"wh": "G1-NCR", "lot": "L2608-025", "qty": 6}], "KJ-P3301": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 9}, {"wh": "G1-QI", "lot": "L2608-020", "qty": 4}, {"wh": "G1-SPR", "lot": "L2608-028", "qty": 2}], "KJ-H2305": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 35}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 10}, {"wh": "G1-CSG", "lot": "L2608-026", "qty": 6}], "KJ-C1208": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 150}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 4}], "KJ-F8204": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 60}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 15}], "KJ-B1107": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 210}, {"wh": "G1-NCR", "lot": "L2608-020", "qty": 9}], "KJ-B1120": [{"wh": "G1-AVL", "lot": "L2608-014", "qty": 180}], "KJ-E5010": [{"wh": "G1-AVL", "lot": "L2608-010", "qty": 48}, {"wh": "G1-QI", "lot": "L2608-018", "qty": 8}], "KJ-K6003": [{"wh": "G1-AVL", "lot": "L2608-012", "qty": 300}], "KJ-O7001": [{"wh": "G1-AVL", "lot": "L2608-013", "qty": 420}, {"wh": "G1-NCR", "lot": "L2608-021", "qty": 20}]}, "incoming": {"KJ-H2201": [{"date": "2026-09-04", "qty": 20, "note": "생산 완료 예정(출하검사 후 G1-AVL 입고)"}], "KJ-S4102": [{"date": "2026-09-07", "qty": 10, "note": "생산 완료 예정"}], "KJ-C2410": [{"date": "2026-09-03", "qty": 60, "note": "생산 완료 예정"}], "KJ-P3301": [{"date": "2026-09-10", "qty": 6, "note": "생산 완료 예정"}], "KJ-H2305": [{"date": "2026-09-05", "qty": 15, "note": "생산 완료 예정"}]}, "open": {"KJ-H2201": [{"so": "SO-2608-118", "cust": "가람체계", "qty": 30, "due": "2026-09-08"}, {"so": "SO-2608-121", "cust": "미르방산", "qty": 16, "due": "2026-09-12"}], "KJ-S4102": [{"so": "SO-2608-125", "cust": "한울시스템즈", "qty": 20, "due": "2026-09-09"}], "KJ-C2410": [{"so": "SO-2608-130", "cust": "누리테크", "qty": 90, "due": "2026-09-05"}], "KJ-P3301": [{"so": "SO-2608-133", "cust": "다온항공", "qty": 12, "due": "2026-09-11"}], "KJ-H2305": [{"so": "SO-2608-137", "cust": "온빛전자", "qty": 25, "due": "2026-09-10"}]}, "ledger": {"rows": 1984, "matched": 1969, "per": {"가람체계": 234, "누리테크": 238, "다온항공": 240, "새솔정밀": 243, "한울시스템즈": 243, "미르방산": 250, "바른기계": 268, "온빛전자": 253}, "blank": [190, 390, 566, 646, 659, 684, 853, 865, 1136, 1301, 1321, 1566, 1598, 1819, 1910], "unknown": {}, "period": ["2025-09-01", "2026-08-28"]}};
 const fmt = n => Number(n).toLocaleString('ko-KR');
@@ -311,16 +354,179 @@ $('vOut').addEventListener('click', e => { const b = e.target.closest('[data-pic
     ${unk.length ? `<div style="margin-top:8px;font-size:12.5px">미등록 표기: ${unk.map(([k, v]) => `${esc(k)} ${v}행`).join(', ')}</div>` : '<div class="muted" style="margin-top:6px">미등록 이름 표기는 없습니다. 입력된 발주처명은 모두 기준정보와 같습니다.</div>'}`;
 })();
 
+/* ---------- ③ 수주 검증 ---------- */
+const O_SHEET = '수주납품';
+const O_HEAD = ['수주일', '발주처', '품번', '품명', '로트번호', '수량', '단위', '단가', '담당자'];
+const OS = { name: '', head: null, rows: [], res: null, rule: 'all', q: '', open: null };
+
+function oMsg(kind, html){ $('oMsg').innerHTML = html ? `<div class="msg ${kind}">${html}</div>` : ''; }
+
+// 1단계: 파일 읽기 + 시트·머리글 확인
+async function readOrderFile(file){
+  oMsg('', ''); $('oResult').hidden = true; OS.res = null; renderOrders();
+  if (!/\.xlsx?$/i.test(file.name)) return oMsg('err', `<b>${esc(file.name)}</b>은(는) 엑셀 파일이 아닙니다. .xlsx 파일을 올려 주세요.`);
+  if (typeof XLSX === 'undefined') return oMsg('err', '엑셀을 읽는 도구를 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 새로고침해 주세요.');
+  oMsg('info', `<b>${esc(file.name)}</b> 읽는 중…`);
+  let wb;
+  try { wb = XLSX.read(await file.arrayBuffer(), { type: 'array', cellDates: false }); }
+  catch { return oMsg('err', '파일을 열 수 없습니다. 암호가 걸려 있거나 손상된 파일인지 확인해 주세요.'); }
+  const ws = wb.Sheets[O_SHEET];
+  if (!ws) return oMsg('err', `'${O_SHEET}' 시트가 없습니다. 이 파일의 시트: ${wb.SheetNames.map(n => `'${esc(n)}'`).join(', ')}`);
+  const range = XLSX.utils.decode_range(ws['!ref'] || 'A1');
+  const grid = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null, blankrows: true });
+  const head = (grid[0] || []).slice(0, 9).map(v => v == null ? '' : String(v).trim());
+  const missing = O_HEAD.filter((h, i) => head[i] !== h);
+  if (range.s.r !== 0 || missing.length)
+    return oMsg('err', `1행 머리글이 약속과 다릅니다. A~I열이 차례로 <b>${O_HEAD.join(' · ')}</b> 이어야 합니다.<br>지금 파일: ${head.map(h => esc(h || '(빈 칸)')).join(' · ')}`);
+  const rows = []; let skipped = 0;
+  for (let i = 1; i < grid.length; i++){
+    const vals = O_HEAD.map((_, c) => grid[i][c] ?? null);
+    if (vals.every(v => v == null || String(v).trim() === '')) { skipped++; continue; } // 완전히 빈 줄은 데이터가 아님
+    rows.push({ r: range.s.r + i + 1, vals });                                          // 머리글 포함 엑셀 행 번호
+  }
+  if (!rows.length) return oMsg('err', '머리글 아래에 데이터 행이 없습니다.');
+  Object.assign(OS, { name: file.name, head: O_HEAD, rows, skipped, rule: 'all', q: '', open: null });
+  OS.res = validateOrders(rows);
+  oMsg('', '');
+  renderOrders();
+}
+// 규칙 정의 (화면의 규칙별 건수·필터가 이 순서를 따름)
+const O_RULES = [
+  { id: 'cust', no: '①', name: '발주처 빈 값' },
+  { id: 'lot',  no: '①', name: '로트번호 빈 값' },
+  { id: 'qty',  no: '②', name: '수량 0 이하' },
+  { id: 'dup',  no: '③', name: '중복 행' },
+];
+const isBlank = v => v == null || String(v).trim() === '';
+const showVal = v => v == null ? '(빈 칸)' : String(v).trim() === '' ? `(공백 ${String(v).length}칸)` : String(v);
+
+// 2단계: ① 빈 값 · ② 수량 / 3단계: ③ 중복
+function validateOrders(rows){
+  const issues = [], seen = new Map();
+  for (const row of rows){
+    const [, cust, , , lot, qty] = row.vals;
+    if (isBlank(cust)) issues.push({ r: row.r, rule: 'cust', field: '발주처', value: showVal(cust), reason: '발주처가 비어 있음' });
+    if (isBlank(lot))  issues.push({ r: row.r, rule: 'lot', field: '로트번호', value: showVal(lot), reason: '로트번호가 비어 있음' });
+    // 숫자로 적힌 글자('12')는 숫자로 인정, 숫자로 읽을 수 없으면 ②로 분류
+    const n = typeof qty === 'number' ? qty : (isBlank(qty) ? NaN : Number(String(qty).replace(/,/g, '').trim()));
+    if (!Number.isFinite(n)) issues.push({ r: row.r, rule: 'qty', field: '수량', value: showVal(qty), reason: '수량이 숫자가 아님' });
+    else if (n <= 0)         issues.push({ r: row.r, rule: 'qty', field: '수량', value: String(qty), reason: n === 0 ? '수량이 0' : '수량이 0보다 작음(음수)' });
+    // 9개 항목을 원본 값 그대로 비교 (표기 정리 없음). 처음 나온 행이 기준, 뒤 행만 오류
+    const key = JSON.stringify(row.vals);
+    if (seen.has(key)) issues.push({ r: row.r, rule: 'dup', field: '9개 항목 전체', value: `${showVal(row.vals[0])} · ${showVal(row.vals[1])} · ${showVal(row.vals[2])} · ${showVal(row.vals[5])}…`, reason: `${seen.get(key)}행과 9개 항목이 모두 같음`, ref: seen.get(key) });
+    else seen.set(key, row.r);
+  }
+  const badRows = new Set(issues.map(x => x.r));
+  const byRule = Object.fromEntries(O_RULES.map(r => [r.id, issues.filter(x => x.rule === r.id).length]));
+  return { total: rows.length, issues, badRows, byRule, okRows: rows.filter(r => !badRows.has(r.r)) };
+}
+
+// 4단계: 결과 화면
+const O_LIMIT = 500;
+function renderOrders(){
+  const R = OS.res, box = $('oResult');
+  $('drop').classList.toggle('small', !!R);
+  $('drop').querySelector('.big').textContent = R ? '다른 파일 검증하기 (끌어다 놓거나 누르기)' : '여기에 엑셀 파일을 끌어다 놓거나, 눌러서 고르세요';
+  if (!R){ box.hidden = true; setCount(0, 0, ['파일을 올리면 검증합니다']); return; }
+  const q = OS.q.replace(/[^0-9]/g, '');
+  const list = R.issues.filter(x => (OS.rule === 'all' || x.rule === OS.rule) && (!q || String(x.r).includes(q)));
+  setCount(list.length, R.issues.length, [`오류 행 ${fmt(R.badRows.size)}`, `정상 행 ${fmt(R.okRows.length)}`]);
+  const ruleName = id => { const r = O_RULES.find(r => r.id === id); return `${r.no} ${r.name}`; };
+  const byRow = new Map(OS.rows.map(r => [r.r, r.vals]));
+  const kv = vals => `<div class="kv">${O_HEAD.map((h, i) => `<span><b>${esc(h)}</b>${esc(showVal(vals[i]))}</span>`).join('')}</div>`;
+  box.hidden = false;
+  box.innerHTML = `
+    <div class="msg info" style="margin-top:12px">파일 <b>${esc(OS.name)}</b> · 시트 '${O_SHEET}' · 데이터 ${fmt(R.total)}행(엑셀 ${OS.rows[0].r}~${OS.rows.at(-1).r}행)${OS.skipped ? ` · 완전히 빈 줄 ${OS.skipped}개는 데이터가 아니어서 건너뜀` : ''}</div>
+    <div class="cards">
+      <div class="kcard"><div class="l">전체 행</div><div class="v">${fmt(R.total)}</div></div>
+      <div class="kcard ok"><div class="l">정상 행 (저장 대상)</div><div class="v">${fmt(R.okRows.length)}</div></div>
+      <div class="kcard ng"><div class="l">오류 행</div><div class="v">${fmt(R.badRows.size)}</div><div class="exp muted">위반 ${fmt(R.issues.length)}건${R.issues.length !== R.badRows.size ? ' (한 행에 여러 위반 포함)' : ''}</div></div>
+    </div>
+    <div class="actions">
+      <button type="button" class="bigbtn" id="saveOk" ${R.okRows.length ? '' : 'disabled'}>✔ 정상 행 ${fmt(R.okRows.length)}건 엑셀로 저장</button>
+      <button type="button" class="bigbtn ghost" id="saveErr" ${R.issues.length ? '' : 'disabled'}>오류 목록 엑셀로 저장</button>
+      <span class="muted" id="saveMsg"></span>
+    </div>
+    <h3 style="font-size:15px;margin:6px 0 8px">규칙별 건수 <span class="muted" style="font-weight:400">— 누르면 오류 목록이 그 규칙만 보입니다</span></h3>
+    <div class="rules">
+      <button type="button" class="rule" data-rule="all" aria-pressed="${OS.rule === 'all'}"><div class="n" style="color:var(--ink)">${fmt(R.issues.length)}</div><div class="t">전체 위반</div></button>
+      ${O_RULES.map(r => `<button type="button" class="rule" data-rule="${r.id}" aria-pressed="${OS.rule === r.id}"><div class="n">${fmt(R.byRule[r.id])}</div><div class="t">${r.no} ${esc(r.name)}</div></button>`).join('')}
+    </div>
+    <div class="controls">
+      <input id="oQ" type="search" placeholder="엑셀 행 번호로 찾기 (예: 190)" aria-label="행 번호 검색" value="${esc(OS.q)}" inputmode="numeric" autocomplete="off">
+      <span class="muted">행을 누르면 그 행의 9개 항목 전체가 보입니다.</span>
+    </div>
+    <div class="card">
+      <table class="main">
+        <thead><tr><th class="num">엑셀 행</th><th>규칙</th><th>항목</th><th>값</th><th>사유</th></tr></thead>
+        <tbody id="oRows">${list.slice(0, O_LIMIT).map(x => {
+          const open = OS.open === x.r + x.rule;
+          return `<tr class="row${open ? ' open' : ''}" data-k="${x.r + x.rule}" tabindex="0">
+            <td class="num mono">${x.r}</td><td><span class="badge b-bad">${esc(ruleName(x.rule))}</span></td>
+            <td>${esc(x.field)}</td><td class="mono" style="font-weight:500">${esc(x.value)}</td><td>${esc(x.reason)}</td></tr>` +
+            (open ? `<tr class="full"><td colspan="5"><div class="muted" style="margin-bottom:4px">엑셀 ${x.r}행</div>${kv(byRow.get(x.r))}${x.ref ? `<div class="muted" style="margin:8px 0 4px">같은 내용의 앞쪽 행: 엑셀 ${x.ref}행 (이 행은 저장되고, ${x.r}행만 오류)</div>${kv(byRow.get(x.ref))}` : ''}</td></tr>` : '');
+        }).join('')}</tbody>
+      </table>
+      <div class="empty" ${list.length ? 'hidden' : ''}>${R.issues.length ? '조건에 맞는 오류가 없습니다.' : '오류가 없습니다. 모든 행이 정상입니다.'}</div>
+      ${list.length > O_LIMIT ? `<div class="empty">처음 ${O_LIMIT}건만 표시합니다. 전체는 '오류 목록 엑셀로 저장'으로 받으세요.</div>` : ''}
+    </div>`;
+  box.querySelectorAll('.rule').forEach(b => b.onclick = () => { OS.rule = b.dataset.rule; OS.open = null; renderOrders(); });
+  const qi = $('oQ'); qi.oninput = () => { OS.q = qi.value; const pos = qi.selectionStart; renderOrders(); const n = $('oQ'); n.focus(); n.setSelectionRange(pos, pos); };
+  $('oRows').onclick = e => { const tr = e.target.closest('tr.row'); if (!tr) return; OS.open = OS.open === tr.dataset.k ? null : tr.dataset.k; renderOrders(); };
+  $('oRows').onkeydown = e => { if (e.key === 'Enter' && e.target.matches('tr.row')) e.target.click(); };
+  $('saveOk').onclick = saveOkRows; $('saveErr').onclick = saveIssues;
+}
+
+// 5단계: 저장 (원본은 그대로, 새 파일로 내려받기)
+const baseName = () => OS.name.replace(/\.xlsx?$/i, '');
+function sheetFile(sheetName, aoa, widths){
+  const ws = XLSX.utils.aoa_to_sheet(aoa); if (widths) ws['!cols'] = widths.map(w => ({ wch: w }));
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  return new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })]);
+}
+async function saveBlob(filename, blob){
+  const say = (t, bad) => { const m = $('saveMsg'); m.textContent = t; m.style.color = bad ? 'var(--bad)' : 'var(--good)'; };
+  // claude.ai 안에서는 downloads 기능, 그 밖(GitHub Pages·PC에서 연 파일)에서는 일반 내려받기
+  if (window.claude && typeof window.claude.use === 'function'){
+    const dl = await window.claude.use('downloads');
+    if (dl){
+      try { await dl.save({ filename, data: blob }); return say(`저장했습니다: ${filename}`); }
+      catch (e){ return say(e && e.code === 'declined' ? '저장을 취소했습니다.' : '이 화면에서는 저장할 수 없습니다. GitHub Pages 주소나 PC에서 연 파일로 다시 시도해 주세요.', true); }
+    }
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  say(`내려받기를 시작했습니다: ${filename}`);
+}
+function saveOkRows(){
+  const R = OS.res;
+  const aoa = [O_HEAD, ...R.okRows.map(r => r.vals)];    // 원본 값 그대로, 정상 행만
+  saveBlob(`${baseName()}_정상행_${R.okRows.length}건.xlsx`, sheetFile(O_SHEET, aoa, [12, 12, 11, 20, 12, 7, 6, 10, 8]));
+}
+function saveIssues(){
+  const R = OS.res, rn = id => { const r = O_RULES.find(r => r.id === id); return `${r.no} ${r.name}`; };
+  const aoa = [['엑셀 행 번호', '규칙', '항목', '값', '사유'], ...R.issues.map(x => [x.r, rn(x.rule), x.field, x.value, x.reason])];
+  saveBlob(`${baseName()}_오류목록_${R.issues.length}건.xlsx`, sheetFile('오류목록', aoa, [11, 16, 14, 40, 30]));
+}
+
+const drop = $('drop'), fileIn = $('file');
+drop.onclick = () => fileIn.click();
+drop.onkeydown = e => { if (e.key === 'Enter' || e.key === ' '){ e.preventDefault(); fileIn.click(); } };
+fileIn.onchange = () => { if (fileIn.files[0]) readOrderFile(fileIn.files[0]); fileIn.value = ''; };
+['dragenter', 'dragover'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+['dragleave', 'drop'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.remove('over'); }));
+drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) readOrderFile(f); });
+
 /* ---------- 메뉴(해시) ---------- */
 function route(){
-  const v = location.hash === '#customers' ? 'customers' : 'items';
-  for (const s of ['items', 'customers']) $('v-' + s).hidden = s !== v;
+  const v = location.hash === '#customers' ? 'customers' : location.hash === '#orders' ? 'orders' : 'items';
+  for (const s of ['items', 'customers', 'orders']) $('v-' + s).hidden = s !== v;
   document.querySelectorAll('nav a').forEach(a => a.setAttribute('aria-current', a.dataset.view === v ? 'page' : 'false'));
-  v === 'items' ? renderItems() : renderCustomers();
+  v === 'items' ? renderItems() : v === 'customers' ? renderCustomers() : renderOrders();
 }
 window.addEventListener('hashchange', route);
 $('asof1').textContent = DATA.asof;
-$('src').textContent = `출처: 02_금오정밀_기준정보.xlsx(품목마스터·품번별칭·발주처마스터·창고마스터) · 01_금오정밀_수주납품대장.xlsx · 03_금오정밀_창고재고.xlsx(기준일 ${DATA.asof}) · 원본 파일은 수정하지 않음. 교육용 가상 데이터.`;
+$('src').textContent = `출처: 02_금오정밀_기준정보.xlsx(품목마스터·품번별칭·발주처마스터·창고마스터) · 01_금오정밀_수주납품대장.xlsx · 03_금오정밀_창고재고.xlsx(기준일 ${DATA.asof}) · 수주 검증은 올린 파일을 브라우저에서만 읽음 · 원본 파일은 수정하지 않음. 교육용 가상 데이터.`;
 route();
 </script>
 </body>
